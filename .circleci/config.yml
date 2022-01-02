@@ -16,7 +16,7 @@ jobs:
       - checkout
       - run:
           name: "Config Bazel"
-          command: "sudo apt-get install npm && npm install -g @bazel/bazelisk"
+          command: echo 'export GOPATH="/go"' >> $BASH_ENV && apt-get update && apt-get install -y golang git && go get github.com/bazelbuild/bazelisk && ln -sf /go/bin/bazelisk /usr/bin/bazel
       - run:
           name: "Build"
           command: "cd ~/vt && bazel build //common/..."
