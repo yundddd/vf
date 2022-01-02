@@ -1,6 +1,9 @@
 #pragma once
 
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <cerrno>
 #include "common/macros.hh"
 #include "glog/logging.h"
@@ -45,6 +48,14 @@ class FileDescriptor {
 
   int handle() const { return fd_; }
   bool valid() const { return fd_ != -1; }
+
+  size_t file_size() const {
+    CHECK_NE(fd_, -1) << "fd is invalid";
+    struct stat s {};
+    auto ret = fstat(fd_, &s);
+    CHECK_NE(ret, -1) << std::strerror(errno);
+    return s.st_size;
+  }
 
  private:
   MAKE_NON_COPYABLE(FileDescriptor);
