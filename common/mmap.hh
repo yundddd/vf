@@ -9,6 +9,9 @@ namespace vt {
 namespace common {
 
 template <int PROT>
+concept WRITABLE = (PROT & PROT_WRITE) != 0;
+
+template <int PROT>
 class Mmap {
  public:
   Mmap(size_t len, int flags, int fd, size_t offset)
@@ -41,7 +44,7 @@ class Mmap {
 
   const char* base() const { return base_; }
 
-  char* mutable_base() requires((PROT & PROT_WRITE) != 0) { return base_; }
+  char* mutable_base() requires WRITABLE<PROT> { return base_; }
 
   bool valid() const { return base() != nullptr; }
 

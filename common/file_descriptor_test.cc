@@ -40,3 +40,11 @@ TEST_F(FileDescriptorTest, CanBeMoved) {
   EXPECT_TRUE(fd2.valid());
   EXPECT_FALSE(fd.valid());
 }
+
+TEST_F(FileDescriptorTest, FileSize) {
+  vt::common::FileDescriptor fd(test_file_, O_WRONLY | O_CREAT,
+                                S_IRUSR | S_IWUSR);
+  EXPECT_TRUE(fd.valid());
+  ::write(fd.handle(), "abc", 3);
+  EXPECT_EQ(fd.file_size(), 3u);
+}

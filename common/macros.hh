@@ -22,3 +22,6 @@
 #define MAKE_COPYABLE_AND_MOVABLE(class_name) \
   MAKE_COPYABLE(class_name);                  \
   MAKE_MOVABLE(class_name);
+
+#define ELF_PAGE_SZ64 0x200000
+#define ELF_PAGE_SZ32 0x1000
