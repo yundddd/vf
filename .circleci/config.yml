@@ -5,7 +5,7 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  say-hello:
+  build-job:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
@@ -16,7 +16,7 @@ jobs:
       - checkout
       - run:
           name: "Config Bazel"
-          command: echo 'export GOPATH="/go"' >> $BASH_ENV && apt-get update && apt-get install -y golang git && go get github.com/bazelbuild/bazelisk && ln -sf /go/bin/bazelisk /usr/bin/bazel
+          command: echo 'export GOPATH="/go"' >> $BASH_ENV && sudo apt-get update && apt-get install -y golang git && go get github.com/bazelbuild/bazelisk && ln -sf /go/bin/bazelisk /usr/bin/bazel
       - run:
           name: "Build"
           command: "cd ~/vt && bazel build //common/..."
@@ -26,4 +26,4 @@ jobs:
 workflows:
   say-hello-workflow:
     jobs:
-      - say-hello
+      - build-job
