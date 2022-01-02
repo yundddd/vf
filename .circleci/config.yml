@@ -8,15 +8,17 @@ jobs:
   build-job:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
-      - image: cimg/base:stable-18.04
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    executor: main
+    environment:
+      DEBIAN_FRONTEND: noninteractive
     steps:
+      # setup bazel
+      - run: echo 'export GOPATH="/go"' >> $BASH_ENV
+      - run: apt-get update && apt-get install -y golang git
+      - run: go get github.com/bazelbuild/bazelisk
+      - run: ln -sf /go/bin/bazelisk /usr/bin/bazel
+
       - checkout
-      - run:
-          name: "Config Bazel"
-          command: echo 'export GOPATH="/go"' >> $BASH_ENV && sudo apt-get update && sudo apt-get install -y golang git && go get github.com/bazelbuild/bazelisk && ln -sf /go/bin/bazelisk /usr/bin/bazel
       - run:
           name: "Build"
           command: "cd ~/vt && bazel build //common/..."
