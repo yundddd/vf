@@ -19,6 +19,18 @@ git_repository(
 )
 
 git_repository(
+    name = "fmt",
+    tag = "8.1.1",
+    remote = "https://github.com/fmtlib/fmt",
+    patch_cmds = [
+        "mv support/bazel/.bazelrc .bazelrc",
+        "mv support/bazel/.bazelversion .bazelversion",
+        "mv support/bazel/BUILD.bazel BUILD.bazel",
+        "mv support/bazel/WORKSPACE.bazel WORKSPACE.bazel",
+    ],
+)
+
+git_repository(
     name = "com_github_nelhage_rules_boost",
     commit = "fce83babe3f6287bccb45d2df013a309fa3194b8",
     remote = "https://github.com/nelhage/rules_boost",
@@ -27,3 +39,4 @@ git_repository(
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
+

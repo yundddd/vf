@@ -54,3 +54,12 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "hex_dump",
+    hdrs = ["hex_dump.hh"],
+    deps = [
+        "@glog",
+        "@fmt"
+    ],
+)
