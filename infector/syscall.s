@@ -23,10 +23,10 @@
 
 	// _EXIT
 	// man 2 _EXIT
-	mov rdi,rax /* syscall param 1 = rax (ret value of main) */
+	    mov rdi,rax /* syscall param 1 = rax (ret value of main) */
         mov rax,60 /* SYS_exit */
         syscall
-	ret
+	    ret
 
     syscall:
         mov rax,rdi
