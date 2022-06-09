@@ -67,9 +67,16 @@ cc_test(
 
 cc_library(
     name = "hex_dump",
+    srcs = ["hex_dump.cc"],
     hdrs = ["hex_dump.hh"],
     deps = [
-        "@fmt",
+        "@fmt"
         "@glog",
     ],
 )
+
+cc_library(
+    name = "patch_pattern",
+    hdrs = ["patch_pattern.hh"],
+)
+

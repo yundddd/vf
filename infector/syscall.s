@@ -19,7 +19,7 @@
         mov rsi,rsp  /* rest of the stack as an array of char ptr */
 
         and rsp,-16
-        call main    // call main function 
+        call main
 
 	// _EXIT
 	// man 2 _EXIT

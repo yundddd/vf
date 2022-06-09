@@ -8,8 +8,7 @@
 #include "common/macros.hh"
 #include "glog/logging.h"
 
-namespace vt {
-namespace common {
+namespace vt::common {
 class FileDescriptor {
  public:
   FileDescriptor() = default;
@@ -37,7 +36,7 @@ class FileDescriptor {
     }
   }
 
-  explicit FileDescriptor(FileDescriptor&& other) { *this = std::move(other); }
+  FileDescriptor(FileDescriptor&& other) { *this = std::move(other); }
 
   FileDescriptor& operator=(FileDescriptor&& other) {
     std::swap(path_, other.path_);
@@ -65,5 +64,5 @@ class FileDescriptor {
   int mode_ = 0;
   int fd_ = -1;
 };
-}  // namespace common
-}  // namespace vt
+
+}  // namespace vt::common

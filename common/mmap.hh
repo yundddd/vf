@@ -5,8 +5,7 @@
 #include "common/macros.hh"
 #include "glog/logging.h"
 
-namespace vt {
-namespace common {
+namespace vt::common {
 
 template <int PROT>
 concept WRITABLE = (PROT & PROT_WRITE) != 0;
@@ -14,9 +13,10 @@ concept WRITABLE = (PROT & PROT_WRITE) != 0;
 template <int PROT>
 class Mmap {
  public:
-  Mmap(size_t len, int flags, int fd, size_t offset)
-      : len_(len), flags_(flags), offset_(offset) {
-    auto ret = ::mmap(nullptr, len, PROT, flags, fd, offset);
+  MAKE_NON_COPYABLE(Mmap);
+  Mmap(size_t size, int flags, int fd, size_t offset)
+      : size_(size), flags_(flags), offset_(offset) {
+    auto ret = ::mmap(nullptr, size, PROT, flags, fd, offset);
     if (ret == MAP_FAILED) {
       LOG(ERROR) << std::strerror(errno);
     } else {
@@ -26,16 +26,16 @@ class Mmap {
 
   ~Mmap() {
     if (base_ != nullptr) {
-      if (::munmap(base_, len_) == -1) {
+      if (::munmap(base_, size_) == -1) {
         LOG(ERROR) << std::strerror(errno);
       }
     }
   }
 
-  explicit Mmap(Mmap&& other) { *this = std::move(other); }
+  Mmap(Mmap<PROT>&& other) { *this = std::move(other); }
 
-  Mmap& operator=(Mmap&& other) {
-    std::swap(len_, other.len_);
+  Mmap<PROT>& operator=(Mmap<PROT>&& other) {
+    std::swap(size_, other.size_);
     std::swap(flags_, other.flags_);
     std::swap(offset_, other.offset_);
     std::swap(base_, other.base_);
@@ -48,13 +48,13 @@ class Mmap {
 
   bool valid() const { return base() != nullptr; }
 
- private:
-  MAKE_NON_COPYABLE(Mmap);
+  size_t size() const { return size_; }
 
-  size_t len_ = 0;
+ private:
+  size_t size_ = 0;
   int flags_ = 0;
   size_t offset_ = 0;
   char* base_ = nullptr;
 };
-}  // namespace common
-}  // namespace vt
+
+}  // namespace vt::common

@@ -4,15 +4,20 @@ cc_binary(
     name = "silvio",
     srcs = ["silvio.cc"],
     deps = [
-        "//common:hex_dump",
+        "//common:mmap",
+        "//common:file_descriptor",
+        "//common:patch_pattern",
+        "@glog",
+        "@fmt",
+        "@absl//absl/status",
     ],
 )
 
 cc_binary(
     name = "stub_payload",
-    srcs = ["stub_payload.cc"],
-    deps = [
-    ],
+    srcs = ["stub_payload.cc", "syscall.s"],
+    copts = ["-nostdlib", "-nostdinc"],
+    linkopts = ["-nostdlib", "-nostdinc"],
 )
 
 cc_binary(
