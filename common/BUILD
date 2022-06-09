@@ -2,6 +2,16 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
+config_setting(
+    name = "aarch64_cpu",
+    values = {"cpu": "aarch64"},
+)
+
+config_setting(
+    name = "k8_cpu",
+    values = {"cpu": "k8"},
+)
+
 cc_library(
     name = "mmap",
     hdrs = ["mmap.hh"],
@@ -59,7 +69,7 @@ cc_library(
     name = "hex_dump",
     hdrs = ["hex_dump.hh"],
     deps = [
+        "@fmt",
         "@glog",
-        "@fmt"
     ],
 )
