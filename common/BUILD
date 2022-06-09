@@ -70,7 +70,7 @@ cc_library(
     srcs = ["hex_dump.cc"],
     hdrs = ["hex_dump.hh"],
     deps = [
-        "@fmt"
+        "@fmt",
         "@glog",
     ],
 )
