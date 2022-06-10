@@ -7,3 +7,13 @@ build:gcc_k8 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 build:gcc_aarch64 --crosstool_top=//toolchain:gcc_aarch64
 build:gcc_aarch64 --cpu=aarch64
 build:gcc_aarch64 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
+build:cc_k8 --crosstool_top=@crosstool//:toolchains
+build:cc_k8 --cpu=k8
+build:cc_k8 --compiler=gcc
+
+build:cc_aarch64 --crosstool_top=@crosstool//:toolchains
+build:cc_aarch64 --cpu=aarch64
+build:cc_aarch64 --compiler=gcc
+
+
