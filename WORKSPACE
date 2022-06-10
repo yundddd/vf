@@ -46,16 +46,3 @@ git_repository(
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-http_archive(
-    name = "coral_crosstool",
-    sha256 = "38cb4da13009d07ebc2fed4a9d055b0f914191b344dd2d1ca5803096343958b4",
-    strip_prefix = "crosstool-6bcc2261d9fc60dff386b557428d98917f0af491",
-    urls = [
-        "https://github.com/google-coral/crosstool/archive/6bcc2261d9fc60dff386b557428d98917f0af491.tar.gz",
-    ],
-)
-
-load("@coral_crosstool//:configure.bzl", "cc_crosstool")
-cc_crosstool(name = "crosstool")

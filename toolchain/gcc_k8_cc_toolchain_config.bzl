@@ -1,20 +1,34 @@
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load(
-   "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
-   "feature",
-   "flag_group",
-   "flag_set",
-   "tool_path",
+    "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+    "feature",
+    "flag_group",
+    "flag_set",
+    "tool_path",
 )
 
+def generate_include_paths(gcc_version):
+    return [
+        "/usr/include/c++/{}".format(gcc_version),
+        "/usr/include/x86_64-linux-gnu/c++/{}".format(gcc_version),
+        "/usr/include/c++/{}/backward".format(gcc_version),
+        "/usr/lib/gcc/x86_64-linux-gnu/{}/include".format(gcc_version),
+        "/usr/lib/gcc-cross/x86_64-linux-gnu/{}/include".format(gcc_version),
+        "/usr/local/include",
+        "/usr/lib/gcc/x86_64-linux-gnu/{}/include-fixed".format(gcc_version),
+        "/usr/include/x86_64-linux-gnu",
+        "/usr/x86_64-linux-gnu/include",
+        "/usr/include",
+    ]
 
-all_link_actions = [ # NEW
+all_link_actions = [
     ACTION_NAMES.cpp_link_executable,
     ACTION_NAMES.cpp_link_dynamic_library,
     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
 ]
+
 def _impl(ctx):
-    tool_paths = [ # NEW
+    tool_paths = [
         tool_path(
             name = "gcc",
             path = "/usr/bin/x86_64-linux-gnu-gcc",
@@ -48,7 +62,7 @@ def _impl(ctx):
             path = "/bin/false",
         ),
     ]
-    features = [ # NEW
+    features = [
         feature(
             name = "default_linker_flags",
             enabled = True,
@@ -71,12 +85,7 @@ def _impl(ctx):
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
-        cxx_builtin_include_directories = [ # NEW
-        "/usr/x86_64-linux-gnu/include",
-        "/usr/lib/gcc/x86_64-linux-gnu/9/include",
-        "/usr/lib/gcc-cross/x86_64-linux-gnu/9/include",
-        "/usr/include",
-        ],
+        cxx_builtin_include_directories = generate_include_paths(9) + generate_include_paths(11),
         toolchain_identifier = "local",
         host_system_name = "local",
         target_system_name = "local",
