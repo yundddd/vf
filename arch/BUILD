@@ -14,9 +14,6 @@ config_setting(
 
 cc_library(
     name = "syscall",
-    hdrs =  ["syscall.hh"],
-    srcs = select({
-        ":x86_64": ["x86_64.cc"],
-        ":aarch64": ["aarch64.cc"],
-    }),
+    hdrs =  ["syscall.hh", "errno.hh"],
+    srcs = ["errno.cc"],
 )
