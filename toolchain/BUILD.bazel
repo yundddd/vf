@@ -1,19 +1,19 @@
-load(":gcc_k8_cc_toolchain_config.bzl", "gcc_k8_cc_toolchain_config")
+load(":gcc_x86_64_cc_toolchain_config.bzl", "gcc_x86_64_cc_toolchain_config")
 load(":gcc_aarch64_cc_toolchain_config.bzl", "gcc_aarch64_cc_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
 cc_toolchain_suite(
-    name = "gcc_k8",
+    name = "gcc_x86_64",
     toolchains = {
-        "k8": ":gcc_k8_toolchain",
+        "x86_64": ":gcc_x86_64_toolchain",
     },
 )
 
 filegroup(name = "empty")
 
 cc_toolchain(
-    name = "gcc_k8_toolchain",
+    name = "gcc_x86_64_toolchain",
     all_files = ":empty",
     compiler_files = ":empty",
     dwp_files = ":empty",
@@ -21,11 +21,11 @@ cc_toolchain(
     objcopy_files = ":empty",
     strip_files = ":empty",
     supports_param_files = 0,
-    toolchain_config = ":gcc_k8_cc_toolchain_config",
-    toolchain_identifier = "gcc-k8-toolchain",
+    toolchain_config = ":gcc_x86_64_cc_toolchain_config",
+    toolchain_identifier = "gcc-x86_64-toolchain",
 )
 
-gcc_k8_cc_toolchain_config(name = "gcc_k8_cc_toolchain_config")
+gcc_x86_64_cc_toolchain_config(name = "gcc_x86_64_cc_toolchain_config")
 
 cc_toolchain_suite(
     name = "gcc_aarch64",

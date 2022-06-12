@@ -89,7 +89,7 @@ def _impl(ctx):
         toolchain_identifier = "local",
         host_system_name = "local",
         target_system_name = "local",
-        target_cpu = "k8",
+        target_cpu = "x86_64",
         target_libc = "unknown",
         compiler = "gcc",
         abi_version = "unknown",
@@ -97,7 +97,7 @@ def _impl(ctx):
         tool_paths = tool_paths,
     )
 
-gcc_k8_cc_toolchain_config = rule(
+gcc_x86_64_cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {},
     provides = [CcToolchainConfigInfo],

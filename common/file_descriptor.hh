@@ -1,10 +1,7 @@
 #pragma once
 
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <cerrno>
+#include "arch/syscall.hh"
+
 #include "common/macros.hh"
 #include "glog/logging.h"
 
@@ -14,7 +11,7 @@ class FileDescriptor {
   FileDescriptor() = default;
   FileDescriptor(const std::string& path, int flags, int mode)
       : path_(path), flags_(flags), mode_(mode) {
-    fd_ = ::open(path_.c_str(), flags_, mode_);
+    fd_ = arch::open(path_.c_str(), flags_, mode_);
     if (fd_ == -1) {
       LOG(ERROR) << std::strerror(errno);
     }
@@ -22,7 +19,7 @@ class FileDescriptor {
 
   FileDescriptor(const std::string& path, int flags)
       : path_(path), flags_(flags) {
-    fd_ = ::open(path_.c_str(), flags_);
+    fd_ = arch::open(path_.c_str(), flags_, 0);
     if (fd_ == -1) {
       LOG(ERROR) << std::strerror(errno);
     }
@@ -30,7 +27,7 @@ class FileDescriptor {
 
   ~FileDescriptor() {
     if (fd_ != -1) {
-      if (::close(fd_) == -1) {
+      if (arch::close(fd_) == -1) {
         LOG(ERROR) << std::strerror(errno);
       }
     }
@@ -47,7 +44,7 @@ class FileDescriptor {
 
   int handle() const { return fd_; }
   bool valid() const { return fd_ != -1; }
-
+/*
   size_t file_size() const {
     CHECK_NE(fd_, -1) << "fd is invalid";
     struct stat s {};
@@ -55,7 +52,7 @@ class FileDescriptor {
     CHECK_NE(ret, -1) << std::strerror(errno);
     return s.st_size;
   }
-
+*/
  private:
   MAKE_NON_COPYABLE(FileDescriptor);
 
