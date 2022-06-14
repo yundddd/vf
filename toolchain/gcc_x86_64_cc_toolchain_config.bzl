@@ -27,6 +27,19 @@ all_link_actions = [
     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
 ]
 
+all_compile_actions = [
+    ACTION_NAMES.c_compile,
+    ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.linkstamp_compile,
+    ACTION_NAMES.assemble,
+    ACTION_NAMES.preprocess_assemble,
+    ACTION_NAMES.cpp_header_parsing,
+    ACTION_NAMES.cpp_module_compile,
+    ACTION_NAMES.cpp_module_codegen,
+    ACTION_NAMES.clif_match,
+    ACTION_NAMES.lto_backend,
+]
+
 def _impl(ctx):
     tool_paths = [
         tool_path(
@@ -62,6 +75,7 @@ def _impl(ctx):
             path = "/bin/false",
         ),
     ]
+    
     features = [
         feature(
             name = "default_linker_flags",
@@ -72,8 +86,31 @@ def _impl(ctx):
                     flag_groups = ([
                         flag_group(
                             flags = [
-                                "-lstdc++",
-                                "-lm",
+                                "-Wl,--gc-sections",
+                                "-nostdlib",
+                                "-nolibc",
+                            ],
+                        ),
+                    ]),
+                ),
+            ],
+        ),
+        feature(
+            name = "default_compile_flags",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = all_compile_actions,
+                    flag_groups = ([
+                        flag_group(
+                            flags = [
+                                "-fomit-frame-pointer",
+                                "-ffunction-sections",
+                                "-Os",
+                                "-fno-stack-protector",
+                                "-fno-unwind-tables",
+                                "-fno-asynchronous-unwind-tables",
+                                "-fno-builtin",
                             ],
                         ),
                     ]),
@@ -81,7 +118,7 @@ def _impl(ctx):
             ],
         ),
     ]
-
+   
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,

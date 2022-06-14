@@ -1,5 +1,5 @@
 #ifndef KERNEL
-extern int my_errno;			/* global error number */
+extern int sys_errno;			/* global error number */
 #endif
 
 #define	EPERM		1		/* Operation not permitted */

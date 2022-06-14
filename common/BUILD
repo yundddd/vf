@@ -17,7 +17,7 @@ cc_library(
     deps = [
         "//arch:syscall",
         ":macros",
-        "@glog",
+        "//notstdlib:meta",
     ],
 )
 
@@ -39,7 +39,7 @@ cc_binary(
     name = "file_descriptor_b",
     srcs = ["file_descriptor_b.cc"],
     deps = [
-        ":file_descriptor",
+        "//notstdlib:sys",
     ],
 )
 

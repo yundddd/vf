@@ -102,6 +102,8 @@ extern "C" {
 #endif
 
 #include "arch/errno.hh"
+#include <linux/ptrace.h>
+
 #include <linux/fcntl.h>
 #include <sched.h>
 #include <signal.h>
@@ -109,14 +111,14 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/ptrace.h>
+
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/syscall.h>
-#include <unistd.h>
+//#include <sys/syscall.h>
+//#include <unistd.h>
 #include <linux/unistd.h>
-#include <endian.h>
+//#include <endian.h>
 
 #ifdef __mips__
 /* Include definitions of the ABI currently in use.                          */
@@ -1886,7 +1888,7 @@ struct kernel_statfs {
      */
     #define LSS_ERRNO SYS_ERRNO
   #else
-    #define LSS_ERRNO my_errno
+    #define LSS_ERRNO sys_errno
   #endif
 
   #undef LSS_INLINE

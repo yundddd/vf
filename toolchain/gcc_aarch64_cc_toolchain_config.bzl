@@ -20,6 +20,19 @@ def generate_include_paths(gcc_version):
         "/usr/include",
     ]
 
+all_compile_actions = [
+    ACTION_NAMES.c_compile,
+    ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.linkstamp_compile,
+    ACTION_NAMES.assemble,
+    ACTION_NAMES.preprocess_assemble,
+    ACTION_NAMES.cpp_header_parsing,
+    ACTION_NAMES.cpp_module_compile,
+    ACTION_NAMES.cpp_module_codegen,
+    ACTION_NAMES.clif_match,
+    ACTION_NAMES.lto_backend,
+]
+
 all_link_actions = [
     ACTION_NAMES.cpp_link_executable,
     ACTION_NAMES.cpp_link_dynamic_library,
@@ -62,6 +75,7 @@ def _impl(ctx):
         ),
     ]
     features = [
+    features = [
         feature(
             name = "default_linker_flags",
             enabled = True,
@@ -71,8 +85,31 @@ def _impl(ctx):
                     flag_groups = ([
                         flag_group(
                             flags = [
-                                "-lstdc++",
-                                "-lm",
+                                "-Wl,--gc-sections",
+                                "-nostdlib",
+                                "-nolibc",
+                            ],
+                        ),
+                    ]),
+                ),
+            ],
+        ),
+        feature(
+            name = "default_compile_flags",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = all_compile_actions,
+                    flag_groups = ([
+                        flag_group(
+                            flags = [
+                                "-fomit-frame-pointer",
+                                "-ffunction-sections",
+                                "-Os",
+                                "-fno-stack-protector",
+                                "-fno-unwind-tables",
+                                "-fno-asynchronous-unwind-tables",
+                                "-fno-builtin",
                             ],
                         ),
                     ]),
