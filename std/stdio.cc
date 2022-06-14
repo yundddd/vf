@@ -1,48 +1,51 @@
+#include "std/stdio.hh"
+#include "std/arch.hh"
+#include "std/errno.h"
+#include "std/stdlib.h"
+#include "std/string.hh"
+#include "std/sys.hh"
+#include "std/types.hh"
 
-
-#include "notstdlib/stdio.h"
-#include <stdarg.h>
-#include "notstdlib/arch.h"
-#include "notstdlib/errno.h"
-#include "notstdlib/stdlib.h"
-#include "notstdlib/string.h"
-#include "notstdlib/sys.h"
-#include "notstdlib/types.h"
-
+namespace {
 /* We define the 3 common stdio files as constant invalid pointers that
  * are easily recognized.
  */
-FILE* const stdin = (FILE*)-3;
-FILE* const stdout = (FILE*)-2;
-FILE* const stderr = (FILE*)-1;
-
-/* getc(), fgetc(), getchar() */
+FILE* stdin = reinterpret_cast<FILE*>(-3);
+FILE* stdout = reinterpret_cast<FILE*>(-2);
+FILE* stderr = reinterpret_cast<FILE*>(-1);
+}  // namespace
 
 int fgetc(FILE* stream) {
   unsigned char ch;
   int fd;
 
-  if (stream < stdin || stream > stderr) return EOF;
+  if (stream < stdin || stream > stderr) {
+    return EOF;
+  }
 
-  fd = 3 + (long)stream;
+  fd = 3 + reinterpret_cast<long>(stream);
 
-  if (read(fd, &ch, 1) <= 0) return EOF;
+  if (read(fd, &ch, 1) <= 0) {
+    return EOF;
+  }
   return ch;
 }
 
 int getchar(void) { return fgetc(stdin); }
 
-/* putc(), fputc(), putchar() */
-
 int fputc(int c, FILE* stream) {
   unsigned char ch = c;
   int fd;
 
-  if (stream < stdin || stream > stderr) return EOF;
+  if (stream < stdin || stream > stderr) {
+    return EOF;
+  }
 
-  fd = 3 + (long)stream;
+  fd = 3 + reinterpret_cast<long>(stream);
 
-  if (write(fd, &ch, 1) <= 0) return EOF;
+  if (write(fd, &ch, 1) <= 0) {
+    return EOF;
+  }
   return ch;
 }
 
@@ -57,15 +60,19 @@ int _fwrite(const void* buf, size_t size, FILE* stream) {
   ssize_t ret;
   int fd;
 
-  if (stream < stdin || stream > stderr) return EOF;
+  if (stream < stdin || stream > stderr) {
+    return EOF;
+  }
 
-  fd = 3 + (long)stream;
+  fd = 3 + reinterpret_cast<long>(stream);
 
   while (size) {
     ret = write(fd, buf, size);
-    if (ret <= 0) return EOF;
+    if (ret <= 0) {
+      return EOF;
+    }
     size -= ret;
-    buf = (char*)buf + ret;
+    buf = static_cast<const char*>(buf) + ret;
   }
   return 0;
 }
@@ -74,8 +81,10 @@ size_t fwrite(const void* s, size_t size, size_t nmemb, FILE* stream) {
   size_t written;
 
   for (written = 0; written < nmemb; written++) {
-    if (_fwrite(s, size, stream) != 0) break;
-    s = (char*)s + size;
+    if (_fwrite(s, size, stream) != 0) {
+      break;
+    }
+    s = static_cast<const char*>(s) + size;
   }
   return written;
 }
@@ -83,22 +92,29 @@ size_t fwrite(const void* s, size_t size, size_t nmemb, FILE* stream) {
 int fputs(const char* s, FILE* stream) { return _fwrite(s, strlen(s), stream); }
 
 int puts(const char* s) {
-  if (fputs(s, stdout) == EOF) return EOF;
+  if (fputs(s, stdout) == EOF) {
+    return EOF;
+  }
   return putchar('\n');
 }
 
-/* fgets() */
 char* fgets(char* s, int size, FILE* stream) {
   int ofs;
   int c;
 
   for (ofs = 0; ofs + 1 < size;) {
     c = fgetc(stream);
-    if (c == EOF) break;
+    if (c == EOF) {
+      break;
+    }
     s[ofs++] = c;
-    if (c == '\n') break;
+    if (c == '\n') {
+      break;
+    }
   }
-  if (ofs < size) s[ofs] = 0;
+  if (ofs < size) {
+    s[ofs] = 0;
+  }
   return ofs ? s : nullptr;
 }
 
@@ -165,7 +181,9 @@ int vfprintf(FILE* stream, const char* fmt, va_list args) {
         outstr = tmpbuf;
       } else if (c == 's') {
         outstr = va_arg(args, char*);
-        if (!outstr) outstr = "(null)";
+        if (!outstr) {
+          outstr = "(null)";
+        }
       } else if (c == '%') {
         /* queue it verbatim */
         continue;
@@ -190,11 +208,15 @@ int vfprintf(FILE* stream, const char* fmt, va_list args) {
       outstr = fmt;
       len = ofs - 1;
     flush_str:
-      if (_fwrite(outstr, len, stream) != 0) break;
+      if (_fwrite(outstr, len, stream) != 0) {
+        break;
+      }
 
       written += len;
     do_escape:
-      if (c == 0) break;
+      if (c == 0) {
+        break;
+      }
       fmt += ofs;
       ofs = 0;
       continue;

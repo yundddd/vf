@@ -23,10 +23,10 @@ headers:
 	$(Q)if [ "$(ARCH)" = "x86" ]; then      \
 		sed -e                          \
 		  's,^#ifndef _NOLIBC_ARCH_X86_64_H,#if !defined(_NOLIBC_ARCH_X86_64_H) \&\& defined(__x86_64__),' \
-		  arch-x86_64.h;                \
+		  arch-x86_64.hh;                \
 		sed -e                          \
 		  's,^#ifndef _NOLIBC_ARCH_I386_H,#if !defined(_NOLIBC_ARCH_I386_H) \&\& !defined(__x86_64__),' \
-		  arch-i386.h;                  \
+		  arch-i386.hh;                  \
 	elif [ -e "$(arch_file)" ]; then        \
 		cat $(arch_file);               \
 	else                                    \

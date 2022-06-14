@@ -74,7 +74,7 @@ def _impl(ctx):
             path = "/bin/false",
         ),
     ]
-    features = [
+
     features = [
         feature(
             name = "default_linker_flags",
@@ -103,6 +103,8 @@ def _impl(ctx):
                     flag_groups = ([
                         flag_group(
                             flags = [
+                                "-fno-rtti",
+                                "-fno-exceptions",
                                 "-fomit-frame-pointer",
                                 "-ffunction-sections",
                                 "-Os",

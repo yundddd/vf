@@ -1,8 +1,9 @@
 #pragma once
 
-#include "arch/syscall.hh"
 #include "common/macros.hh"
-#include "notstdlib/meta.hh"
+#include "std/stdio.hh"
+#include "std/sys.hh"
+#include "std/utility.hh"
 
 namespace vt::common {
 class FileDescriptor {
@@ -10,21 +11,23 @@ class FileDescriptor {
   FileDescriptor() = default;
   FileDescriptor(const char* path, int flags, int mode)
       : flags_(flags), mode_(mode) {
-
-    fd_ = sys_open(path, flags_, mode_);
+    fd_ = ::open(path, flags_, mode_);
     if (fd_ == -1) {
+      CHECK_FAIL();
     }
   }
 
   FileDescriptor(const char* path, int flags) : flags_(flags) {
-    fd_ = sys_open(path, flags_, 0);
+    fd_ = ::open(path, flags_, 0);
     if (fd_ == -1) {
+      CHECK_FAIL();
     }
   }
 
   ~FileDescriptor() {
     if (fd_ != -1) {
-      if (sys_close(fd_) == -1) {
+      if (::close(fd_) == -1) {
+        CHECK_FAIL();
       }
     }
   }
@@ -32,7 +35,7 @@ class FileDescriptor {
   FileDescriptor(FileDescriptor&& other) { *this = std::move(other); }
 
   FileDescriptor& operator=(FileDescriptor&& other) {
-    //swap(path_, other.path_);
+    // swap(path_, other.path_);
     std::swap(flags_, other.flags_);
     std::swap(fd_, other.fd_);
     return *this;

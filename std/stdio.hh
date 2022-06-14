@@ -1,10 +1,28 @@
 #pragma once
-
-#include "notstdlib/std.h"
+#include <stdarg.h>
+#include "std/std.hh"
 
 #ifndef EOF
 #define EOF (-1)
 #endif
+
+/* The possibilities for the third argument to `fseek'.
+   These values should not be changed.  */
+#define SEEK_SET 0 /* Seek from beginning of file.  */
+#define SEEK_CUR 1 /* Seek from current position.  */
+#define SEEK_END 2 /* Seek from end of file.  */
+#ifdef __USE_GNU
+#define SEEK_DATA 3 /* Seek to next data.  */
+#define SEEK_HOLE 4 /* Seek to next hole.  */
+#endif
+
+#define __S_IREAD 0400  /* Read by owner.  */
+#define __S_IWRITE 0200 /* Write by owner.  */
+#define __S_IEXEC 0100  /* Execute by owner.  */
+
+#define S_IRUSR __S_IREAD  /* Read by owner.  */
+#define S_IWUSR __S_IWRITE /* Write by owner.  */
+#define S_IXUSR __S_IEXEC  /* Execute by owner.  */
 
 /* just define FILE as a non-empty type */
 typedef struct FILE {

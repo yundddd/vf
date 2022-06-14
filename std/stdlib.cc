@@ -1,10 +1,10 @@
+#include "std/arch.hh"
+#include "std/errno.h"
+#include "std/string.hh"
+#include "std/sys.hh"
+#include "std/types.hh"
 
-
-#include "notstdlib/arch.h"
-#include "notstdlib/string.h"
-#include "notstdlib/sys.h"
-#include "notstdlib/types.h"
-
+namespace {
 struct nolibc_heap {
   size_t len;
   char user_p[] __attribute__((__aligned__));
@@ -15,47 +15,6 @@ struct nolibc_heap {
  * store "18446744073709551615" or "-9223372036854775808" and the final zero.
  */
 char itoa_buffer[21];
-
-/*
- * As much as possible, please keep functions alphabetically sorted.
- */
-
-void abort(void) {
-  sys_kill(sys_getpid(), SIGABRT);
-  for (;;)
-    ;
-}
-
-long atol(const char* s) {
-  unsigned long ret = 0;
-  unsigned long d;
-  int neg = 0;
-
-  if (*s == '-') {
-    neg = 1;
-    s++;
-  }
-
-  while (1) {
-    d = (*s++) - '0';
-    if (d > 9) break;
-    ret *= 10;
-    ret += d;
-  }
-
-  return neg ? -ret : ret;
-}
-
-int atoi(const char* s) { return atol(s); }
-
-void free(void* ptr) {
-  struct nolibc_heap* heap;
-
-  if (!ptr) return;
-
-  heap = (nolibc_heap*)container_of((char(*)[])ptr, struct nolibc_heap, user_p);
-  munmap(heap, heap->len);
-}
 
 /* getenv() tries to find the environment variable named <name> in the
  * environment array pointed to by global variable "environ" which must be
@@ -70,11 +29,57 @@ char* _getenv(const char* name, char** environ) {
 
   if (environ) {
     for (idx = 0; environ[idx]; idx++) {
-      for (i = 0; name[i] && name[i] == environ[idx][i];) i++;
-      if (!name[i] && environ[idx][i] == '=') return &environ[idx][i + 1];
+      for (i = 0; name[i] && name[i] == environ[idx][i];) {
+        i++;
+      }
+      if (!name[i] && environ[idx][i] == '=') {
+        return &environ[idx][i + 1];
+      }
     }
   }
   return nullptr;
+}
+}  // namespace
+
+void abort(void) {
+  kill(getpid(), SIGABRT);
+  while (1) {
+  }
+}
+
+long atol(const char* s) {
+  unsigned long ret = 0;
+  unsigned long d;
+  int neg = 0;
+
+  if (*s == '-') {
+    neg = 1;
+    s++;
+  }
+
+  while (1) {
+    d = (*s++) - '0';
+    if (d > 9) {
+      break;
+    }
+    ret *= 10;
+    ret += d;
+  }
+
+  return neg ? -ret : ret;
+}
+
+int atoi(const char* s) { return atol(s); }
+
+void free(void* ptr) {
+  struct nolibc_heap* heap;
+
+  if (!ptr) {
+    return;
+  }
+
+  heap = (nolibc_heap*)container_of((char(*)[])ptr, struct nolibc_heap, user_p);
+  munmap(heap, heap->len);
 }
 
 char* getenv(const char* name) {
@@ -90,7 +95,9 @@ void* malloc(size_t len) {
   len = (len + 4095UL) & -4096UL;
   heap = (nolibc_heap*)mmap(nullptr, len, PROT_READ | PROT_WRITE,
                             MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-  if (__builtin_expect(heap == MAP_FAILED, 0)) return nullptr;
+  if (__builtin_expect(heap == MAP_FAILED, 0)) {
+    return nullptr;
+  }
 
   heap->len = len;
   return heap->user_p;
@@ -117,7 +124,9 @@ void* realloc(void* old_ptr, size_t new_size) {
   size_t user_p_len;
   void* ret;
 
-  if (!old_ptr) return malloc(new_size);
+  if (!old_ptr) {
+    return malloc(new_size);
+  }
 
   heap = container_of((char(*)[])old_ptr, struct nolibc_heap, user_p);
   user_p_len = heap->len - sizeof(*heap);
@@ -126,10 +135,14 @@ void* realloc(void* old_ptr, size_t new_size) {
    * memory is still enough to handle the @new_size. Just return
    * the same pointer.
    */
-  if (user_p_len >= new_size) return old_ptr;
+  if (user_p_len >= new_size) {
+    return old_ptr;
+  }
 
   ret = malloc(new_size);
-  if (__builtin_expect(!ret, 0)) return nullptr;
+  if (__builtin_expect(!ret, 0)) {
+    return nullptr;
+  }
 
   memcpy(ret, heap->user_p, heap->len);
   munmap(heap, heap->len);
@@ -154,7 +167,9 @@ int utoh_r(unsigned long in, char* buffer) {
     in -= (uint64_t)dig << pos;
     pos -= 4;
     if (dig || digits || pos < 0) {
-      if (dig > 9) dig += 'a' - '0' - 10;
+      if (dig > 9) {
+        dig += 'a' - '0' - 10;
+      }
       buffer[digits++] = '0' + dig;
     }
   } while (pos >= 0);
@@ -186,10 +201,14 @@ int utoa_r(unsigned long in, char* buffer) {
   int dig;
 
   do {
-    for (dig = 0, lim = 1; dig < pos; dig++) lim *= 10;
+    for (dig = 0, lim = 1; dig < pos; dig++) {
+      lim *= 10;
+    }
 
     if (digits || in >= lim || !pos) {
-      for (dig = 0; in >= lim; dig++) in -= lim;
+      for (dig = 0; in >= lim; dig++) {
+        in -= lim;
+      }
       buffer[digits++] = '0' + dig;
     }
   } while (pos--);
@@ -270,9 +289,13 @@ int u64toh_r(uint64_t in, char* buffer) {
       uint32_t d = (pos >= 32) ? (in >> 32) : in;
       dig = (d >> (pos & 31)) & 0xF;
     }
-    if (dig > 9) dig += 'a' - '0' - 10;
+    if (dig > 9) {
+      dig += 'a' - '0' - 10;
+    }
     pos -= 4;
-    if (dig || digits || pos < 0) buffer[digits++] = '0' + dig;
+    if (dig || digits || pos < 0) {
+      buffer[digits++] = '0' + dig;
+    }
   } while (pos >= 0);
 
   buffer[digits] = 0;
@@ -302,10 +325,14 @@ int u64toa_r(uint64_t in, char* buffer) {
   int dig;
 
   do {
-    for (dig = 0, lim = 1; dig < pos; dig++) lim *= 10;
+    for (dig = 0, lim = 1; dig < pos; dig++) {
+      lim *= 10;
+    }
 
     if (digits || in >= lim || !pos) {
-      for (dig = 0; in >= lim; dig++) in -= lim;
+      for (dig = 0; in >= lim; dig++) {
+        in -= lim;
+      }
       buffer[digits++] = '0' + dig;
     }
   } while (pos--);

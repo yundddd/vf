@@ -1,10 +1,16 @@
 
-#include "notstdlib/sys.h"
+#include "common/file_descriptor.hh"
+#include "common/mmap.hh"
 
 int main(int argc, char* argv[]) {
   write(1, "asd\n", 5);
-  int fd = open("/tmp/aaa", 1 | 64, 0400 | 0200 | 0100);
-  write(fd, "acc\n", 5);
+  auto fd = vt::common::FileDescriptor("/tmp/aaa", O_RDWR | O_CREAT,
+                                       S_IRUSR | S_IWUSR);
+  write(fd.handle(), "acc\n", 5);
+  
+  vt::common::Mmap<PROT_WRITE | PROT_READ> map(5, MAP_SHARED, fd.handle(), 0);
+  write(1, map.base(), 3);
+  map.mutable_base()[0] = 'k';
 
   return 0;
 }

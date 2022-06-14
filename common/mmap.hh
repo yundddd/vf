@@ -1,9 +1,8 @@
 #pragma once
 
-#include <sys/mman.h>
-#include <cerrno>
 #include "common/macros.hh"
-#include "glog/logging.h"
+#include "std/stdio.hh"
+#include "std/sys.hh"
 
 namespace vt::common {
 
@@ -18,7 +17,7 @@ class Mmap {
       : size_(size), flags_(flags), offset_(offset) {
     auto ret = ::mmap(nullptr, size, PROT, flags, fd, offset);
     if (ret == MAP_FAILED) {
-      LOG(ERROR) << std::strerror(errno);
+      CHECK_FAIL();
     } else {
       base_ = static_cast<char*>(ret);
     }
@@ -27,7 +26,7 @@ class Mmap {
   ~Mmap() {
     if (base_ != nullptr) {
       if (::munmap(base_, size_) == -1) {
-        LOG(ERROR) << std::strerror(errno);
+        CHECK_FAIL();
       }
     }
   }

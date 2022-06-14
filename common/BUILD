@@ -7,7 +7,8 @@ cc_library(
     hdrs = ["mmap.hh"],
     deps = [
         ":macros",
-        "@glog",
+        "//std:stdio",
+        "//std:sys",
     ],
 )
 
@@ -15,9 +16,10 @@ cc_library(
     name = "file_descriptor",
     hdrs = ["file_descriptor.hh"],
     deps = [
-        "//arch:syscall",
         ":macros",
-        "//notstdlib:meta",
+        "//std:stdio",
+        "//std:sys",
+        "//std:utility",
     ],
 )
 
@@ -39,7 +41,8 @@ cc_binary(
     name = "file_descriptor_b",
     srcs = ["file_descriptor_b.cc"],
     deps = [
-        "//notstdlib:sys",
+        ":file_descriptor",
+        ":mmap",
     ],
 )
 

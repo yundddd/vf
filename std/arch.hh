@@ -15,18 +15,16 @@
 #pragma once
 
 #if defined(__x86_64__)
-#include "notstdlib/arch-x86_64.h"
+#include "std/arch-x86_64.hh"
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || \
     defined(__i686__)
-#include "notstdlib/arch-i386.h"
+#include "std/arch-i386.hh"
 #elif defined(__ARM_EABI__)
-#include "notstdlib/arch-arm.h"
+#include "std/arch-arm.hh"
 #elif defined(__aarch64__)
-#include "notstdlib/arch-aarch64.h"
+#include "std/arch-aarch64.hh"
 #elif defined(__mips__) && defined(_ABIO32)
-#include "notstdlib/arch-mips.h"
+#include "std/arch-mips.hh"
 #elif defined(__riscv)
-#include "notstdlib/arch-riscv.h"
+#include "std/arch-riscv.hh"
 #endif
-
-
