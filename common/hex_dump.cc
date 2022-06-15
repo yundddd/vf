@@ -1,33 +1,29 @@
 
 #include "common/hex_dump.hh"
-#include <sstream>
-#include "fmt/core.h"
+#include "std/stdio.hh"
 
 namespace vt::common {
 
-std::string hex_dump(const void* ptr, size_t buflen) {
+void hex_dump(const void* ptr, size_t buflen) {
   auto buf = static_cast<const unsigned char*>(ptr);
-  std::stringstream ss;
-  ss << "Dumping address " << fmt::format("{:p}\n", ptr);
-
-  for (size_t i = 0, j = 0; i < buflen; i += 16) {
-    ss << fmt::format("{:06x}: ", i);
-    for (j = 0; j < 30; j++) {
+  int i, j;
+  for (i = 0; i < buflen; i += 16) {
+    printf("%06x: ", i);
+    for (j = 0; j < 16; j++) {
       if (i + j < buflen) {
-        ss << fmt::format("{:02x} ", buf[i + j]);
+        printf("%02x ", buf[i + j]);
       } else {
-        ss << "   ";
+        printf("   ");
       }
     }
-    ss << " ";
-    for (j = 0; j < 30; j++) {
+    printf(" ");
+    for (j = 0; j < 16; j++) {
       if (i + j < buflen) {
-        ss << fmt::format("{:c}", isprint(buf[i + j]) ? buf[i + j] : '.');
+        printf("%c", isprint(buf[i + j]) ? buf[i + j] : '.');
       }
     }
-    ss << std::endl;
+    printf("\n");
   }
-  return ss.str();
 }
 
 }  // namespace vt::common

@@ -1,9 +1,8 @@
 #pragma once
-
-#include <string>
+#include "std/types.hh"
 
 namespace vt::common {
 
-std::string hex_dump(const void* ptr, size_t buflen);
+void hex_dump(const void* ptr, size_t buflen);
 
 }  // namespace vt::common

@@ -9,6 +9,7 @@ cc_library(
         ":macros",
         "//std:stdio",
         "//std:sys",
+        "//std:utility",
     ],
 )
 
@@ -72,8 +73,7 @@ cc_library(
     srcs = ["hex_dump.cc"],
     hdrs = ["hex_dump.hh"],
     deps = [
-        "@fmt",
-        "@glog",
+        "//std:stdio",
     ],
 )
 

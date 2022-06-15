@@ -68,3 +68,6 @@ char* fgets(char* s, int size, FILE* stream);
  */
 int vfprintf(FILE* stream, const char* fmt, va_list args);
 int fprintf(FILE* stream, const char* fmt, ...);
+
+int printf(const char* fmt, ...);
+void perror(const char* msg);

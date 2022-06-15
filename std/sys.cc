@@ -9,7 +9,7 @@
 #include <linux/fs.h>
 #include <linux/loop.h>
 #include <linux/time.h>
-#include "std/errno.h"
+#include "std/errno.hh"
 #include "std/sys.hh"
 #include "std/types.hh"
 
@@ -292,6 +292,26 @@ int sys_stat(const char* path, struct stat* buf) {
   return ret;
 }
 
+int sys_fstat(int fd, struct stat* buf) {
+  struct sys_stat_struct stat;
+  long ret = my_syscall2(__NR_fstat, fd, &stat);
+
+  buf->st_dev = stat.st_dev;
+  buf->st_ino = stat.st_ino;
+  buf->st_mode = stat.st_mode;
+  buf->st_nlink = stat.st_nlink;
+  buf->st_uid = stat.st_uid;
+  buf->st_gid = stat.st_gid;
+  buf->st_rdev = stat.st_rdev;
+  buf->st_size = stat.st_size;
+  buf->st_blksize = stat.st_blksize;
+  buf->st_blocks = stat.st_blocks;
+  buf->st_atime = stat.st_atime;
+  buf->st_mtime = stat.st_mtime;
+  buf->st_ctime = stat.st_ctime;
+  return ret;
+}
+
 int sys_symlink(const char* old, const char* cur) {
 #ifdef __NR_symlinkat
   return my_syscall3(__NR_symlinkat, old, AT_FDCWD, cur);
@@ -558,6 +578,11 @@ pid_t setsid(void) {
 
 int stat(const char* path, struct stat* buf) {
   int ret = sys_stat(path, buf);
+  return trampoline(ret);
+}
+
+int fstat(int fd, struct stat* buf) {
+  int ret = sys_fstat(fd, buf);
   return trampoline(ret);
 }
 

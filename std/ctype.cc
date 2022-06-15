@@ -1,6 +1,6 @@
 #pragma once
 
-#include "std/ctype.h"
+#include "std/ctype.hh"
 
 int isascii(int c) {
   /* 0x00..0x7f */

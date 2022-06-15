@@ -1,5 +1,6 @@
+#include "std/stdlib.hh"
 #include "std/arch.hh"
-#include "std/errno.h"
+#include "std/errno.hh"
 #include "std/string.hh"
 #include "std/sys.hh"
 #include "std/types.hh"

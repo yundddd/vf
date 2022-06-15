@@ -162,6 +162,7 @@ struct sys_stat_struct {
 /* startup code */
 __asm__(
     ".section .text\n"
+    "environ: .zero 8\n"
     ".weak _start\n"
     "_start:\n"
     "ldr x0, [sp]\n"     // argc (x0) was in the stack
@@ -170,6 +171,8 @@ __asm__(
     "add x2, x2, 8\n"    //           + 8 (skip null)
     "add x2, x2, x1\n"   //           + argv
     "and sp, x1, -16\n"  // sp must be 16-byte aligned in the callee
+    "ldr x3, environ\n" // save envp to global
+    "str x2, [x3]\n"
     "bl main\n"          // main() returns the status code, we'll exit with it.
     "mov x8, 93\n"       // NR_exit == 93
     "svc #0\n"

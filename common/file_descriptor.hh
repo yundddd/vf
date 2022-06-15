@@ -35,7 +35,6 @@ class FileDescriptor {
   FileDescriptor(FileDescriptor&& other) { *this = std::move(other); }
 
   FileDescriptor& operator=(FileDescriptor&& other) {
-    // swap(path_, other.path_);
     std::swap(flags_, other.flags_);
     std::swap(fd_, other.fd_);
     return *this;
@@ -43,18 +42,17 @@ class FileDescriptor {
 
   int handle() const { return fd_; }
   bool valid() const { return fd_ != -1; }
-  /*
-    size_t file_size() const {
-      CHECK_NE(fd_, -1) << "fd is invalid";
-      struct stat s {};
-      auto ret = fstat(fd_, &s);
-      CHECK_NE(ret, -1) << std::strerror(errno);
-      return s.st_size;
-    }
-  */
+
+  size_t file_size() const {
+    CHECK_NE(fd_, -1);
+    struct stat s {};
+    auto ret = ::fstat(fd_, &s);
+    CHECK_NE(ret, -1);
+    return s.st_size;
+  }
+
  private:
   MAKE_NON_COPYABLE(FileDescriptor);
-  static constexpr unsigned int MAX_PATH = 64;
 
   int flags_ = 0;
   int mode_ = 0;

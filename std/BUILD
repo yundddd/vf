@@ -53,13 +53,13 @@ cc_library(
 cc_library(
     name = "ctype",
     srcs = ["ctype.cc"],
-    hdrs = ["ctype.h"],
+    hdrs = ["ctype.hh"],
     deps = [":std"],
 )
 
 cc_library(
     name = "errno",
-    hdrs = ["errno.h"],
+    hdrs = ["errno.hh"],
 )
 
 cc_library(
@@ -67,7 +67,7 @@ cc_library(
     srcs = ["signal.cc"],
     hdrs = ["signal.hh"],
     deps = [
-         ":std",
+        ":std",
         ":sys",
     ],
 )
@@ -94,7 +94,7 @@ cc_library(
 cc_library(
     name = "stdlib",
     srcs = ["stdlib.cc"],
-    hdrs = ["stdlib.h"],
+    hdrs = ["stdlib.hh"],
     deps = [
         ":arch",
         ":errno",

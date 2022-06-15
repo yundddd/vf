@@ -25,9 +25,7 @@ class Mmap {
 
   ~Mmap() {
     if (base_ != nullptr) {
-      if (::munmap(base_, size_) == -1) {
-        CHECK_FAIL();
-      }
+      CHECK_NE(::munmap(base_, size_), -1);
     }
   }
 

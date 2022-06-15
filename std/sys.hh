@@ -108,6 +108,8 @@ pid_t setsid(void);
 
 int stat(const char* path, struct stat* buf);
 
+int fstat(int fd, struct stat* buf);
+
 int symlink(const char* old, const char* cur);
 
 mode_t umask(mode_t mode);
