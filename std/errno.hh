@@ -1,10 +1,7 @@
 #pragma once
 
 #include <asm/errno.h>
-
-/* this way it will be removed if unused */
-static int errno;
-
+extern int errno;
 #ifndef NOLIBC_IGNORE_ERRNO
 #define SET_ERRNO(v) do { errno = (v); } while (0)
 #else

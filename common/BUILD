@@ -29,15 +29,6 @@ cc_library(
     hdrs = ["macros.hh"],
 )
 
-cc_library(
-    name = "environment_variables",
-    srcs = ["environment_variables.cc"],
-    hdrs = ["environment_variables.hh"],
-    deps = [
-        "@glog",
-    ],
-)
-
 cc_binary(
     name = "file_descriptor_b",
     srcs = ["file_descriptor_b.cc"],
@@ -74,6 +65,7 @@ cc_library(
     hdrs = ["hex_dump.hh"],
     deps = [
         "//std:stdio",
+        "//std:ctype",
     ],
 )
 

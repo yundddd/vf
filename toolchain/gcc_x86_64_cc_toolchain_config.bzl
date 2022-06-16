@@ -104,7 +104,6 @@ def _impl(ctx):
                     flag_groups = ([
                         flag_group(
                             flags = [
-                                #"-fPIC",
                                 "-fno-rtti",
                                 "-fno-exceptions",
                                 "-fomit-frame-pointer",

@@ -1,5 +1,5 @@
 #pragma once
-namespace vt::std {
+namespace vt {
 
 template <class T>
 struct remove_reference {
@@ -27,4 +27,4 @@ void swap(T& t1, T& t2) {
   t1 = move(t2);
   t2 = move(temp);
 }
-}  // namespace vt::std
+}  // namespace vt

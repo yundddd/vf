@@ -29,13 +29,13 @@ class Mmap {
     }
   }
 
-  Mmap(Mmap<PROT>&& other) { *this = std::move(other); }
+  Mmap(Mmap<PROT>&& other) { *this = vt::move(other); }
 
   Mmap<PROT>& operator=(Mmap<PROT>&& other) {
-    std::swap(size_, other.size_);
-    std::swap(flags_, other.flags_);
-    std::swap(offset_, other.offset_);
-    std::swap(base_, other.base_);
+    vt::swap(size_, other.size_);
+    vt::swap(flags_, other.flags_);
+    vt::swap(offset_, other.offset_);
+    vt::swap(base_, other.base_);
     return *this;
   }
 

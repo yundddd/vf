@@ -103,12 +103,12 @@ def _impl(ctx):
                     flag_groups = ([
                         flag_group(
                             flags = [
-                                "-fPIC",
                                 "-fno-rtti",
                                 "-fno-exceptions",
                                 "-fomit-frame-pointer",
                                 "-ffunction-sections",
-                                "-Os",
+                                "-ggdb",
+                                "-O0",
                                 "-fno-stack-protector",
                                 "-fno-unwind-tables",
                                 "-fno-asynchronous-unwind-tables",

@@ -84,8 +84,8 @@ void free(void* ptr) {
 }
 
 char* getenv(const char* name) {
-  extern char** environ;
-  return _getenv(name, environ);
+  extern char** _environ;
+  return _getenv(name, _environ);
 }
 
 void* malloc(size_t len) {

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "std/ctype.hh"
 
 int isascii(int c) {

@@ -40,6 +40,7 @@ cc_library(
 cc_library(
     name = "arch",
     hdrs = ["arch.hh"],
+    srcs = ["arch.cc"],
     deps = [
         ":arch-aarch64",
         ":arch-arm",
@@ -60,6 +61,7 @@ cc_library(
 cc_library(
     name = "errno",
     hdrs = ["errno.hh"],
+    srcs = ["errno.cc"],
 )
 
 cc_library(

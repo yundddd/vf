@@ -14,6 +14,8 @@
 
 #pragma once
 
+extern char** _environ;
+
 #if defined(__x86_64__)
 #include "std/arch-x86_64.hh"
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || \

@@ -32,11 +32,11 @@ class FileDescriptor {
     }
   }
 
-  FileDescriptor(FileDescriptor&& other) { *this = std::move(other); }
+  FileDescriptor(FileDescriptor&& other) { *this = vt::move(other); }
 
   FileDescriptor& operator=(FileDescriptor&& other) {
-    std::swap(flags_, other.flags_);
-    std::swap(fd_, other.fd_);
+    vt::swap(flags_, other.flags_);
+    vt::swap(fd_, other.fd_);
     return *this;
   }
 
