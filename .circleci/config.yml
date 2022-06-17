@@ -22,13 +22,13 @@ jobs:
       - run: apt-get update && apt-get install -y golang git
       - run: go get github.com/bazelbuild/bazelisk
       - run: ln -sf /go/bin/bazelisk /usr/bin/bazel
-      - run: ./dev_setup.sh
 
       - checkout
+      - run: ./dev_setup.sh
       - run:
           name: "Build x86_64"
           command: "bazel build //common/... --confg=gcc_x86_64 && bazel build //std/... --confg=gcc_x86_64"
-       - run:
+      - run:
           name: "Build aarch64"
           command: "bazel build //common/... --confg=gcc_aarch64 && bazel build //std/... --confg=gcc_aarch64"
       - run:
