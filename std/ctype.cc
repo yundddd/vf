@@ -1,3 +1,5 @@
+#ifndef USE_REAL_STDLIB
+
 #include "std/ctype.hh"
 
 int isascii(int c) {
@@ -43,3 +45,5 @@ int isalpha(int c) { return islower(c) || isupper(c); }
 int isalnum(int c) { return isalpha(c) || isdigit(c); }
 
 int ispunct(int c) { return isgraph(c) && !isalnum(c); }
+
+#endif

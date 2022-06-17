@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef USE_REAL_STDLIB
 #include "std/std.hh"
 
 int isascii(int c);
@@ -27,3 +27,6 @@ int isalpha(int c);
 int isalnum(int c);
 
 int ispunct(int c);
+#else
+#include <ctype.h>
+#endif

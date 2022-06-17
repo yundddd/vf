@@ -1,5 +1,4 @@
 #pragma once
-
 /* Declare a few quite common macros and types that usually are in stdlib.h,
  * stdint.h, ctype.h, unistd.h and a few other common locations. Please place
  * integer type definitions and generic macros here, but avoid OS-specific and

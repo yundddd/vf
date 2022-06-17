@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef USE_REAL_STDLIB
 #include "std/std.hh"
 
 /* must be exported, as it's used by libgcc for various divide functions */
@@ -112,3 +112,12 @@ char* i64toa(int64_t in);
  * the pointer to that string.
  */
 char* u64toa(uint64_t in);
+
+void * operator new(size_t n);
+
+void operator delete(void * p);
+void operator delete(void *ptr, unsigned long);
+// Definition of the error function to call if the constructor goes bonkers
+extern "C" void __cxa_pure_virtual();
+
+#endif

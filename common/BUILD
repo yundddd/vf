@@ -43,8 +43,7 @@ cc_test(
     srcs = ["file_descriptor_test.cc"],
     deps = [
         ":file_descriptor",
-        "//testing:test_support",
-        "@com_google_googletest//:gtest_main",
+        "//testing:test",
     ],
 )
 
@@ -64,12 +63,21 @@ cc_library(
     srcs = ["hex_dump.cc"],
     hdrs = ["hex_dump.hh"],
     deps = [
-        "//std:stdio",
         "//std:ctype",
+        "//std:stdio",
     ],
 )
 
 cc_library(
     name = "patch_pattern",
     hdrs = ["patch_pattern.hh"],
+)
+
+cc_library(
+    name = "environment_variables",
+    srcs = ["environment_variables.cc"],
+    hdrs = ["environment_variables.hh"],
+    deps = [
+        "@glog",
+    ],
 )

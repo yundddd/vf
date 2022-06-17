@@ -11,3 +11,15 @@ cc_library(
         "@glog",
     ],
 )
+
+cc_library(
+    name = "test",
+    srcs = ["test.cc"],
+    hdrs = ["test.hh"],
+    deps = [
+        "//std:stdio",
+        "//std:string",
+        "//std:time",
+        "//std:stdlib",
+    ],
+)

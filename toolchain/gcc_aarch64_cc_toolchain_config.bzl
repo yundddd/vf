@@ -103,6 +103,7 @@ def _impl(ctx):
                     flag_groups = ([
                         flag_group(
                             flags = [
+                                "-fno-use-cxa-atexit",
                                 "-fno-rtti",
                                 "-fno-exceptions",
                                 "-fomit-frame-pointer",

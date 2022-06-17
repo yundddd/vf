@@ -1,3 +1,4 @@
+#ifndef USE_REAL_STDLIB
 #include "std/stdlib.hh"
 #include "std/arch.hh"
 #include "std/errno.hh"
@@ -376,3 +377,21 @@ char* u64toa(uint64_t in) {
   u64toa_r(in, itoa_buffer);
   return itoa_buffer;
 }
+
+void * operator new(size_t n)
+{
+  void * const p = malloc(n);
+  // handle p == 0
+  return p;
+}
+
+void operator delete(void * p) // or delete(void *, std::size_t)
+{
+  free(p);
+}
+void operator delete(void *ptr, unsigned long) {
+  free(ptr);
+}
+extern "C" void __cxa_pure_virtual() { while (1); }
+
+#endif

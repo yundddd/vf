@@ -13,7 +13,7 @@
  */
 
 #pragma once
-
+#ifndef USE_REAL_STDLIB
 extern char** _environ;
 
 #if defined(__x86_64__)
@@ -29,4 +29,6 @@ extern char** _environ;
 #include "std/arch-mips.hh"
 #elif defined(__riscv)
 #include "std/arch-riscv.hh"
+#endif
+
 #endif

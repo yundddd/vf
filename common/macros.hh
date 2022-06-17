@@ -26,7 +26,7 @@
 #define ELF_PAGE_SZ64 0x200000
 #define ELF_PAGE_SZ32 0x1000
 
-#define CHECK_FAIL() ::exit(-1);
+#define CHECK_FAIL() ;;
 #define CHECK_NE(a, b)         \
   if (a == b) {                \
     [[unlikely]] CHECK_FAIL(); \

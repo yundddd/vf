@@ -1,4 +1,6 @@
 #pragma once
+#ifndef USE_REAL_STDLIB
+
 #include <stdarg.h>
 #include "std/std.hh"
 
@@ -71,3 +73,9 @@ int fprintf(FILE* stream, const char* fmt, ...);
 
 int printf(const char* fmt, ...);
 void perror(const char* msg);
+int vsnprintf(char* str, size_t size, const char* format, va_list arg);
+int snprintf(char* str, size_t size, const char* format, ...);
+
+#else
+#include <cstdio>
+#endif

@@ -1,3 +1,5 @@
+#ifndef USE_REAL_STDLIB
+
 #include "std/unistd.hh"
 #include "std/arch.hh"
 #include "std/sys.hh"
@@ -29,3 +31,4 @@ int usleep(unsigned int usecs) {
 }
 
 int tcsetpgrp(int fd, pid_t pid) { return ioctl(fd, TIOCSPGRP, &pid); }
+#endif
