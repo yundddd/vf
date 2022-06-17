@@ -76,6 +76,4 @@ void perror(const char* msg);
 int vsnprintf(char* str, size_t size, const char* format, va_list arg);
 int snprintf(char* str, size_t size, const char* format, ...);
 
-#else
-#include <cstdio>
 #endif

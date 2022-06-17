@@ -1,4 +1,5 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//testing:test.bzl", "nostdlib_cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -38,7 +39,7 @@ cc_binary(
     ],
 )
 
-cc_test(
+nostdlib_cc_test(
     name = "file_descriptor_test",
     srcs = ["file_descriptor_test.cc"],
     deps = [
@@ -47,14 +48,13 @@ cc_test(
     ],
 )
 
-cc_test(
+nostdlib_cc_test(
     name = "mmap_test",
     srcs = ["mmap_test.cc"],
     deps = [
         ":file_descriptor",
         ":mmap",
-        "//testing:test_support",
-        "@com_google_googletest//:gtest_main",
+        "//testing:test",
     ],
 )
 
@@ -71,13 +71,4 @@ cc_library(
 cc_library(
     name = "patch_pattern",
     hdrs = ["patch_pattern.hh"],
-)
-
-cc_library(
-    name = "environment_variables",
-    srcs = ["environment_variables.cc"],
-    hdrs = ["environment_variables.hh"],
-    deps = [
-        "@glog",
-    ],
 )

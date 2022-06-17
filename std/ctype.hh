@@ -27,6 +27,5 @@ int isalpha(int c);
 int isalnum(int c);
 
 int ispunct(int c);
-#else
-#include <ctype.h>
+
 #endif

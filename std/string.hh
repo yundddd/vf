@@ -62,6 +62,4 @@ char* strncpy(char* dst, const char* src, size_t size);
 
 char* strrchr(const char* s, int c);
 
-#else
-#include <cstring>
 #endif

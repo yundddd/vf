@@ -106,7 +106,6 @@ void* malloc(size_t len) {
 }
 
 void* calloc(size_t size, size_t nmemb) {
-  void* orig;
   size_t res = 0;
 
   if (__builtin_expect(__builtin_mul_overflow(nmemb, size, &res), 0)) {

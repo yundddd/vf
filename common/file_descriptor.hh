@@ -5,7 +5,6 @@
 #include "std/sys.hh"
 #include "std/utility.hh"
 
-
 namespace vt::common {
 class FileDescriptor {
  public:

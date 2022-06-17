@@ -15,14 +15,6 @@ void* _nolibc_memcpy_up(void* dst, const void* src, size_t len) {
   }
   return dst;
 }
-
-void* _nolibc_memcpy_down(void* dst, const void* src, size_t len) {
-  while (len) {
-    len--;
-    ((char*)dst)[len] = ((const char*)src)[len];
-  }
-  return dst;
-}
 }  // namespace
 
 int memcmp(const void* s1, const void* s2, size_t n) {

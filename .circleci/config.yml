@@ -22,14 +22,18 @@ jobs:
       - run: apt-get update && apt-get install -y golang git
       - run: go get github.com/bazelbuild/bazelisk
       - run: ln -sf /go/bin/bazelisk /usr/bin/bazel
+      - run: ./dev_setup.sh
 
       - checkout
       - run:
-          name: "Build"
-          command: "bazel build ..."
+          name: "Build x86_64"
+          command: "bazel build //common/... --confg=gcc_x86_64 && bazel build //std/... --confg=gcc_x86_64"
+       - run:
+          name: "Build aarch64"
+          command: "bazel build //common/... --confg=gcc_aarch64 && bazel build //std/... --confg=gcc_aarch64"
       - run:
           name: "Test"
-          command: "bazel test ..."
+          command: "bazel test //common/... --confg=gcc_x86_64"
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

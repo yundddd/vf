@@ -17,6 +17,5 @@ extern int errno;
  * because they all correspond to the highest addressable memory page.
  */
 #define MAX_ERRNO 4095
-#else
-#include <cerrno>
+
 #endif

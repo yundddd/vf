@@ -9,7 +9,6 @@
 #include "common/mmap.hh"
 #include "common/patch_pattern.hh"
 
-
 bool silvio_infect(vt::common::Mmap<PROT_READ> host_mapping,
                    vt::common::Mmap<PROT_READ | PROT_WRITE> parasite_mapping,
                    vt::common::Mmap<PROT_READ | PROT_WRITE> output_mapping);
@@ -60,8 +59,8 @@ int main(int argc, char** argv) {
             parasite_mapping.base() + parasite_mapping.size(),
             parasite_cpy.mutable_base());
 
-  if (silvio_infect(std::move(host_mapping), std::move(parasite_cpy),
-                    std::move(output_mapping))) {
+  if (silvio_infect(vt::move(host_mapping), vt::move(parasite_cpy),
+                    vt::move(output_mapping))) {
     LOG(INFO) << "infected " << argv[1];
 
     return EXIT_SUCCESS;

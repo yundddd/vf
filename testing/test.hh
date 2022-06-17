@@ -195,7 +195,7 @@ class TestFixture {
     char const* TestName() const override { return #name; }   \
     char const* TestGroup() const override { return #group; } \
     void RunTest() override;                                  \
-  } TOK(TOK(group, name), Instance);                          \
+  };                                                          \
   void TOK(group, name)::RunTest()
 
 #define DEFINE_TEST(name) DEFINE_TEST_FULL(name, Global, BASE_FIXTURE)
@@ -302,4 +302,3 @@ T TestDifference(T const& a, T const& b) {
   TEST_BEGIN_(cond);                                           \
   TEST_CHECK_(test_value_, STR(cond), message, ##__VA_ARGS__); \
   TEST_END_
-  

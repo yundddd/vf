@@ -126,8 +126,5 @@ pid_t wait4(pid_t pid, int* status, int options, struct rusage* rusage);
 pid_t waitpid(pid_t pid, int* status, int options);
 
 ssize_t write(int fd, const void* buf, size_t count);
-#else
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
+
 #endif
