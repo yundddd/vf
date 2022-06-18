@@ -250,11 +250,11 @@ T TestDifference(T const& a, T const& b) {
 //
 // Note: Value caching is only enabled on left hand side. This splits the
 // difference between preventing side effects (i.e. x++ double incrementing) and
-// allowing the compiler to infer values (i.e. TEST_EQ(unsigned(1), 1) will try
+// allowing the compiler to infer values (i.e. EXPECT_EQ(unsigned(1), 1) will try
 // to cache 1 as an int then omit a compile warning). This means that the right
 // hand side will get evaluated multiple times, so please avoid expressions
-// like: TEST_EQ(a++, b++) as they won't work. Tests should always be written as
-// following: TEST_EQ(expression, constant)
+// like: (a++, b++) as they won't work. Tests should always be written as
+// following: EXPECT_EQ(expression, constant)
 //---------------------------------------------------------------------------------
 #define TEST_OPERATOR(a, b, op1, op2)                                        \
   TEST_BEGIN_(a);                                                            \
@@ -263,26 +263,26 @@ T TestDifference(T const& a, T const& b) {
               TEST_TYPE_TO_STRING(b, b));                                    \
   TEST_END_
 
-#define TEST(cond) TEST_EQ(cond, true)
-#define TEST_FAIL(cond) TEST_EQ(cond, false)
-#define TEST_TRUE(cond) TEST(cond)
-#define TEST_FALSE(cond) TEST_FAIL(cond)
+#define TEST(cond) EXPECT_EQ(cond, true)
+#define TEST_FAIL(cond) EXPECT_EQ(cond, false)
+#define EXPECT_TRUE(cond) TEST(cond)
+#define EXPECT_FALSE(cond) TEST_FAIL(cond)
 
-#define TEST_EQ(a, b) TEST_OPERATOR(a, b, ==, !=)
-#define TEST_NEQ(a, b) TEST_OPERATOR(a, b, !=, ==)
-#define TEST_GREATER(a, b) TEST_OPERATOR(a, b, >, <=)
-#define TEST_GREATER_EQUAL(a, b) TEST_OPERATOR(a, b, >=, <)
-#define TEST_LESS(a, b) TEST_OPERATOR(a, b, <, >=)
-#define TEST_LESS_EQUAL(a, b) TEST_OPERATOR(a, b, <=, >)
+#define EXPECT_EQ(a, b) TEST_OPERATOR(a, b, ==, !=)
+#define EXPECT_NE(a, b) TEST_OPERATOR(a, b, !=, ==)
+#define EXPECT_GT(a, b) TEST_OPERATOR(a, b, >, <=)
+#define EXPECT_GE(a, b) TEST_OPERATOR(a, b, >=, <)
+#define EXPECT_LT(a, b) TEST_OPERATOR(a, b, <, >=)
+#define EXPECT_LE(a, b) TEST_OPERATOR(a, b, <=, >)
 
-#define TEST_STR_EQ(a, b)                                                     \
+#define EXPECT_STR_EQ(a, b)                                                     \
   do {                                                                        \
     if (!TestFixture::GetCurrentTest()->TestStrings(                          \
             a, b, TEST_ERROR_PREFIX_ "\n%s\n%s\n%s", STR(a) " == " STR(b))) { \
       ERROR_ACTION;                                                           \
     }                                                                         \
   } while (0)
-#define TEST_CLOSE(a, b, eps)                                             \
+#define EXPECT_CLOSE(a, b, eps)                                             \
   TEST_BEGIN_(TestDifference(a, b));                                      \
   TEST_CHECK_(test_value_ <= eps, STR(a) " Close to " STR(b),             \
               "Difference of %s is greater than expected amount of " STR( \
@@ -290,7 +290,7 @@ T TestDifference(T const& a, T const& b) {
               TEST_TYPE_TO_STRING(test_value_, TestDifference(a, b)),     \
               TEST_TYPE_TO_STRING(a, a), TEST_TYPE_TO_STRING(b, b));      \
   TEST_END_
-#define TEST_DIFFERS(a, b, eps)                                        \
+#define EXPECT_DIFFERS(a, b, eps)                                        \
   TEST_BEGIN_(TestDifference(a, b));                                   \
   TEST_CHECK_(test_value_ >= eps, STR(a) " Differs from " STR(b),      \
               "Difference of %s is less than expected amount of " STR( \
@@ -298,7 +298,7 @@ T TestDifference(T const& a, T const& b) {
               TEST_TYPE_TO_STRING(test_value_, TestDifference(a, b)),  \
               TEST_TYPE_TO_STRING(a, a), TEST_TYPE_TO_STRING(b, b));   \
   TEST_END_
-#define TEST_MESSAGE(cond, message, ...)                       \
+#define EXPECT_MESSAGE(cond, message, ...)                       \
   TEST_BEGIN_(cond);                                           \
   TEST_CHECK_(test_value_, STR(cond), message, ##__VA_ARGS__); \
   TEST_END_
