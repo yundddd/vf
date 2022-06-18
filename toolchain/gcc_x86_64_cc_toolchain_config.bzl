@@ -21,12 +21,6 @@ def generate_include_paths(gcc_version):
         "/usr/include",
     ]
 
-all_link_actions = [
-    ACTION_NAMES.cpp_link_executable,
-    ACTION_NAMES.cpp_link_dynamic_library,
-    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
-]
-
 all_compile_actions = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
@@ -38,6 +32,12 @@ all_compile_actions = [
     ACTION_NAMES.cpp_module_codegen,
     ACTION_NAMES.clif_match,
     ACTION_NAMES.lto_backend,
+]
+
+all_link_actions = [
+    ACTION_NAMES.cpp_link_executable,
+    ACTION_NAMES.cpp_link_dynamic_library,
+    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
 ]
 
 def _impl(ctx):
@@ -104,6 +104,9 @@ def _impl(ctx):
                     flag_groups = ([
                         flag_group(
                             flags = [
+                                "-Wunused",
+                                "-Werror",
+                                "-fno-use-cxa-atexit",
                                 "-fno-rtti",
                                 "-fno-exceptions",
                                 "-fomit-frame-pointer",

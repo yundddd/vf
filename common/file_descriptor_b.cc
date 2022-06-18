@@ -15,6 +15,6 @@ int main(int argc, char* argv[]) {
   write(1, map.base(), 3);
   map.mutable_base()[0] = 'k';
 
- // printf("env: %s\n", getenv("abc"));
+  printf("env: %s\n", getenv("abc"));
   return 0;
 }

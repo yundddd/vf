@@ -183,12 +183,11 @@ __asm__(
     ".section .text\n"
     ".weak _start\n"
     "_start:\n"
-    "pop %rdi\n"                 // argc   (first arg, %rdi)
-    "mov %rsp, %rsi\n"           // argv[] (second arg, %rsi)
-    "lea 8(%rsi,%rdi,8),%rdx\n"  // then a nullptr then envp (third arg, %rdx)
-    "lea _environ(%rip), %ebp\n" // save envp to global
-    "mov %rdx, (%ebp)\n"
-    "xor %ebp, %ebp\n"           // zero the stack frame
+    "pop %rdi\n"                   // argc   (first arg, %rdi)
+    "mov %rsp, %rsi\n"             // argv[] (second arg, %rsi)
+    "lea 8(%rsi,%rdi,8),%rdx\n"    // then a nullptr then envp (third arg, %rdx)
+    "movq %rdx, _environ(%rip)\n"  // save envp to global
+    "xor %ebp, %ebp\n"             // zero the stack frame
     "and $-16, %rsp\n"  // x86 ABI : esp must be 16-byte aligned before call
     "call main\n"       // main() returns the status code, we'll exit with it.
     "mov %eax, %edi\n"  // retrieve exit code (32 bit)
@@ -196,5 +195,3 @@ __asm__(
     "syscall\n"         // really exit
     "hlt\n"             // ensure it does not return
     "");
-
- 

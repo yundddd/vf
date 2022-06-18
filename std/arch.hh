@@ -14,7 +14,6 @@
 
 #pragma once
 #ifndef USE_REAL_STDLIB
-extern char** _environ;
 
 #if defined(__x86_64__)
 #include "std/arch-x86_64.hh"
