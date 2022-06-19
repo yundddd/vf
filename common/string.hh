@@ -16,10 +16,17 @@ class String {
   String& operator=(const String& rhs);
   String& operator=(String&& rhs);
 
+  String& operator+(const char* rhs);
+  String& operator+(const String& rhs);
+
+  bool operator==(const char* rhs) const;
+  bool operator==(const String& rhs) const;
+
   char* c_str() { return Data; }
   const char* c_str() const { return Data; }
   bool empty() const { return Data[0] == 0; }
   size_t length() const;
+  size_t size() const { return length(); };
   size_t capacity() const { return Capacity; }
 
   int append(char c);
@@ -37,9 +44,6 @@ class String {
 
   char& operator[](size_t i) { return Data[i]; }
   const char& operator[](size_t i) const { return Data[i]; }
-
-  bool operator==(const char* rhs) const;
-  bool operator==(const String& rhs) const;
 
  protected:
   void set(const String& src);

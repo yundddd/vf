@@ -8,9 +8,22 @@ cc_library(
     hdrs = ["test.hh"],
     deps = [
         "//std:stdio",
+        "//std:stdlib",
         "//std:string",
         "//std:time",
+    ],
+)
+
+cc_library(
+    name = "test_support",
+    srcs = ["test_support.cc"],
+    hdrs = ["test_support.hh"],
+    deps = [
+        "//std:stdio",
         "//std:stdlib",
+        "//std:string",
+        "//common:string",
+        "//common:macros",
     ],
 )
 

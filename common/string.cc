@@ -59,6 +59,13 @@ String& String::operator=(String&& rhs) {
   return *this;
 }
 
+String& String::operator+(const char* rhs) {
+  append(rhs);
+  return *this;
+}
+
+String& String::operator+(const String& rhs) { append(rhs.c_str()); return *this; }
+
 size_t String::length() const { return strlen(Data); }
 
 void String::set(const char* src) {

@@ -68,6 +68,7 @@ nostdlib_cc_test(
     deps = [
         ":file_descriptor",
         "//testing:test",
+        "//testing:test_support",
     ],
 )
 
@@ -78,6 +79,7 @@ nostdlib_cc_test(
         ":file_descriptor",
         ":mmap",
         "//testing:test",
+        "//testing:test_support",
     ],
 )
 

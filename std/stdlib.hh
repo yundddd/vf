@@ -117,6 +117,10 @@ void * operator new(size_t n);
 
 void operator delete(void * p);
 void operator delete(void *ptr, unsigned long);
+// Overloading Global new[] operator
+void* operator new[](size_t sz);
+// Overloading Global delete[] operator
+void operator delete[](void* m);
 // Definition of the error function to call if the constructor goes bonkers
 extern "C" void __cxa_pure_virtual();
 

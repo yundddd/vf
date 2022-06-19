@@ -1004,11 +1004,6 @@ int __gen_tempname(char* tmpl, int suffixlen, int flags, int kind) {
 }
 }  // namespace
 
-/* Generate a unique temporary directory from TEMPLATE.
-   The last six characters of TEMPLATE must be "XXXXXX";
-   they are replaced with a string that makes the filename unique.
-   The directory is created, mode 700, and its name is returned.
-   (This function comes from OpenBSD.) */
 char* mkdtemp(char* templ) {
   if (__gen_tempname(templ, 0, 0, __GT_DIR))
     return nullptr;

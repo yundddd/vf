@@ -26,9 +26,9 @@
 #define S_IWUSR __S_IWRITE /* Write by owner.  */
 #define S_IXUSR __S_IEXEC  /* Execute by owner.  */
 
-#  define __GT_FILE        0        /* create a file */
-#  define __GT_DIR        1        /* create a directory */
-#  define __GT_NOCREATE        2        /* just find a name not currently in use */
+#define __GT_FILE 0     /* create a file */
+#define __GT_DIR 1      /* create a directory */
+#define __GT_NOCREATE 2 /* just find a name not currently in use */
 
 /* just define FILE as a non-empty type */
 typedef struct FILE {
@@ -77,7 +77,14 @@ int fprintf(FILE* stream, const char* fmt, ...);
 
 int printf(const char* fmt, ...);
 void perror(const char* msg);
+// https://opensource.apple.com/source/network_cmds/network_cmds-511/unbound/compat/snprintf.c.auto.html
 int vsnprintf(char* str, size_t size, const char* format, va_list arg);
 int snprintf(char* str, size_t size, const char* format, ...);
 
+/* Generate a unique temporary directory from TEMPLATE.
+   The last six characters of TEMPLATE must be "XXXXXX";
+   they are replaced with a string that makes the filename unique.
+   The directory is created, mode 700, and its name is returned.
+   (This function comes from OpenBSD.) */
+char* mkdtemp(char* templ);
 #endif
