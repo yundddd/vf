@@ -1,14 +1,15 @@
 #include "testing/test_support.hh"
-#include "glog/logging.h"
+#include "macros.hh"
+#include "std/stdlib.hh"
 
 namespace vt {
 namespace testing {
-std::string get_bazel_test_dir() {
-  auto ret = common::get_env("TEST_TMPDIR");
-  CHECK(!ret.empty());
+vt::String get_bazel_test_dir() {
+  auto ret = getenv("TEST_TMPDIR");
+  CHECK_NE(ret, nullptr);
   return ret;
 }
-std::string get_bazel_test_dir_unique() {
+vt::String get_bazel_test_dir_unique() {
   std::string temp = get_bazel_test_dir() + "/tmpdir.XXXXXX";
   char* buf = new char[temp.size()];
   buf[temp.size() - 1] = 0;

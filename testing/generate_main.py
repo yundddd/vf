@@ -1,25 +1,25 @@
 import sys
 
 def gen_test(line):
-    line.replace("DEFINE_TEST(", "")
-    line.replace(")", "")
+    line = line.split("DEFINE_TEST(", 1)[1]
+    line = line.split(")", 1)[0]
     return "Global"+line
 
 def gen_test_g(line):
-    line.replace("DEFINE_TEST_G(", "")
-    line.replace(")", "")
+    line = line.split("DEFINE_TEST_G(", 1)[1]
+    line = line.split(")", 1)[0]
     li = line.split(',')
     return li[0]+li[1]
 
 def gen_test_f(line):
-    line = line.replace("DEFINE_TEST_F(", "")
-    line = line.replace(")", "")
+    line = line.split("DEFINE_TEST_F(", 1)[1]
+    line = line.split(")", 1)[0]
     li = line.split(',')
     return "Global"+li[0]
 
 def gen_test_gf(line):
-    line.replace("DEFINE_TEST_GF(", "")
-    line.replace(")", "")
+    line = line.split("DEFINE_TEST_GF(", 1)[1]
+    line = line.split(")", 1)[0]
     li = line.split(',')
     return "Global"+li[0]
 

@@ -120,6 +120,10 @@ int sys_gettimeofday(struct timeval* tv, struct timezone* tz) {
   return my_syscall2(__NR_gettimeofday, tv, tz);
 }
 
+int sys_clock_gettime(clockid_t clock_id, struct timespec* tp) {
+  return my_syscall2(__NR_clock_gettime, clock_id, tp);
+}
+
 int sys_ioctl(int fd, unsigned long req, void* value) {
   return my_syscall3(__NR_ioctl, fd, req, value);
 }
@@ -470,6 +474,11 @@ pid_t gettid(void) { return sys_gettid(); }
 
 int gettimeofday(struct timeval* tv, struct timezone* tz) {
   int ret = sys_gettimeofday(tv, tz);
+  return trampoline(ret);
+}
+
+int clock_gettime(clockid_t clock_id, struct timespec* tp) {
+  int ret = sys_clock_gettime(clock_id, tp);
   return trampoline(ret);
 }
 

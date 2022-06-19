@@ -3,6 +3,7 @@
 #include "std/stdio.hh"
 #include "std/arch.hh"
 #include "std/errno.hh"
+#include "std/random.hh"
 #include "std/stdlib.hh"
 #include "std/string.hh"
 #include "std/sys.hh"
@@ -903,6 +904,116 @@ int snprintf(char* str, size_t size, const char* format, ...) {
   r = vsnprintf(str, size, format, args);
   va_end(args);
   return r;
+}
+
+namespace {
+/* These are the characters used in temporary file names.  */
+const char letters[] =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+/* Generate a temporary file name based on TMPL.  TMPL must match the
+   rules for mk[s]temp (i.e. end in "XXXXXX", possibly with a suffix).
+   The name constructed does not exist at the time of the call to
+   __gen_tempname.  TMPL is overwritten with the result.
+   KIND may be one of:
+   __GT_NOCREATE:        simply verify that the name does not exist
+                        at the time of the call.
+   __GT_FILE:                create the file using open(O_CREAT|O_EXCL)
+                        and return a read-write fd.  The file is mode 0600.
+   __GT_DIR:                create a directory, which will be mode 0700.
+   We use a clever algorithm to get hard-to-predict names. */
+int __gen_tempname(char* tmpl, int suffixlen, int flags, int kind) {
+  int len;
+  char* XXXXXX;
+  uint64_t value;
+  unsigned int count;
+  int fd = -1;
+  int save_errno = errno;
+  struct stat st;
+  /* A lower bound on the number of temporary files to attempt to
+     generate.  The maximum total number of temporary file names that
+     can exist for a given template is 62**6.  It should never be
+     necessary to try all of these combinations.  Instead if a reasonable
+     number of names is tried (we define reasonable as 62**3) fail to
+     give the system administrator the chance to remove the problems.  */
+#define ATTEMPTS_MIN (62 * 62 * 62)
+  /* The number of times to attempt to generate a temporary file.  To
+     conform to POSIX, this must be no smaller than TMP_MAX.  */
+#if ATTEMPTS_MIN < TMP_MAX
+  unsigned int attempts = TMP_MAX;
+#else
+  unsigned int attempts = ATTEMPTS_MIN;
+#endif
+  len = strlen(tmpl);
+  if (len < 6 + suffixlen || memcmp(&tmpl[len - 6 - suffixlen], "XXXXXX", 6)) {
+    SET_ERRNO(EINVAL);
+    return -1;
+  }
+  /* This is where the Xs start.  */
+  XXXXXX = &tmpl[len - 6 - suffixlen];
+  /* Get some more or less random data.  */
+  value = random_bits();
+  value ^= (uint64_t)getpid() << 32;
+  for (count = 0; count < attempts; value += 7777, ++count) {
+    uint64_t v = value;
+    /* Fill in the random bits.  */
+    XXXXXX[0] = letters[v % 62];
+    v /= 62;
+    XXXXXX[1] = letters[v % 62];
+    v /= 62;
+    XXXXXX[2] = letters[v % 62];
+    v /= 62;
+    XXXXXX[3] = letters[v % 62];
+    v /= 62;
+    XXXXXX[4] = letters[v % 62];
+    v /= 62;
+    XXXXXX[5] = letters[v % 62];
+    switch (kind) {
+      case __GT_FILE:
+        fd = open(tmpl, (flags & ~O_ACCMODE) | O_RDWR | O_CREAT | O_EXCL,
+                  S_IRUSR | S_IWUSR);
+        break;
+      case __GT_DIR:
+        fd = mkdir(tmpl, S_IRUSR | S_IWUSR | S_IXUSR);
+        break;
+      case __GT_NOCREATE:
+        /* This case is backward from the other three.  __gen_tempname
+           succeeds if __xstat fails because the name does not exist.
+           Note the continue to bypass the common logic at the bottom
+           of the loop.  */
+        if (stat(tmpl, &st) < 0) {
+          if (errno == ENOENT) {
+            SET_ERRNO(save_errno);
+            return 0;
+          } else
+            /* Give up now. */
+            return -1;
+        }
+        continue;
+      default:
+        abort();
+    }
+    if (fd >= 0) {
+      SET_ERRNO(save_errno);
+      return fd;
+    } else if (errno != EEXIST)
+      return -1;
+  }
+  /* We got out of the loop because we ran out of combinations to try.  */
+  SET_ERRNO(EEXIST);
+  return -1;
+}
+}  // namespace
+
+/* Generate a unique temporary directory from TEMPLATE.
+   The last six characters of TEMPLATE must be "XXXXXX";
+   they are replaced with a string that makes the filename unique.
+   The directory is created, mode 700, and its name is returned.
+   (This function comes from OpenBSD.) */
+char* mkdtemp(char* templ) {
+  if (__gen_tempname(templ, 0, 0, __GT_DIR))
+    return nullptr;
+  else
+    return templ;
 }
 
 #endif

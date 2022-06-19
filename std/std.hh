@@ -32,3 +32,4 @@ typedef signed long off_t;
 typedef signed long blksize_t;
 typedef signed long blkcnt_t;
 typedef signed long time_t;
+typedef signed int clockid_t;

@@ -1,4 +1,6 @@
 #pragma once
+#include "std/sys.hh"
+
 #define MAKE_NON_COPYABLE(class_name)     \
   class_name(const class_name&) = delete; \
   class_name& operator=(const class_name&) = delete;
@@ -29,16 +31,26 @@
 #define CHECK_TRUE(cond) \
   if (!(cond)) {         \
     CHECK_FAIL();        \
-  };
+  }
 
 #define CHECK_FALSE(cond) CHECK_TRUE(!!cond)
 
-#define CHECK_FAIL() exit(-1);
+#define CHECK_FAIL() exit(-1)
 #define CHECK_NE(a, b)         \
   if (a == b) {                \
     [[unlikely]] CHECK_FAIL(); \
-  };
+  }
 #define CHECK_EQ(a, b)         \
   if (a != b) {                \
     [[unlikely]] CHECK_FAIL(); \
-  };
+  }
+#define CHECK_LT(a, b)         \
+  if (a >= b) {                \
+    [[unlikely]] CHECK_FAIL(); \
+  }
+#define CHECK_LE(a, b)         \
+  if (a > b) {                 \
+    [[unlikely]] CHECK_FAIL(); \
+  }
+#define CHECK_GT(a, b) CHECK_LE(b, a)
+#define CHECK_GE(a, b) CHECK_LT(b, a)

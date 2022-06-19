@@ -75,6 +75,16 @@ cc_library(
 )
 
 cc_library(
+    name = "random",
+    hdrs = ["random.hh"],
+    srcs = ["random.cc"],
+    deps = [
+        ":std",
+        ":sys",
+    ],
+)
+
+cc_library(
     name = "std",
     hdrs = ["std.hh"],
 )
@@ -90,6 +100,7 @@ cc_library(
         ":string",
         ":sys",
         ":types",
+        ":random",
     ],
 )
 

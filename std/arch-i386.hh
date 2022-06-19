@@ -6,6 +6,7 @@
 
 #pragma once
 /* O_* macros for fcntl/open are architecture-specific */
+#define O_ACCMODE 3
 #define O_RDONLY 0
 #define O_WRONLY 1
 #define O_RDWR 2
@@ -195,5 +196,3 @@ __asm__(
     "int $0x80\n"       // exit now
     "hlt\n"             // ensure it does not
     "");
-
- 

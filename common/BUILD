@@ -28,6 +28,29 @@ cc_library(
 cc_library(
     name = "macros",
     hdrs = ["macros.hh"],
+    deps = ["//std:sys"],
+)
+
+cc_library(
+    name = "string",
+    srcs = ["string.cc"],
+    hdrs = ["string.hh"],
+    deps = [
+        ":macros",
+        "//std",
+        "//std:stdlib",
+        "//std:sys",
+        "//std:utility",
+    ],
+)
+
+nostdlib_cc_test(
+    name = "string_test",
+    srcs = ["string_test.cc"],
+    deps = [
+        ":string",
+        "//testing:test",
+    ],
 )
 
 cc_binary(

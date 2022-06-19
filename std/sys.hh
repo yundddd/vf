@@ -68,6 +68,8 @@ pid_t gettid(void);
 
 int gettimeofday(struct timeval* tv, struct timezone* tz);
 
+int clock_gettime(clockid_t clock_id, struct timespec *tp);
+
 int ioctl(int fd, unsigned long req, void* value);
 
 int kill(pid_t pid, int signal);

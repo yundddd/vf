@@ -14,7 +14,8 @@ int main(int argc, char* argv[]) {
   vt::common::Mmap<PROT_WRITE | PROT_READ> map(5, MAP_SHARED, fd.handle(), 0);
   write(1, map.base(), 3);
   map.mutable_base()[0] = 'k';
-
+  auto i = new int;
+  (void)i;
   printf("env: %s\n", getenv("abc"));
   return 0;
 }

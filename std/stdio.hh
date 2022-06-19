@@ -26,6 +26,10 @@
 #define S_IWUSR __S_IWRITE /* Write by owner.  */
 #define S_IXUSR __S_IEXEC  /* Execute by owner.  */
 
+#  define __GT_FILE        0        /* create a file */
+#  define __GT_DIR        1        /* create a directory */
+#  define __GT_NOCREATE        2        /* just find a name not currently in use */
+
 /* just define FILE as a non-empty type */
 typedef struct FILE {
   char dummy[1];
