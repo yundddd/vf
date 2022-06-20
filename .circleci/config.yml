@@ -33,7 +33,7 @@ jobs:
           command: "bazel build //common/... --config=gcc_aarch64 && bazel build //std/... --config=gcc_aarch64"
       - run:
           name: "Test"
-          command: "bazel test //common/... --config=gcc_x86_64 --test_output=all"
+          command: "bazel test //common/... //infector/... --config=gcc_x86_64 --test_output=all"
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

@@ -1,7 +1,21 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 cc_binary(
+    name = "infect",
+    srcs = ["infect.cc"],
+    deps = [
+        "//common:file_descriptor",
+        "//common:mmap",
+        "//std:stdio",
+        "//std:string",
+        "//std:stdlib",
+        ":silvio",
+    ],
+)
+
+cc_library(
     name = "silvio",
+    hdrs = ["silvio.hh"],
     srcs = ["silvio.cc"],
     deps = [
         "//common:file_descriptor",
@@ -10,22 +24,6 @@ cc_binary(
         "//std:stdio",
         "//std:stdlib",
         "//std:string",
-    ],
-)
-
-cc_binary(
-    name = "stub_payload",
-    srcs = [
-        "stub_payload.cc",
-        "syscall.s",
-    ],
-    copts = [
-        "-nostdlib",
-        "-nostdinc",
-    ],
-    linkopts = [
-        "-nostdlib",
-        "-nostdinc",
     ],
 )
 
@@ -46,12 +44,12 @@ genrule(
     cmd_bash = "nasm -f bin $< -o $@",
 )
 
-sh_binary(
-    name = "infect",
-    srcs = ["infect.sh"],
+sh_test(
+    name = "infect_test",
+    srcs = ["infect_test.sh"],
     data = [
         ":cavy",
-        ":silvio",
+        ":infect",
         ":so_parasite.bin",
     ],
 )
