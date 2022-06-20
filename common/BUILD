@@ -20,6 +20,7 @@ cc_library(
     deps = [
         ":macros",
         "//std:sys",
+        "//std:stdio",
         "//std:utility",
     ],
 )

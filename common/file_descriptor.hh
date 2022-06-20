@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/macros.hh"
+#include "std/stdio.hh"
 #include "std/sys.hh"
 #include "std/utility.hh"
 
