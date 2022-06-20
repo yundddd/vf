@@ -145,6 +145,10 @@ off_t sys_lseek(int fd, off_t offset, int whence) {
   return my_syscall3(__NR_lseek, fd, offset, whence);
 }
 
+int sys_ftruncate(int fd, off_t length) {
+  return my_syscall2(__NR_ftruncate, fd, length);
+}
+
 int sys_mkdir(const char* path, mode_t mode) {
 #ifdef __NR_mkdirat
   return my_syscall3(__NR_mkdirat, AT_FDCWD, path, mode);
@@ -504,6 +508,11 @@ int sched_yield(void) {
 
 off_t lseek(int fd, off_t offset, int whence) {
   off_t ret = sys_lseek(fd, offset, whence);
+  return trampoline(ret);
+}
+
+int ftruncate(int fd, off_t length) {
+  int ret = sys_ftruncate(fd, length);
   return trampoline(ret);
 }
 

@@ -68,7 +68,7 @@ pid_t gettid(void);
 
 int gettimeofday(struct timeval* tv, struct timezone* tz);
 
-int clock_gettime(clockid_t clock_id, struct timespec *tp);
+int clock_gettime(clockid_t clock_id, struct timespec* tp);
 
 int ioctl(int fd, unsigned long req, void* value);
 
@@ -77,6 +77,8 @@ int kill(pid_t pid, int signal);
 int link(const char* old, const char* cur);
 
 off_t lseek(int fd, off_t offset, int whence);
+
+int ftruncate(int fd, off_t length);
 
 int mkdir(const char* path, mode_t mode);
 

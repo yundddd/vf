@@ -1,6 +1,6 @@
-#include <iostream>
+#include "std/stdio.hh"
 
 int main() {
-  std::cout << "cavy is running!" << std::endl;
+  printf("cavy is running!\n");
   return 0;
 }

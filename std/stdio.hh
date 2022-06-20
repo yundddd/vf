@@ -25,6 +25,7 @@
 #define S_IRUSR __S_IREAD  /* Read by owner.  */
 #define S_IWUSR __S_IWRITE /* Write by owner.  */
 #define S_IXUSR __S_IEXEC  /* Execute by owner.  */
+#define S_IRWXU S_IRUSR | S_IWUSR | S_IXUSR
 
 #define __GT_FILE 0     /* create a file */
 #define __GT_DIR 1      /* create a directory */

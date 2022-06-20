@@ -4,26 +4,36 @@ cc_binary(
     name = "silvio",
     srcs = ["silvio.cc"],
     deps = [
-        "//common:mmap",
         "//common:file_descriptor",
+        "//common:mmap",
         "//common:patch_pattern",
-        "@glog",
-        "@fmt",
-        "@absl//absl/status",
+        "//std:stdio",
+        "//std:stdlib",
+        "//std:string",
     ],
 )
 
 cc_binary(
     name = "stub_payload",
-    srcs = ["stub_payload.cc", "syscall.s"],
-    copts = ["-nostdlib", "-nostdinc"],
-    linkopts = ["-nostdlib", "-nostdinc"],
+    srcs = [
+        "stub_payload.cc",
+        "syscall.s",
+    ],
+    copts = [
+        "-nostdlib",
+        "-nostdinc",
+    ],
+    linkopts = [
+        "-nostdlib",
+        "-nostdinc",
+    ],
 )
 
 cc_binary(
     name = "cavy",
     srcs = ["cavy.cc"],
     deps = [
+        "//std:stdio",
     ],
 )
 
@@ -39,5 +49,9 @@ genrule(
 sh_binary(
     name = "infect",
     srcs = ["infect.sh"],
-    data = [":silvio", ":cavy", ":so_parasite.bin"],
+    data = [
+        ":cavy",
+        ":silvio",
+        ":so_parasite.bin",
+    ],
 )
