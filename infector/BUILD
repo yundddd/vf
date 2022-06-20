@@ -1,14 +1,10 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 cc_binary(
-    name = "infect",
-    srcs = ["infect.cc"],
+    name = "infector",
+    srcs = ["infector.cc"],
     deps = [
-        "//common:file_descriptor",
-        "//common:mmap",
         "//std:stdio",
-        "//std:string",
-        "//std:stdlib",
         ":silvio",
     ],
 )
@@ -20,6 +16,7 @@ cc_library(
     deps = [
         "//common:file_descriptor",
         "//common:mmap",
+         "//common:string",
         "//common:patch_pattern",
         "//std:stdio",
         "//std:stdlib",
@@ -45,11 +42,11 @@ genrule(
 )
 
 sh_test(
-    name = "infect_test",
-    srcs = ["infect_test.sh"],
+    name = "infector_test",
+    srcs = ["infector_test.sh"],
     data = [
         ":cavy",
-        ":infect",
+        ":infector",
         ":so_parasite.bin",
     ],
 )

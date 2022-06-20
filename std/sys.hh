@@ -33,6 +33,10 @@ int chmod(const char* path, mode_t mode);
 
 int chown(const char* path, uid_t owner, gid_t group);
 
+int fchmod(int fd, mode_t mode);
+
+int fchown(int fd, uid_t owner, gid_t group);
+
 int chroot(const char* path);
 
 int close(int fd);
@@ -79,6 +83,8 @@ int link(const char* old, const char* cur);
 off_t lseek(int fd, off_t offset, int whence);
 
 int ftruncate(int fd, off_t length);
+
+int rename(const char* old, const char* cur);
 
 int mkdir(const char* path, mode_t mode);
 

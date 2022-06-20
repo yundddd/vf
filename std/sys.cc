@@ -59,6 +59,14 @@ int sys_chown(const char* path, uid_t owner, gid_t group) {
 #endif
 }
 
+int sys_fchmod(int fd, mode_t mode) {
+  return my_syscall2(__NR_fchmod, fd, mode);
+}
+
+int sys_fchown(int fd, uid_t owner, gid_t group) {
+  return my_syscall3(__NR_fchown, fd, owner, group);
+}
+
 int sys_chroot(const char* path) { return my_syscall1(__NR_chroot, path); }
 
 int sys_close(int fd) { return my_syscall1(__NR_close, fd); }
@@ -147,6 +155,10 @@ off_t sys_lseek(int fd, off_t offset, int whence) {
 
 int sys_ftruncate(int fd, off_t length) {
   return my_syscall2(__NR_ftruncate, fd, length);
+}
+
+int sys_rename(const char* old, const char* cur) {
+  return my_syscall2(__NR_rename, old, cur);
 }
 
 int sys_mkdir(const char* path, mode_t mode) {
@@ -409,6 +421,16 @@ int chown(const char* path, uid_t owner, gid_t group) {
   return trampoline(ret);
 }
 
+int fchmod(int fd, mode_t mode) {
+  int ret = sys_fchmod(fd, mode);
+  return trampoline(ret);
+}
+
+int fchown(int fd, uid_t owner, gid_t group) {
+  int ret = sys_fchown(fd, owner, group);
+  return trampoline(ret);
+}
+
 int chroot(const char* path) {
   int ret = sys_chroot(path);
   return trampoline(ret);
@@ -513,6 +535,11 @@ off_t lseek(int fd, off_t offset, int whence) {
 
 int ftruncate(int fd, off_t length) {
   int ret = sys_ftruncate(fd, length);
+  return trampoline(ret);
+}
+
+int rename(const char* old, const char* cur) {
+  int ret = sys_rename(old, cur);
   return trampoline(ret);
 }
 

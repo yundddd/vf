@@ -19,7 +19,6 @@ cc_library(
     hdrs = ["file_descriptor.hh"],
     deps = [
         ":macros",
-        "//std:stdio",
         "//std:sys",
         "//std:utility",
     ],

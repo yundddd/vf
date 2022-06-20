@@ -16,8 +16,11 @@ class String {
   String& operator=(const String& rhs);
   String& operator=(String&& rhs);
 
-  String& operator+(const char* rhs);
-  String& operator+(const String& rhs);
+  String operator+(const char* rhs) const;
+  String operator+(const String& rhs) const;
+
+  String& operator+=(const char* rhs);
+  String& operator+=(const String& rhs);
 
   bool operator==(const char* rhs) const;
   bool operator==(const String& rhs) const;
