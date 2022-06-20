@@ -2,11 +2,11 @@
 #include "std/std.hh"
 namespace vt::common {
 
-class String {
+class String final {
  public:
   static constexpr size_t ksmall_buffer_size = 16;
 
-  virtual ~String();
+  ~String();
   String();
   String(const String& rhs);
   String(const char* rhs);
