@@ -158,7 +158,13 @@ int sys_ftruncate(int fd, off_t length) {
 }
 
 int sys_rename(const char* old, const char* cur) {
+#if defined(__NR_rename)
   return my_syscall2(__NR_rename, old, cur);
+#elif defined(__NR_renameat)
+  return my_syscall4(__NR_renameat, AT_FDCWD, old, AT_FDCWD, cur);
+#else
+  return my_syscall5(__NR_renameat2, AT_FDCWD, old, AT_FDCWD, cur, 0);
+#endif
 }
 
 int sys_mkdir(const char* path, mode_t mode) {
