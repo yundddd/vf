@@ -927,7 +927,8 @@ int __gen_tempname(char* tmpl, int suffixlen, int flags, int kind) {
   uint64_t value;
   unsigned int count;
   int fd = -1;
-  int save_errno = errno;
+  int save_errno = 0;
+  SAVE_ERRNO(save_errno);
   struct stat st;
   /* A lower bound on the number of temporary files to attempt to
      generate.  The maximum total number of temporary file names that

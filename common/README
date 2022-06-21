@@ -1,0 +1,13 @@
+Parasite requirements:
+- cannot link to libc
+- can only use text section
+  - no vtable (no .data.rel.ro)
+  - no global variable 
+    - no global constructor/destructor
+    - no .rodata
+    - no .bss (errono/environ)
+  - no const literal (no .rodata)
+
+  run bazel with --cxxopt=-DNOLIBC_IGNORE_ERRNO=1 --cxxopt=-DNOLIBC_IGNORE_ENVIRON=1 and
+  objdump bazel-bin/infector/infector -h
+  see if .data section is generated

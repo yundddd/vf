@@ -12,7 +12,9 @@ int atoi(const char* s);
 
 void free(void* ptr);
 
+#ifndef NOLIBC_IGNORE_ENVIRON
 char* getenv(const char* name);
+#endif
 
 void* malloc(size_t len);
 

@@ -180,6 +180,7 @@ struct sys_stat_struct {
  * 2) The deepest stack frame should be zero (the %rbp).
  *
  */
+#ifndef NOLIBC_IGNORE_ENVIRON
 __asm__(
     ".section .text\n"
     ".weak _start\n"
@@ -196,3 +197,20 @@ __asm__(
     "syscall\n"         // really exit
     "hlt\n"             // ensure it does not return
     "");
+#else
+__asm__(
+    ".section .text\n"
+    ".weak _start\n"
+    "_start:\n"
+    "pop %rdi\n"                 // argc   (first arg, %rdi)
+    "mov %rsp, %rsi\n"           // argv[] (second arg, %rsi)
+    "lea 8(%rsi,%rdi,8),%rdx\n"  // then a nullptr then envp (third arg, %rdx)
+    "xor %ebp, %ebp\n"           // zero the stack frame
+    "and $-16, %rsp\n"  // x86 ABI : esp must be 16-byte aligned before call
+    "call main\n"       // main() returns the status code, we'll exit with it.
+    "mov %eax, %edi\n"  // retrieve exit code (32 bit)
+    "mov $60, %eax\n"   // NR_exit == 60
+    "syscall\n"         // really exit
+    "hlt\n"             // ensure it does not return
+    "");
+#endif

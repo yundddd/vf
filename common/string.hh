@@ -53,7 +53,7 @@ class String final {
   void set(const char* src);
   void set(const char* src, const char* src_end);
   char* local_buf() { return small_buff; }
-  virtual const char* local_buf() const { return small_buff; }
+  const char* local_buf() const { return small_buff; }
   bool is_using_local_buf() const { return Data == local_buf(); }
 
   // Constructor for StrXXX variants with local buffer

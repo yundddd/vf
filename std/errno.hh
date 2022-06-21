@@ -7,9 +7,18 @@ extern int errno;
   do {               \
     errno = (v);     \
   } while (0)
+#define SAVE_ERRNO(d) \
+  do {                \
+    d = errno;        \
+  } while (0)
 #else
 #define SET_ERRNO(v) \
   do {               \
+    (void)v;         \
+  } while (0)
+#define SAVE_ERRNO(d) \
+  do {                \
+    (void)d;          \
   } while (0)
 #endif
 
