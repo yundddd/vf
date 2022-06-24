@@ -4,20 +4,20 @@ cc_binary(
     name = "infector",
     srcs = ["infector.cc"],
     deps = [
-        "//std:stdio",
         ":silvio",
+        "//std:stdio",
     ],
 )
 
 cc_library(
     name = "silvio",
-    hdrs = ["silvio.hh"],
     srcs = ["silvio.cc"],
+    hdrs = ["silvio.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:mmap",
-         "//common:string",
         "//common:patch_pattern",
+        "//common:string",
         "//std:stdio",
         "//std:stdlib",
         "//std:string",
@@ -28,6 +28,15 @@ cc_binary(
     name = "cavy",
     srcs = ["cavy.cc"],
     deps = [
+        "//std:stdio",
+    ],
+)
+
+cc_binary(
+    name = "so",
+    srcs = ["so.cc"],
+    deps = [
+        "//common:string",
         "//std:stdio",
     ],
 )

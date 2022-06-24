@@ -81,6 +81,11 @@ String& String::operator+=(const String& rhs) {
   return *this;
 }
 
+String& String::operator+=(char c) {
+  append(c);
+  return *this;
+}
+
 size_t String::length() const { return strlen(Data); }
 
 void String::set(const char* src) {

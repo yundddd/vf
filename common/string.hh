@@ -21,6 +21,7 @@ class String final {
 
   String& operator+=(const char* rhs);
   String& operator+=(const String& rhs);
+  String& operator+=(char c);
 
   bool operator==(const char* rhs) const;
   bool operator==(const String& rhs) const;

