@@ -1,7 +1,7 @@
 #include "common/string.hh"
 #include "std/sys.hh"
 
-int main() {
+int func() {
   vt::common::String txt;
   const char r = 'r';
   const char u = 'u';
@@ -10,6 +10,20 @@ int main() {
   txt += u;
   txt += n;
   write(1, txt.c_str(), txt.length() + 1);
-  exit(0);
   return 0;
 }
+
+int main() {
+  int r = func();
+  asm volatile(
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n");
+  return r;
+}
+

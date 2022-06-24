@@ -35,15 +35,15 @@ class String final {
 
   int append(char c);
   int append(const char* s, const char* s_end = nullptr);
-  int append_from(int idx, char c);
+  int append_from(size_t idx, char c);
   int append_from(
-      int idx, const char* s,
+      size_t idx, const char* s,
       const char* s_end = nullptr);  // If you know the String length or want to
                                      // append from a certain point
 
   void clear();
-  void reserve(int cap);
-  void reserve_discard(int cap);
+  void reserve(size_t cap);
+  void reserve_discard(size_t cap);
   void shrink_to_fit();
 
   char& operator[](size_t i) { return Data[i]; }

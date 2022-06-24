@@ -96,4 +96,5 @@ cc_library(
 cc_library(
     name = "patch_pattern",
     hdrs = ["patch_pattern.hh"],
+    deps = ["//std:types"],
 )

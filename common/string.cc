@@ -114,7 +114,7 @@ void String::set(const String& src) { set(src.c_str()); }
 void String::clear() { Data[0] = '\0'; }
 
 // Reserve memory, preserving the current of the buffer
-void String::reserve(int new_capacity) {
+void String::reserve(size_t new_capacity) {
   if (new_capacity <= Capacity) return;
 
   char* new_data;
@@ -133,7 +133,7 @@ void String::reserve(int new_capacity) {
 
 // Reserve memory, discarding the current of the buffer (if we expect to be
 // fully rewritten), only the requested cap is larger.
-void String::reserve_discard(int new_capacity) {
+void String::reserve_discard(size_t new_capacity) {
   if (new_capacity <= Capacity) return;
 
   free(Data);
@@ -145,7 +145,7 @@ void String::reserve_discard(int new_capacity) {
 
 void String::shrink_to_fit() {
   if (is_using_local_buf()) return;
-  int new_capacity = length() + 1;
+  size_t new_capacity = length() + 1;
   if (Capacity <= new_capacity) return;
 
   char* new_data = (char*)malloc((size_t)new_capacity * sizeof(char));
@@ -155,17 +155,17 @@ void String::shrink_to_fit() {
   Capacity = new_capacity;
 }
 
-int String::append_from(int idx, char c) {
-  int add_len = 1;
+int String::append_from(size_t idx, char c) {
+  size_t add_len = 1;
   if (Capacity < idx + add_len + 1) reserve(idx + add_len + 1);
   Data[idx] = c;
   Data[idx + add_len] = 0;
   return add_len;
 }
 
-int String::append_from(int idx, const char* s, const char* s_end) {
+int String::append_from(size_t idx, const char* s, const char* s_end) {
   if (!s_end) s_end = s + strlen(s);
-  int add_len = (int)(s_end - s);
+  size_t add_len = (size_t)(s_end - s);
   if (Capacity < idx + add_len + 1) reserve(idx + add_len + 1);
   memcpy(Data + idx, (const void*)s, (size_t)add_len);
   Data[idx + add_len] = 0;  // Our source data isn't necessarily zero-terminated
@@ -173,12 +173,10 @@ int String::append_from(int idx, const char* s, const char* s_end) {
 }
 
 int String::append(char c) {
-  int cur_len = length();
-  return append_from(cur_len, c);
+  return append_from(length(), c);
 }
 
 int String::append(const char* s, const char* s_end) {
-  int cur_len = length();
-  return append_from(cur_len, s, s_end);
+  return append_from(length(), s, s_end);
 }
 }  // namespace vt::common

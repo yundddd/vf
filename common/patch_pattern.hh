@@ -1,19 +1,30 @@
 #pragma once
-#include <cstddef>
+#include "std/types.hh"
 namespace vt::common {
 
 template <typename T>
 bool patch(void* mem, size_t size, T target, T value) {
   char* ptr = static_cast<char*>(mem);
 
+  auto offset = find(mem, size, target);
+  if (offset == -1) {
+    return false;
+  }
+  *(reinterpret_cast<T*>(ptr + offset)) = value;
+  return true;
+}
+
+template <typename T>
+int64_t find(const void* mem, size_t size, T target) {
+  auto ptr = static_cast<const char*>(mem);
+
   for (size_t i = 0; i < size - sizeof(T) + 1; ++i) {
-    T& current = *(reinterpret_cast<T*>(ptr + i));
+    auto& current = *(reinterpret_cast<const T*>(ptr + i));
 
     if (target == current) {
-      current = value;
-      return true;
+      return i;
     }
   }
-  return false;
+  return -1;
 }
 }  // namespace vt::common
