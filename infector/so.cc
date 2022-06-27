@@ -1,21 +1,39 @@
 #include "common/string.hh"
 #include "std/sys.hh"
-
-int func() {
+// Move _start() to the beginning of the text.
+int main() __attribute__((section(".text.A")));
+void func() {
   vt::common::String txt;
-  const char r = 'r';
-  const char u = 'u';
-  const char n = 'n';
-  txt += r;
-  txt += u;
-  txt += n;
+  txt += 'i';
+  txt += 'n';
+  txt += 'f';
+  txt += 'e';
+  txt += 'c';
+  txt += 't';
+  txt += 'e';
+  txt += 'd';
+  txt += '!';
+  txt += '\n';
   write(1, txt.c_str(), txt.length() + 1);
-  return 0;
 }
 
 int main() {
-  int r = func();
+  // asm volatile("int3\n");
+  func();
   asm volatile(
+      //"int3\n"
+      "pop %rbx\n"
+      "pop %rbx\n"
+      "pop %rbx\n"
+
+      "pop %rsp\n"
+      "pop %r12\n"
+      "pop %r11\n"
+      "pop %rdi\n"
+      "pop %rdx\n"
+      "pop %rcx\n"
+      "pop %rax\n"
+
       "nop\n"
       "nop\n"
       "nop\n"
@@ -24,6 +42,5 @@ int main() {
       "nop\n"
       "nop\n"
       "nop\n");
-  return r;
+  return 0;
 }
-

