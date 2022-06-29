@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//common:parasite.bzl", "cc_parasite_binary")
 
 cc_binary(
     name = "infector",
@@ -32,14 +33,13 @@ cc_binary(
     ],
 )
 
-cc_binary(
+cc_parasite_binary(
     name = "so",
     srcs = ["so.cc"],
     deps = [
         "//common:string",
         "//std:stdio",
     ],
-    copts = ["-DNOLIBC_IGNORE_ENVIRON"],
 )
 
 genrule(
@@ -57,6 +57,6 @@ sh_test(
     data = [
         ":cavy",
         ":infector",
-        ":so_parasite.bin",
+        ":so",
     ],
 )

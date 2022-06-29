@@ -19,8 +19,8 @@ void func() {
 
 int main() {
   func();
+#if defined(__x86_64__)
   asm volatile(
-      //"int3\n"
       "pop %rbx\n"
       "pop %rbx\n"
       "pop %rbx\n"
@@ -41,5 +41,9 @@ int main() {
       "nop\n"
       "nop\n"
       "nop\n");
+#elif defined(__aarch64__)
+  asm volatile("nop\n");
+#endif
+
   return 0;
 }
