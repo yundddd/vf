@@ -152,7 +152,7 @@ bool patch_parasite_and_resume_control(
   // The patched jump instruction is always 4 bytes.
 
   auto cur = common::find<uint32_t>(host_mapping.base() + info.parasite_offset,
-                                   parasite_size, 0xd503201f);
+                                    parasite_size, 0xd503201f);
   if (cur == -1) {
     printf("failed to patch host entry\n");
     return false;
@@ -185,24 +185,25 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
   auto phdr_entry = (const Elf64_Phdr*)(host_mapping + pht_offset);
 
   // Parse PHT entries
-  bool CODE_SEGMENT_FOUND = 0;
-
-  for (size_t i = 0; i < pht_entry_count; ++i) {
+  for (size_t i = 0; i < pht_entry_count; ++i, ++phdr_entry) {
     // Find the CODE Segment (containing .text section)
-    if (!CODE_SEGMENT_FOUND && phdr_entry->p_type == PT_LOAD &&
+    if (code_segment_end_offset == 0 && phdr_entry->p_type == PT_LOAD &&
         phdr_entry->p_flags == (PF_R | PF_X)) {
-      CODE_SEGMENT_FOUND = true;
-
       // Calculate the offset where the code segment ends to bellow calculate
       // padding_size
       code_segment_end_offset = phdr_entry->p_offset + phdr_entry->p_filesz;
       parasite_offset = code_segment_end_offset;
       parasite_load_address = phdr_entry->p_vaddr + phdr_entry->p_filesz;
+      continue;
     }
 
     // Find next segment after CODE Segment and calculate padding size
-    if (CODE_SEGMENT_FOUND == true && phdr_entry->p_type == PT_LOAD &&
-        phdr_entry->p_flags == (PF_R | PF_W)) {
+    if (code_segment_end_offset != 0) {
+      if (phdr_entry->p_type != PT_LOAD) {
+        // Usually the next segment is R only (rodata) or R/W (data). Something
+        // is really wrong if it's not.
+        return false;
+      }
       // Return padding_size (maximum size of parasite that host can accomodate
       // in its padding between the end of CODE segment and start of next
       // loadable segment)
@@ -214,8 +215,6 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
                         .patch_entry_idx = i - 1};
       return true;
     }
-
-    ++phdr_entry;
   }
 
   return false;

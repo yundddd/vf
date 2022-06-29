@@ -18,7 +18,6 @@ void func() {
 }
 
 int main() {
-  // asm volatile("int3\n");
   func();
   asm volatile(
       //"int3\n"

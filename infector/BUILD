@@ -39,6 +39,7 @@ cc_binary(
         "//common:string",
         "//std:stdio",
     ],
+    copts = ["-DNOLIBC_IGNORE_ENVIRON"],
 )
 
 genrule(
