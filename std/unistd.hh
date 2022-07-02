@@ -1,5 +1,4 @@
 #pragma once
-#ifndef USE_REAL_STDLIB
 
 #include "std/std.hh"
 
@@ -10,5 +9,3 @@ unsigned int sleep(unsigned int seconds);
 int usleep(unsigned int usecs);
 
 int tcsetpgrp(int fd, pid_t pid);
-
-#endif

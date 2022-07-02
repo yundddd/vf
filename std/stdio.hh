@@ -1,5 +1,4 @@
 #pragma once
-#ifndef USE_REAL_STDLIB
 
 #include <stdarg.h>
 #include "std/std.hh"
@@ -88,4 +87,3 @@ int snprintf(char* str, size_t size, const char* format, ...);
    The directory is created, mode 700, and its name is returned.
    (This function comes from OpenBSD.) */
 char* mkdtemp(char* templ);
-#endif

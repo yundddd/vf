@@ -1,5 +1,5 @@
 #pragma once
-#ifndef USE_REAL_STDLIB
+
 #include "std/std.hh"
 
 /* must be exported, as it's used by libgcc for various divide functions */
@@ -12,7 +12,7 @@ int atoi(const char* s);
 
 void free(void* ptr);
 
-#ifndef NOLIBC_IGNORE_ENVIRON
+#ifndef NO_ENVIRON
 char* getenv(const char* name);
 #endif
 
@@ -115,15 +115,13 @@ char* i64toa(int64_t in);
  */
 char* u64toa(uint64_t in);
 
-void * operator new(size_t n);
+void* operator new(size_t n);
 
-void operator delete(void * p);
-void operator delete(void *ptr, unsigned long);
+void operator delete(void* p);
+void operator delete(void* ptr, unsigned long);
 // Overloading Global new[] operator
 void* operator new[](size_t sz);
 // Overloading Global delete[] operator
 void operator delete[](void* m);
 // Definition of the error function to call if the constructor goes bonkers
 extern "C" void __cxa_pure_virtual();
-
-#endif

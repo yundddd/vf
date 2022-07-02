@@ -1,5 +1,3 @@
-#ifndef USE_REAL_STDLIB
-
 #include "std/sys.hh"
 
 uint32_t random_bits(void) {
@@ -10,5 +8,3 @@ uint32_t random_bits(void) {
   ret ^= (ret << 24) | (ret >> 8);
   return ret;
 }
-
-#endif

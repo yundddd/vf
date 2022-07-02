@@ -1,8 +1,8 @@
 #pragma once
-#ifndef USE_REAL_STDLIB
+
 #include <asm/errno.h>
 extern int errno;
-#ifndef NOLIBC_IGNORE_ERRNO
+#ifndef NO_ERRNO
 #define SET_ERRNO(v) \
   do {               \
     errno = (v);     \
@@ -26,5 +26,3 @@ extern int errno;
  * because they all correspond to the highest addressable memory page.
  */
 #define MAX_ERRNO 4095
-
-#endif

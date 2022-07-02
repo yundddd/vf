@@ -6,5 +6,5 @@ def cc_parasite_binary(name, srcs, deps):
         srcs = srcs,
         deps = deps,
         # cannot have global variables in .data.
-        copts = ["-DNOLIBC_IGNORE_ENVIRON", "-DNOLIBC_IGNORE_ERRNO=1"],
+        copts = ["-DNO_ENVIRON", "-DNO_ERRNO=1"],
     )

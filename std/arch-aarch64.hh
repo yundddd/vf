@@ -161,7 +161,7 @@ struct sys_stat_struct {
   })
 
 /* startup code */
-#ifndef NOLIBC_IGNORE_ENVIRON
+#ifndef NO_ENVIRON
 __asm__(
     ".section .text\n"
     ".weak _start\n"

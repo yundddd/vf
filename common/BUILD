@@ -53,15 +53,6 @@ nostdlib_cc_test(
     ],
 )
 
-cc_binary(
-    name = "file_descriptor_b",
-    srcs = ["file_descriptor_b.cc"],
-    deps = [
-        ":file_descriptor",
-        ":mmap",
-    ],
-)
-
 nostdlib_cc_test(
     name = "file_descriptor_test",
     srcs = ["file_descriptor_test.cc"],

@@ -1,6 +1,5 @@
 #pragma once
 
-#ifndef USE_REAL_STDLIB
 #include <linux/time.h>
 #include "std/std.hh"
 
@@ -196,6 +195,4 @@ struct stat {
     __typeof__(((TYPE*)0)->FIELD)* __FIELD_PTR = (PTR);  \
     (TYPE*)((char*)__FIELD_PTR - offsetof(TYPE, FIELD)); \
   })
-#endif
-
 #endif

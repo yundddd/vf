@@ -1,6 +1,5 @@
 #pragma once
 
-#ifndef USE_REAL_STDLIB
 #include "std/std.hh"
 
 int memcmp(const void* s1, const void* s2, size_t n);
@@ -61,5 +60,3 @@ int strncmp(const char* a, const char* b, size_t size);
 char* strncpy(char* dst, const char* src, size_t size);
 
 char* strrchr(const char* s, int c);
-
-#endif

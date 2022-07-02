@@ -13,7 +13,6 @@
  */
 
 #pragma once
-#ifndef USE_REAL_STDLIB
 
 #if defined(__x86_64__)
 #include "std/arch-x86_64.hh"
@@ -28,6 +27,4 @@
 #include "std/arch-mips.hh"
 #elif defined(__riscv)
 #include "std/arch-riscv.hh"
-#endif
-
 #endif

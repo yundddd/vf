@@ -1,5 +1,3 @@
-#ifndef USE_REAL_STDLIB
-
 #include "std/time.hh"
 #include "std/arch.hh"
 #include "std/sys.hh"
@@ -16,4 +14,3 @@ time_t time(time_t* tptr) {
   }
   return tv.tv_sec;
 }
-#endif

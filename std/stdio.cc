@@ -1,5 +1,3 @@
-#ifndef USE_REAL_STDLIB
-
 #include "std/stdio.hh"
 #include "std/arch.hh"
 #include "std/errno.hh"
@@ -1011,5 +1009,3 @@ char* mkdtemp(char* templ) {
   else
     return templ;
 }
-
-#endif

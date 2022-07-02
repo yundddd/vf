@@ -1,4 +1,3 @@
-#ifndef USE_REAL_STDLIB
 #include "std/stdlib.hh"
 #include "std/arch.hh"
 #include "std/errno.hh"
@@ -388,5 +387,3 @@ extern "C" void __cxa_pure_virtual() {
   while (1)
     ;
 }
-
-#endif

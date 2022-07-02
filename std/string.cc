@@ -1,5 +1,3 @@
-#ifndef USE_REAL_STDLIB
-
 #include "std/string.hh"
 
 // Forward decl to avoid circular dep.
@@ -214,4 +212,3 @@ char* strrchr(const char* s, int c) {
   }
   return (char*)ret;
 }
-#endif

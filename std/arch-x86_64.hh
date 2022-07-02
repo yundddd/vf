@@ -180,7 +180,7 @@ struct sys_stat_struct {
  * 2) The deepest stack frame should be zero (the %rbp).
  *
  */
-#ifndef NOLIBC_IGNORE_ENVIRON
+#ifndef NO_ENVIRON
 __asm__(
     ".section .text\n"
     ".weak _start\n"
