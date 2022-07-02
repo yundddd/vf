@@ -21,7 +21,7 @@ int main() {
   func();
 #if defined(__x86_64__)
   asm volatile(
-      "pop %rbx\n"
+      "pop %rbx\n"  // undo main's frame
       "pop %rbx\n"
       "pop %rbx\n"
 
@@ -42,7 +42,10 @@ int main() {
       "nop\n"
       "nop\n");
 #elif defined(__aarch64__)
-  asm volatile("nop\n");
+  asm volatile(
+      "ldr	x30, [sp], #16\n"      // undo the main's frame.
+      "ldp x0, x1, [sp], #16\n"    // restore x0
+      "nop\n");
 #endif
 
   return 0;
