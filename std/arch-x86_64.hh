@@ -182,7 +182,7 @@ struct sys_stat_struct {
  */
 #ifndef NO_ENVIRON
 __asm__(
-    ".section .text\n"
+    ".section .text.startup\n"
     ".weak _start\n"
     "_start:\n"
     "pop %rdi\n"                   // argc   (first arg, %rdi)
@@ -199,7 +199,7 @@ __asm__(
     "");
 #else
 __asm__(
-    ".section .text\n"
+    ".section .text.startup\n"
     ".weak _start\n"
     "_start:\n"
     "mov (%rsp), %rdi\n"  // argc   (first arg, %rdi)

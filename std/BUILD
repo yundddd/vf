@@ -39,8 +39,8 @@ cc_library(
 
 cc_library(
     name = "arch",
-    hdrs = ["arch.hh"],
     srcs = ["arch.cc"],
+    hdrs = ["arch.hh"],
     deps = [
         ":arch-aarch64",
         ":arch-arm",
@@ -60,8 +60,8 @@ cc_library(
 
 cc_library(
     name = "errno",
-    hdrs = ["errno.hh"],
     srcs = ["errno.cc"],
+    hdrs = ["errno.hh"],
 )
 
 cc_library(
@@ -76,8 +76,8 @@ cc_library(
 
 cc_library(
     name = "random",
-    hdrs = ["random.hh"],
     srcs = ["random.cc"],
+    hdrs = ["random.hh"],
     deps = [
         ":std",
         ":sys",
@@ -95,12 +95,12 @@ cc_library(
     hdrs = ["stdio.hh"],
     deps = [
         ":arch",
+        ":random",
         ":std",
         ":stdlib",
         ":string",
         ":sys",
         ":types",
-        ":random",
     ],
 )
 

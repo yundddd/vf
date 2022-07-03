@@ -163,7 +163,7 @@ struct sys_stat_struct {
 /* startup code */
 #ifndef NO_ENVIRON
 __asm__(
-    ".section .text\n"
+    ".section .text.startup\n"
     ".weak _start\n"
     "_start:\n"
     "ldr x0, [sp]\n"       // argc (x0) was in the stack
@@ -180,7 +180,7 @@ __asm__(
     "");
 #else
 __asm__(
-    ".section .text\n"
+    ".section .text.startup\n"
     ".weak _start\n"
     "_start:\n"
     //".inst 0xd4200000\n"

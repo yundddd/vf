@@ -1,7 +1,7 @@
 #include "common/string.hh"
 #include "std/sys.hh"
 // Move _start() to the beginning of the text.
-int main() __attribute__((section(".text.A")));
+int main() __attribute__((section(".text.sorted.2")));
 void func() {
   vt::common::String txt;
   txt += 'i';
