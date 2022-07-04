@@ -9,7 +9,7 @@ config_setting(
 )
 
 config_setting(
-    name = "x86_cpu",
+    name = "x86_64_cpu",
     values = {
         "cpu": "x86_64",
     },
@@ -107,7 +107,7 @@ filegroup(
     srcs = select(
         {
             ":aarch64_cpu": ["parasite_linker_aarch64.lds"],
-            ":x86_cpu": ["parasite_linker_x86_64.lds"],
+            ":x86_64_cpu": ["parasite_linker_x86_64.lds"],
         },
     ),
     visibility = ["//visibility:public"],

@@ -52,6 +52,31 @@ cc_library(
 )
 
 cc_library(
+    name = "startup",
+    srcs = select(
+        {
+            "//common:aarch64_cpu": ["startup_aarch64.s"],
+            "//common:x86_64_cpu": ["startup_x86_64.s"],
+        },
+    ),
+)
+
+cc_library(
+    name = "parasite_startup",
+    srcs = select(
+        {
+            "//common:aarch64_cpu": ["parasite_startup_aarch64.s"],
+            "//common:x86_64_cpu": ["parasite_startup_x86_64.s"],
+        },
+    ),
+)
+
+cc_library(
+    name = "parasite_startup_aarch644",
+    srcs = ["parasite_startup_aarch644.s"],
+)
+
+cc_library(
     name = "ctype",
     srcs = ["ctype.cc"],
     hdrs = ["ctype.hh"],

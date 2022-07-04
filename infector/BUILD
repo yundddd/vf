@@ -30,6 +30,7 @@ cc_binary(
     srcs = ["cavy.cc"],
     deps = [
         "//std:stdio",
+        "//std:startup",
     ],
 )
 
@@ -39,6 +40,7 @@ cc_parasite_binary(
     deps = [
         "//common:string",
         "//std:stdio",
+        "//std:parasite_startup",
     ],
 )
 
