@@ -13,3 +13,10 @@ def cc_parasite_binary(name, srcs, deps):
         copts = ["-DNO_ENVIRON=1", "-DNO_ERRNO=1"],
         linkopts = ["-T", "$(location //common:parasite_linker)"],
     )
+
+def cc_nolibc_binary(name, srcs, deps):
+    cc_binary(
+        name = name,
+        srcs = srcs,
+        deps = deps + ["//std:startup"],
+    )

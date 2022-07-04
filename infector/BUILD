@@ -1,13 +1,11 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("//common:parasite.bzl", "cc_parasite_binary")
+load("//common:parasite.bzl", "cc_parasite_binary", "cc_nolibc_binary")
 
-cc_binary(
+cc_nolibc_binary(
     name = "infector",
     srcs = ["infector.cc"],
     deps = [
         ":silvio",
         "//std:stdio",
-        "//std:startup",
     ],
 )
 
@@ -26,12 +24,11 @@ cc_library(
     ],
 )
 
-cc_binary(
+cc_nolibc_binary(
     name = "cavy",
     srcs = ["cavy.cc"],
     deps = [
         "//std:stdio",
-        "//std:startup",
     ],
 )
 
