@@ -7,6 +7,7 @@ cc_binary(
     deps = [
         ":silvio",
         "//std:stdio",
+        "//std:startup",
     ],
 )
 
@@ -40,7 +41,6 @@ cc_parasite_binary(
     deps = [
         "//common:string",
         "//std:stdio",
-        "//std:parasite_startup",
     ],
 )
 

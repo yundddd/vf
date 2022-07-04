@@ -1,3 +1,10 @@
+/*
+ * x86-64 System V ABI mandates:
+ * 1) %rsp must be 16-byte aligned right before the function call.
+ * 2) The deepest stack frame should be zero (the %rbp).
+ *
+ */
+
 .section .text.startup
 .weak _start
 _start:

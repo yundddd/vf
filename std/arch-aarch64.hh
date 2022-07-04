@@ -159,46 +159,4 @@ struct sys_stat_struct {
                      : "memory", "cc");                                \
     _arg1;                                                             \
   })
-
-/* startup code */
-#ifndef NO_ENVIRON
-__asm__(
-    ".section .text.startup\n"
-    ".weak _start\n"
-    "_start:\n"
-    "ldr x0, [sp]\n"       // argc (x0) was in the stack
-    "add x1, sp, 8\n"      // argv (x1) = sp
-    "lsl x2, x0, 3\n"      // envp (x2) = 8*argc ...
-    "add x2, x2, 8\n"      //           + 8 (skip null)
-    "add x2, x2, x1\n"     //           + argv
-    "and sp, x1, -16\n"    // sp must be 16-byte aligned in the callee
-    "adrp x3, _environ\n"  // save envp to global
-    "str x2, [x3, :lo12:_environ]\n"
-    "bl main\n"     // main() returns the status code, we'll exit with it.
-    "mov x8, 93\n"  // NR_exit == 93
-    "svc #0\n"
-    "");
-#else
-__asm__(
-    ".section .text.startup\n"
-    ".weak _start\n"
-    "_start:\n"
-    //".inst 0xd4200000\n"
-    // Push x0 x1 to stack. x0 has atexit function pointer.
-    "stp x0, x1, [sp, #-16]!\n"
-
-    "ldr x0, [sp, 16]\n"  // argc (x0) was in the stack
-    "add x1, sp, 24\n"    // argv (x1) = sp
-
-    "lsl x2, x0, 3\n"   // envp (x2) = 8*argc ...
-    "add x2, x2, 8\n"   //           + 8 (skip null)
-    "add x2, x2, x1\n"  //           + argv
-
-    // because we pushed x0 and x1 to stack, the original way of alignment wont
-    // work anymore. but OS should always give us an aligned sp first.
-    //"and sp, x1, #0xfffffffffffffff0\n"
-    "bl main\n"     // main() returns the status code, we'll exit with it.
-    "mov x8, 93\n"  // NR_exit == 93
-    "svc #0\n"
-    "");
-#endif
+  
