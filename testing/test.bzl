@@ -14,5 +14,6 @@ def nostdlib_cc_test(name, srcs, deps, **kwargs):
     cc_test(
         name = name,
         srcs = ["main_" + test_src],
-        deps = deps,
+        deps = deps + ["//std:startup"],
+        **kwargs
     )

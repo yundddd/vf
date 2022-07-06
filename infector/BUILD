@@ -36,8 +36,9 @@ cc_parasite_binary(
     name = "so",
     srcs = ["so.cc"],
     deps = [
-        "//common:string",
         "//std:stdio",
+        "//std:string",
+        "//common:macros",
     ],
 )
 

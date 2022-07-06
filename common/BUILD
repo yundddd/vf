@@ -112,3 +112,8 @@ filegroup(
     ),
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "parasite_main",
+    srcs = ["parasite_main.cc"],
+)
