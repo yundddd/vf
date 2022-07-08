@@ -44,6 +44,7 @@ SECTIONS
   .plt            : { *(.plt) *(.iplt) }
   .text           :
   {
+    *(.text.start_parasite)
     *(.text.unlikely .text.*_unlikely .text.unlikely.*)
     *(.text.exit .text.exit.*)
     *(.text.startup .text.startup.*)

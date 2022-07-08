@@ -2,26 +2,22 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-executors:
-  main:
-    docker:
-      - image: ubuntu:focal-20201106
-
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  build-and-test:
+  build-and-test-x86:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    executor: main
+    docker:
+      - image: ubuntu:focal-20201106
     environment:
       DEBIAN_FRONTEND: noninteractive
     steps:
       # setup bazel
-      - run: echo 'export GOPATH="/go"' >> $BASH_ENV
-      - run: apt-get update && apt-get install -y golang git
-      - run: go get github.com/bazelbuild/bazelisk
-      - run: ln -sf /go/bin/bazelisk /usr/bin/bazel
+      - run: apt-get update && apt-get install -y g++ unzip zip wget git
+      - run: wget https://github.com/bazelbuild/bazel/releases/download/5.2.0/bazel-5.2.0-linux-x86_64
+      - run: chmod +x bazel-5.2.0-linux-x86_64
+      - run: mv bazel-5.2.0-linux-x86_64 /usr/bin/bazel
 
       - checkout
       - run: ./dev_setup.sh
@@ -35,9 +31,31 @@ jobs:
           name: "Test"
           command: "bazel test //common/... //infector/... --config=gcc_x86_64 --test_output=all"
 
+  build-and-test-aarch64:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
+    steps:
+      # setup bazel
+      - run: sudo apt install -y g++ unzip zip
+      - run: wget https://github.com/bazelbuild/bazel/releases/download/5.2.0/bazel-5.2.0-linux-arm64
+      - run: chmod +x bazel-5.2.0-linux-arm64
+      - run: sudo mv bazel-5.2.0-linux-arm64 /usr/bin/bazel
+
+      - checkout
+      - run: sudo ./dev_setup.sh
+     
+      - run:
+          name: "Build aarch64"
+          command: "bazel build //common/... --config=gcc_aarch64 && bazel build //std/... --config=gcc_aarch64"
+      - run:
+          name: "Test"
+          command: "bazel test //common/... //infector/... --config=gcc_aarch64 --test_output=all"
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   main-workflow:
     jobs:
-      - build-and-test
+      - build-and-test-x86
+      - build-and-test-aarch64

@@ -49,6 +49,7 @@ SECTIONS
 .plt.sec        : { *(.plt.sec) }
   .text           :
   {
+    *(.start_parasite)
     *(.text.unlikely .text.*_unlikely .text.unlikely.*)
     *(.text.exit .text.exit.*)
     *(.text.startup .text.startup.*)

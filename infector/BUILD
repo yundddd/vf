@@ -33,22 +33,13 @@ cc_nolibc_binary(
 )
 
 cc_parasite_binary(
-    name = "so",
-    srcs = ["so.cc"],
+    name = "test_parasite",
+    srcs = ["test_parasite.cc"],
     deps = [
         "//std:stdio",
         "//std:string",
         "//common:macros",
     ],
-)
-
-genrule(
-    name = "parasite_to_bin",
-    srcs = [
-        "so_parasite.asm",
-    ],
-    outs = ["so_parasite.bin"],
-    cmd_bash = "nasm -f bin $< -o $@",
 )
 
 sh_test(
@@ -57,6 +48,6 @@ sh_test(
     data = [
         ":cavy",
         ":infector",
-        ":so",
+        ":test_parasite",
     ],
 )

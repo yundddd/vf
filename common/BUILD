@@ -112,8 +112,3 @@ filegroup(
     ),
     visibility = ["//visibility:public"],
 )
-
-cc_library(
-    name = "parasite_main",
-    hdrs = ["parasite_main.hh"],
-)

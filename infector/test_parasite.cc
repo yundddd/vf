@@ -1,5 +1,4 @@
 #include "common/macros.hh"
-#include "common/parasite_main.hh"
 #include "std/string.hh"
 #include "std/sys.hh"
 
