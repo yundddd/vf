@@ -15,6 +15,8 @@ add x2, x2, x1  /*          + argv */
     /* because we pushed x0 and x1 to stack, the original way of alignment wont
      work anymore. but OS should always give us an aligned sp first.
      and sp, x1, #0xfffffffffffffff0 */
+
 bl main      
-mov x8, 93   
-svc #0
+ldp x0, x1, [sp], #16    /* restore x0 */
+                            
+nop                         /* to be patched */
