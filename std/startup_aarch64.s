@@ -10,5 +10,3 @@ and sp, x1, -16    /* sp must be 16-byte aligned in the callee */
 adrp x3, _environ  /* save envp to global */
 str x2, [x3, :lo12:_environ]
 bl main     /* main() returns the status code, we'll exit with it. */
-mov x8, 93  /* NR_exit == 93 */
-svc #0

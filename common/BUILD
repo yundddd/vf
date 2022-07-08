@@ -115,5 +115,5 @@ filegroup(
 
 cc_library(
     name = "parasite_main",
-    srcs = ["parasite_main.cc"],
+    hdrs = ["parasite_main.hh"],
 )
