@@ -72,11 +72,6 @@ cc_library(
 )
 
 cc_library(
-    name = "parasite_startup_aarch644",
-    srcs = ["parasite_startup_aarch644.s"],
-)
-
-cc_library(
     name = "ctype",
     srcs = ["ctype.cc"],
     hdrs = ["ctype.hh"],

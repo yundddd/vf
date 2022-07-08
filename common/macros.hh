@@ -52,6 +52,19 @@
 #define CHECK_GT(a, b) CHECK_LE(b, a)
 #define CHECK_GE(a, b) CHECK_LT(b, a)
 
+// Extra 24 bytes (aarch64) or 10 bytes (x86-64) of instructions for loading
+// string literal address to str. This is basically using the a trick common in
+// buffer overflow, to use function call to load the next instruction address
+// automatically. Wrapping string literals with this macro will ensure they show
+// up in .text instead of in .rodata, which is preferred for parasites.
+
+// Unfortunately arm must run instructions aligned to 4-byte addresses.
+// Instructions after string literals could be mis-aligned. If linker complains,
+// wrap your literal with these macros.
+#define PAD1(literal) literal "\\0"
+#define PAD2(literal) PAD1(literal "\\0")
+#define PAD3(literal) PAD2(literal "\\0")
+
 #if defined(__x86_64__)
 #define STR_LITERAL(str, literal) \
   asm volatile(                   \
@@ -68,17 +81,6 @@
       :);
 
 #elif defined(__aarch64__)
-// Unfortunately arm must run instructions aligned to 4byte address. The b .out
-// could be mis-aligned. If linker complains, wrap your literal with these
-// macros.
-#define PAD1(literal) literal "\\0"
-#define PAD2(literal) PAD1(literal "\\0")
-#define PAD3(literal) PAD2(literal "\\0")
-
-// extra 6 instructions for loading string literal address to str.
-// this is basically the following buffer overflow trick, using bl
-// to automatically load str address to x30. This is necessary to
-// having string literals in .rodata.
 #define STR_LITERAL(str, literal)   \
   asm volatile(                     \
       "stp x29, x30, [sp, #-16]!\n" \
