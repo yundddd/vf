@@ -27,6 +27,7 @@ frame as if nothing happened before.
 
 /* use a customed linker script to make sure this is the first in text. */
 .section .text.start_parasite
+.global _start
 _start:
 
 mov (%rsp), %rdi         /* argc   (first arg, %rdi) */
