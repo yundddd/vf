@@ -12,3 +12,8 @@ str x2, [x3, :lo12:_environ]
 bl main     /* main() returns the status code, we'll exit with it. */    
 mov x8, 93   
 svc #0
+
+.section .data
+.global _environ
+_environ:
+    .xword 0

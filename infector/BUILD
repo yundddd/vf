@@ -17,9 +17,6 @@ cc_library(
         "//common:file_descriptor",
         "//common:mmap",
         "//common:patch_pattern",
-        "//common:string",
-        "//std:stdio",
-        "//std:stdlib",
         "//std:string",
     ],
 )

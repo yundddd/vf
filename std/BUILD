@@ -39,7 +39,6 @@ cc_library(
 
 cc_library(
     name = "arch",
-    srcs = ["arch.cc"],
     hdrs = ["arch.hh"],
     deps = [
         ":arch-aarch64",

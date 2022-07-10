@@ -19,3 +19,7 @@ mov %eax, %edi  # retrieve exit code (32 bit)
 mov $60, %eax   # NR_exit == 60
 syscall         # really exit
 hlt             # ensure it does not return
+.section .data
+.global _environ
+_environ:
+    .quad 0
