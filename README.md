@@ -1,1 +1,1 @@
-[![CircleCI](https://circleci.com/gh/timtianyang/vt.svg?style=svg)](https://app.circleci.com/pipelines/github/timtianyang/vt)
+[![CircleCI](https://circleci.com/gh/timtianyang/vt.svg?style=shield)](https://app.circleci.com/pipelines/github/timtianyang/vt)
