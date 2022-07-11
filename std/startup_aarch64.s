@@ -15,5 +15,6 @@ svc #0
 
 .section .data
 .global _environ
+
 _environ:
     .xword 0

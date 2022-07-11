@@ -108,7 +108,7 @@ void* calloc(size_t size, size_t nmemb) {
   size_t res = 0;
 
   if (__builtin_expect(__builtin_mul_overflow(nmemb, size, &res), 0)) {
-    SET_ERRNO(ENOMEM);
+    set_errno(ENOMEM);
     return nullptr;
   }
 

@@ -79,8 +79,17 @@ cc_library(
 
 cc_library(
     name = "errno",
-    srcs = ["errno.cc"],
     hdrs = ["errno.hh"],
+)
+
+cc_library(
+    name = "errno_impl",
+    srcs = ["errno_impl.cc"],
+)
+
+cc_library(
+    name = "errno_stub",
+    srcs = ["errno_stub.cc"],
 )
 
 cc_library(

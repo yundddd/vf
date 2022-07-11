@@ -925,8 +925,9 @@ int __gen_tempname(char* tmpl, int suffixlen, int flags, int kind) {
   uint64_t value;
   unsigned int count;
   int fd = -1;
-  int save_errno = 0;
-  SAVE_ERRNO(save_errno);
+
+  int saved_errno = 0;
+  save_errno(saved_errno);
   struct stat st;
   /* A lower bound on the number of temporary files to attempt to
      generate.  The maximum total number of temporary file names that
@@ -944,7 +945,7 @@ int __gen_tempname(char* tmpl, int suffixlen, int flags, int kind) {
 #endif
   len = strlen(tmpl);
   if (len < 6 + suffixlen || memcmp(&tmpl[len - 6 - suffixlen], "XXXXXX", 6)) {
-    SET_ERRNO(EINVAL);
+    set_errno(EINVAL);
     return -1;
   }
   /* This is where the Xs start.  */
@@ -981,7 +982,7 @@ int __gen_tempname(char* tmpl, int suffixlen, int flags, int kind) {
            of the loop.  */
         if (stat(tmpl, &st) < 0) {
           if (errno == ENOENT) {
-            SET_ERRNO(save_errno);
+            set_errno(saved_errno);
             return 0;
           } else
             /* Give up now. */
@@ -992,13 +993,13 @@ int __gen_tempname(char* tmpl, int suffixlen, int flags, int kind) {
         abort();
     }
     if (fd >= 0) {
-      SET_ERRNO(save_errno);
+      set_errno(saved_errno);
       return fd;
     } else if (errno != EEXIST)
       return -1;
   }
   /* We got out of the loop because we ran out of combinations to try.  */
-  SET_ERRNO(EEXIST);
+  set_errno(EEXIST);
   return -1;
 }
 }  // namespace

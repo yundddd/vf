@@ -13,6 +13,8 @@
 #include "std/sys.hh"
 #include "std/types.hh"
 
+extern void set_errno(int);
+
 /* Functions in this file only describe syscalls. They're declared static so
  * that the compiler usually decides to inline them while still being allowed
  * to pass a pointer to one of their instances. Each syscall exists in two
@@ -375,7 +377,7 @@ ssize_t sys_write(int fd, const void* buf, size_t count) {
 template <typename T>
 T trampoline(T syscall_ret, int error) {
   if (static_cast<int>(syscall_ret) < 0) {
-    SET_ERRNO(error);
+    set_errno(error);
     return -1;
   }
   return syscall_ret;
@@ -384,7 +386,7 @@ T trampoline(T syscall_ret, int error) {
 template <typename T>
 T trampoline(T syscall_ret) {
   if (static_cast<int>(syscall_ret) < 0) {
-    SET_ERRNO(-syscall_ret);
+    set_errno(-syscall_ret);
     return -1;
   }
   return syscall_ret;
@@ -394,7 +396,7 @@ T trampoline(T syscall_ret) {
 int brk(void* addr) {
   void* ret = sys_brk(addr);
   if (!ret) {
-    SET_ERRNO(ENOMEM);
+    set_errno(ENOMEM);
     return -1;
   }
   return 0;
@@ -407,7 +409,7 @@ void* sbrk(intptr_t inc) {
   if ((ret = sys_brk(0)) && (sys_brk((char*)ret + inc) == (char*)ret + inc))
     return (char*)ret + inc;
 
-  SET_ERRNO(ENOMEM);
+  set_errno(ENOMEM);
   return (void*)-1;
 }
 
@@ -563,7 +565,7 @@ void* mmap(void* addr, size_t length, int prot, int flags, int fd,
   void* ret = sys_mmap(addr, length, prot, flags, fd, offset);
 
   if ((unsigned long)ret >= -4095UL) {
-    SET_ERRNO(-(long)ret);
+    set_errno(-(long)ret);
     ret = MAP_FAILED;
   }
   return ret;

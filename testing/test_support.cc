@@ -18,7 +18,6 @@ common::String get_bazel_test_dir_unique() {
   buf[temp.size() - 1] = 0;
   strncpy(buf, temp.c_str(), temp.size());
   char* dir_name = ::mkdtemp(buf);
-
   CHECK_NE(dir_name, nullptr);
   temp = common::String(buf);
   delete[] buf;
