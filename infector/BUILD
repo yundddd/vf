@@ -1,18 +1,18 @@
 load("//common:parasite.bzl", "cc_parasite_binary", "cc_nolibc_binary")
 
 cc_nolibc_binary(
-    name = "infector",
-    srcs = ["infector.cc"],
+    name = "padding_infector",
+    srcs = ["padding_infector.cc"],
     deps = [
-        ":silvio",
+        ":padding_infect",
         "//std:stdio",
     ],
 )
 
 cc_library(
-    name = "silvio",
-    srcs = ["silvio.cc"],
-    hdrs = ["silvio.hh"],
+    name = "padding_infect",
+    srcs = ["padding_infect.cc"],
+    hdrs = ["padding_infect.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:mmap",
@@ -40,11 +40,11 @@ cc_parasite_binary(
 )
 
 sh_test(
-    name = "infector_test",
-    srcs = ["infector_test.sh"],
+    name = "padding_infector_test",
+    srcs = ["padding_infector_test.sh"],
     data = [
         ":cavy",
-        ":infector",
+        ":padding_infector",
         ":test_parasite",
     ],
 )

@@ -17,13 +17,17 @@
 #include "std/arch-x86_64.hh"
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || \
     defined(__i686__)
+#error "not supported yet"
 #include "std/arch-i386.hh"
 #elif defined(__ARM_EABI__)
+#error "not supported yet"
 #include "std/arch-arm.hh"
 #elif defined(__aarch64__)
 #include "std/arch-aarch64.hh"
 #elif defined(__mips__) && defined(_ABIO32)
+#error "not supported yet"
 #include "std/arch-mips.hh"
 #elif defined(__riscv)
+#error "not supported yet"
 #include "std/arch-riscv.hh"
 #endif

