@@ -9,8 +9,6 @@ def cc_parasite_binary(name, srcs, deps, **kwargs):
             "//common:x86_64_cpu": ["//common:parasite_linker_x86_64.lds"],
         }) + ["//std:parasite_startup", "//std:errno_stub"],
         data = ["//common:parasite_linker"],
-        # cannot have global variables in .data.
-        copts = ["-DNO_ENVIRON=1", "-DNO_ERRNO=1"],
         linkopts = ["-T", "$(location //common:parasite_linker)"],
         **kwargs
     )

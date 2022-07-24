@@ -58,13 +58,6 @@
 // automatically. Wrapping string literals with this macro will ensure they show
 // up in .text instead of in .rodata, which is preferred for parasites.
 
-// Unfortunately arm must run instructions aligned to 4-byte addresses.
-// Instructions after string literals could be mis-aligned. If linker complains,
-// wrap your literal with these macros.
-#define PAD1(literal) literal "\\0"
-#define PAD2(literal) PAD1(literal "\\0")
-#define PAD3(literal) PAD2(literal "\\0")
-
 #if defined(__x86_64__)
 #define STR_LITERAL(str, literal) \
   asm volatile(                   \
@@ -81,6 +74,13 @@
       :);
 
 #elif defined(__aarch64__)
+// Unfortunately arm must run instructions aligned to 4-byte addresses.
+// Instructions after string literals could be mis-aligned. If linker complains,
+// wrap your literal with these macros.
+#define PAD1(literal) literal "\\0"
+#define PAD2(literal) PAD1(literal "\\0")
+#define PAD3(literal) PAD2(literal "\\0")
+
 #define STR_LITERAL(str, literal)   \
   asm volatile(                     \
       "stp x29, x30, [sp, #-16]!\n" \
