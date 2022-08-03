@@ -11,7 +11,7 @@ objcopy --dump-section .text=infector/bin infector/tmp_test_parasite
 
 file_attr_pre_injection=$(ls -la infector/tmp_host)
 
-infector/infector infector/tmp_host infector/bin 0
+infector/infector infector/tmp_host infector/bin 1
 
 file_attr_post_injection=$(ls -la infector/tmp_host)
 
