@@ -102,6 +102,19 @@ cc_library(
     deps = ["//std:types"],
 )
 
+cc_library(
+    name = "patch_relinguish_control",
+    srcs = select({
+        ":aarch64_cpu": ["patch_relinguish_control_aarch64.cc"],
+        ":x86_64_cpu": ["patch_relinguish_control_x86_64.cc"],
+    }),
+    hdrs = ["patch_relinguish_control.hh"],
+    deps = [
+        ":mmap",
+        ":patch_pattern"
+    ],
+)
+
 filegroup(
     name = "parasite_linker",
     srcs = select(

@@ -1,10 +1,11 @@
-load("//common:parasite.bzl", "cc_parasite_binary", "cc_nolibc_binary")
+load("//common:parasite.bzl", "cc_nolibc_binary", "cc_parasite_binary")
 
 cc_nolibc_binary(
     name = "padding_infector",
     srcs = ["padding_infector.cc"],
     deps = [
         ":padding_infect",
+        ":common",
         "//std:stdio",
     ],
 )
@@ -17,6 +18,17 @@ cc_library(
         "//common:file_descriptor",
         "//common:mmap",
         "//common:patch_pattern",
+        "//common:patch_relinguish_control",
+        "//std:string",
+    ],
+)
+
+cc_library(
+    name = "common",
+    hdrs = ["common.hh"],
+    deps = [
+        "//common:mmap",
+        "//common:file_descriptor",
         "//std:string",
     ],
 )
@@ -33,9 +45,9 @@ cc_parasite_binary(
     name = "test_parasite",
     srcs = ["test_parasite.cc"],
     deps = [
+        "//common:macros",
         "//std:stdio",
         "//std:string",
-        "//common:macros",
     ],
 )
 

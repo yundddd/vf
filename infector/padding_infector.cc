@@ -1,3 +1,4 @@
+#include "infector/common.hh"
 #include "infector/padding_infect.hh"
 #include "std/stdio.hh"
 
@@ -7,7 +8,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  if (vt::infector::padding_infect64(argv[1], argv[2])) {
+  if (vt::infector::infect<vt::infector::PaddingInfect>(argv[1], argv[2])) {
     return EXIT_SUCCESS;
   }
   return EXIT_FAILURE;

