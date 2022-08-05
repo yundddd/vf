@@ -1,6 +1,7 @@
 .section .text.startup
 .weak _start
 _start:
+
 ldr x0, [sp]       /* argc (x0) was in the stack */
 add x1, sp, 8      /* argv (x1) = sp */
 lsl x2, x0, 3      /* envp (x2) = 8*argc ... */

