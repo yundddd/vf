@@ -25,9 +25,12 @@ bool patch_parasite_and_relinquish_control(
   }
   int32_t rel = 0;
   if (binary_type == ET_EXEC) {
+    printf("original entry: %x\n", original_entry_point);
+    printf("parasite entry: %x\n", parasite_load_address);
     // for executables, the original entry is the load address, the parasite
     // load address is the new memory address. Use that for offset calculation.
     rel = original_entry_point - (parasite_load_address + cur);
+    printf("relative to cur patch addr: %x\n", rel);
   } else if (binary_type == ET_DYN) {
     // Both original and parasite offset are relative address to the process
     // start, which is not known until runtime.
@@ -41,8 +44,12 @@ bool patch_parasite_and_relinquish_control(
 
   *inst = rel;
   // fill in op-code
-  constexpr auto op_code = 0b00010111111111111111111111111111;
-  *inst &= (op_code);
+  constexpr auto op_code = 0b00010100000000000000000000000000;
+
+  *inst &= 0b11111111111111111111111111;
+  *inst |= (op_code);
+  printf("patched inst to: %x\n", *inst);
+
   return true;
 }
 

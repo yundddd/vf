@@ -43,5 +43,4 @@ add x2, x2, x1  /*          + argv */
 
 bl main      
 ldp x0, x1, [sp], #16    /* restore x0 */
-.inst 0xd4200000                            
 nop                         /* to be patched */

@@ -16,7 +16,7 @@ struct ElfPaddingInfo {
   size_t patch_entry_idx;
 };
 
-uint64_t next_32_bit_aligned_addr(uint64_t v) { return (v & (~0b11)) + 4; }
+uint64_t next_32_bit_aligned_addr(uint64_t v) { return (v & ~(4 - 1)) + 4; }
 
 // Patch SHT (i.e. find the last section of CODE segment and increase its size
 // by parasite_size)
