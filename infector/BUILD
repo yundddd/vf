@@ -5,6 +5,7 @@ cc_nolibc_binary(
     srcs = ["infector.cc"],
     deps = [
         ":common",
+        ":extend_code_infect",
         ":padding_infect",
         ":reverse_text_infect",
         "//std:stdio",
@@ -15,6 +16,19 @@ cc_library(
     name = "padding_infect",
     srcs = ["padding_infect.cc"],
     hdrs = ["padding_infect.hh"],
+    deps = [
+        "//common:file_descriptor",
+        "//common:mmap",
+        "//common:patch_pattern",
+        "//common:patch_relinguish_control",
+        "//std:string",
+    ],
+)
+
+cc_library(
+    name = "extend_code_infect",
+    srcs = ["extend_code_infect.cc"],
+    hdrs = ["extend_code_infect.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:mmap",

@@ -1,4 +1,5 @@
 #include "infector/common.hh"
+#include "infector/extend_code_infect.hh"
 #include "infector/padding_infect.hh"
 #include "infector/reverse_text_infect.hh"
 #include "std/stdio.hh"
@@ -7,6 +8,7 @@
 enum class Infection {
   TEXT_PADDING = 0,
   REVERSE_TEXT = 1,
+  EXTEND_CODE = 2,
 };
 
 // Usage %s <host> <parasite> <infection method>
@@ -24,6 +26,10 @@ int main(int argc, char** argv) {
     case Infection::REVERSE_TEXT:
       ret = vt::infector::infect<vt::infector::ReverseTextInfect>(argv[1],
                                                                   argv[2]);
+      break;
+    case Infection::EXTEND_CODE:
+      ret = vt::infector::infect<vt::infector::ExtendCodeInfect>(argv[1],
+                                                                 argv[2]);
       break;
     default:
       CHECK_FAIL();
