@@ -16,7 +16,7 @@ bool patch_parasite_and_relinquish_control(
   auto cur = common::find<uint64_t>(mapping.base() + parasite_offset,
                                     parasite_size, no_op_to_be_patched);
   if (cur == -1) {
-    // printf("failed to patch host entry\n");
+    printf("failed to find patch pattern in virus\n");
     return false;
   }
   int32_t rel = 0;

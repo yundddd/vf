@@ -5,8 +5,8 @@ namespace vt::infector {
 //  host elf structure            infected elf structure
 //  -------------------           -----------------------
 //  elf_hdr                       elf_hdr
-//  phdrs                         *virus here
-//  executale_sections            phdrs
+//  phdrs                         phdrs
+//  executale_sections            *virus
 //  padding                       executale_sections
 //  non-exec sections             padding
 //  shdrs                         non-exec sections
@@ -19,10 +19,8 @@ namespace vt::infector {
 //  infected elf segments
 //  -------------------
 //  LOAD RX
-//    Ehdr
 //    *virus
-//    phdrs
-//    interp
+//    CODE
 //  PADDING
 //  LOAD RW
 //    .data
