@@ -1,3 +1,7 @@
+#/bin/bash
+
+# Run this script once. If the dockerfile is modified, please remove
+# all created images. containers and volumes first.
 
 # switch driver to build a image for both arm and x86
 docker buildx create --use
