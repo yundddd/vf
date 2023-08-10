@@ -32,7 +32,5 @@ Our build system is setup in a way that allows us to select two binary modes (vi
 * biuld: docker buildx build --platform linux/amd64,linux/arm64 . -t ubuntu-multi-arch
 * load from cache and tag it: docker buildx build --load --platform linux/amd64 -t ubuntu-amd64-img .
 * docker buildx build --load --platform linux/arm64 -t ubuntu-arm64-img .
-* run in a container in interactive mode: docker run -tid --name ubuntu-arm64 ubuntu-arm64-img /bin/bash
-* use exec to run anything just like over ssh: docker exec -it ubuntu-arm64 /bin/bash
-* do the same for amd64: docker run -tid --name ubuntu-amd64 ubuntu-amd64-img /bin/bash
-* docker exec -it ubuntu-amd64 /bin/bash
+* run in a container in interative detached mode and mounts a volume: docker run -tid --rm -v RepoVolume:/RepoVolume --name ubuntu-arm64 ubuntu-arm64-img
+* do the same for amd64: docker run -tid --rm -v RepoVolume:/RepoVolume --name ubuntu-amd64 ubuntu-amd64-img
