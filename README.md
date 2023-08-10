@@ -24,3 +24,15 @@ We provided algorithms for users to choose, each with their own trade-offs on sp
 # It's hard to test viruses.
 
 Our build system is setup in a way that allows us to select two binary modes (virus and normal). The former links our virus startup code, that enables patching and register restoration. The latter is simplier, and exposes environ, makes writing unittests/tools easier since we are not writing viruses any more. We also provide a test framework, that mimics GTEST framework, to make testing familiar to users.
+
+# Docker
+
+* install docker desktop
+* switch driver to build a image for both arm and x86: docker buildx create --use
+* biuld: docker buildx build --platform linux/amd64,linux/arm64 . -t ubuntu-multi-arch
+* load from cache and tag it: docker buildx build --load --platform linux/amd64 -t ubuntu-amd64-img .
+* docker buildx build --load --platform linux/arm64 -t ubuntu-arm64-img .
+* run in a container in interactive mode: docker run -tid --name ubuntu-arm64 ubuntu-arm64-img /bin/bash
+* use exec to run anything just like over ssh: docker exec -it ubuntu-arm64 /bin/bash
+* do the same for amd64: docker run -tid --name ubuntu-amd64 ubuntu-amd64-img /bin/bash
+* docker exec -it ubuntu-amd64 /bin/bash
