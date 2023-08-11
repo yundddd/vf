@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install zsh sudo git wget curl binutils npm nasm b
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 # switch default shell
 RUN chsh -s $(which zsh)
-COPY .zshrc /home/$USERNAME/
 
 # setup non-root user that also works with vscode container dev plugin.
 # we don't want viruses to have root by default.
@@ -29,6 +28,11 @@ USER $USERNAME
 RUN git config --global --add safe.directory "*" \
     && git config --global user.name "vt container dev" \
     && git config --global user.email "dummy@dummy.com"
+
+COPY .zshrc /home/$USERNAME/
+
+# set the repo as work directory so `docker exec zsh` starts there.
+WORKDIR /vt
 
 # We want the container to be the main dev place.
 CMD ["/bin/zsh"]
