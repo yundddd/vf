@@ -1,3 +1,5 @@
 #/bin/bash
 
-docker exec -it -u vscode ubuntu-aarch64 zsh
+REPO=/home/vscode/vt
+
+docker exec -it -u vscode -w $REPO ubuntu_aarch64 zsh

@@ -1,10 +1,8 @@
 FROM ubuntu:latest
 
 # install all dependencies
-RUN apt-get update && apt-get install zsh sudo git wget curl binutils npm nasm build-essential -y
+RUN apt-get update && apt-get install language-pack-en zsh sudo git wget curl binutils npm nasm build-essential -y
 
-
-RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 # switch default shell
 RUN chsh -s $(which zsh)
 
@@ -19,6 +17,16 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
+RUN git clone https://github.com/powerline/fonts.git --depth=1 \
+    && cd fonts && ./install.sh && cd .. && rm -rf fonts
+
+ARG TARGETARCH
+RUN arch=$TARGETARCH \
+    && if [ "$arch" = "amd64" ]; then arch="x86_64"; else arch="arm64"; fi \
+    && wget https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-$arch \
+    && chmod +x bazel-6.3.2-linux-$arch \
+    && mv bazel-6.3.2-linux-$arch /usr/bin/bazel
+
 # set default user
 USER $USERNAME
 
@@ -27,12 +35,12 @@ USER $USERNAME
 # setup, containers don't have permission to push.
 RUN git config --global --add safe.directory "*" \
     && git config --global user.name "vt container dev" \
-    && git config --global user.email "dummy@dummy.com"
+    && git config --global user.email "dummy@dummy.com" \
+    # makes pagination better in container
+    && git config --global core.pager 'less -+F -+X'
 
-COPY .zshrc /home/$USERNAME/
-
-# set the repo as work directory so `docker exec zsh` starts there.
-WORKDIR /vt
+RUN cd ~ && sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+COPY --chown=$USERNAME:$USERNAME .zshrc /home/$USERNAME/
 
 # We want the container to be the main dev place.
 CMD ["/bin/zsh"]
