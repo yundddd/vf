@@ -3,7 +3,10 @@
 #include "std/sys.hh"
 
 int main(int argc, char* argv[], char* env[]) {
-  write(1, argv[0], strlen(argv[0]));
-  write(1, env[0], strlen(env[0]));
+  const char* str = nullptr;
+  // on arm the string needs to be padded to 4 byte
+  // address boundary to make the next instruction aligned.
+  STR_LITERAL(str, PAD3("Running virus code.\\n"));
+  write(1, str, strlen(str));
   return 0;
 }

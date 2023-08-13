@@ -57,7 +57,10 @@
 // buffer overflow, to use function call to load the next instruction address
 // automatically. Wrapping string literals with this macro will ensure they show
 // up in .text instead of in .rodata, which is preferred for parasites.
-
+// For example:
+//   const char* str = nullptr;
+//   STR_LITERAL(str, "this binary is infected\\n");
+//   write(1, str, strlen(str));
 #if defined(__x86_64__)
 #define STR_LITERAL(str, literal) \
   asm volatile(                   \
@@ -76,7 +79,10 @@
 #elif defined(__aarch64__)
 // Unfortunately arm must run instructions aligned to 4-byte addresses.
 // Instructions after string literals could be mis-aligned. If linker complains,
-// wrap your literal with these macros.
+// wrap your literal with these macros. For example:
+//   const char* str = nullptr;
+//   STR_LITERAL(str, PAD3("this binary is infected\\n"));
+//   write(1, str, strlen(str));
 #define PAD1(literal) literal "\\0"
 #define PAD2(literal) PAD1(literal "\\0")
 #define PAD3(literal) PAD2(literal "\\0")

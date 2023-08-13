@@ -4,7 +4,8 @@ cc_nolibc_binary(
     name = "infector",
     srcs = ["infector.cc"],
     deps = [
-        ":common",
+        ":common_infection",
+        "//common:string",
         ":extend_code_infect",
         ":padding_infect",
         ":reverse_text_infect",
@@ -52,8 +53,8 @@ cc_library(
 )
 
 cc_library(
-    name = "common",
-    hdrs = ["common.hh"],
+    name = "common_infection",
+    hdrs = ["common_infection.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:mmap",
@@ -62,8 +63,8 @@ cc_library(
 )
 
 cc_nolibc_binary(
-    name = "cavy",
-    srcs = ["cavy.cc"],
+    name = "victim",
+    srcs = ["victim.cc"],
     deps = [
         "//std:stdio",
     ],
@@ -83,7 +84,7 @@ sh_test(
     name = "padding_infector_test",
     srcs = ["padding_infector_test.sh"],
     data = [
-        ":cavy",
+        ":victim",
         ":infector",
         ":test_parasite",
     ],

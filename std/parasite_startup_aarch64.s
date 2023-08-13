@@ -18,7 +18,7 @@
 		...
 					NULL
 
-When the parasite finishes execution, we need to restore the origina stack
+When the parasite finishes execution, we need to restore the original stack
 frame as if nothing happened before.
 */
 
