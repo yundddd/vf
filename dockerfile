@@ -34,8 +34,6 @@ USER $USERNAME
 # it is safe to have users commit inside of containers. Since no key is
 # setup, containers don't have permission to push.
 RUN git config --global --add safe.directory "*" \
-    && git config --global user.name "vt container dev" \
-    && git config --global user.email "dummy@dummy.com" \
     # makes pagination better in container
     && git config --global core.pager 'less -+F -+X'
 
