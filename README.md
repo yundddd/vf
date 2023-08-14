@@ -27,10 +27,54 @@ Our build system is setup in a way that allows us to select two binary modes (vi
 
 # Docker
 
-* install docker desktop
-* switch driver to build a image for both arm and x86: docker buildx create --use
-* biuld: docker buildx build --platform linux/amd64,linux/arm64 . -t ubuntu-multi-arch
-* load from cache and tag it: docker buildx build --load --platform linux/amd64 -t ubuntu-amd64-img .
-* docker buildx build --load --platform linux/arm64 -t ubuntu-arm64-img .
-* run in a container in interative detached mode and mounts a volume: docker run -tid --rm -v RepoVolume:/RepoVolume --name ubuntu-arm64 ubuntu-arm64-img
-* do the same for amd64: docker run -tid --rm -v RepoVolume:/RepoVolume --name ubuntu-amd64 ubuntu-amd64-img
+This framework is targeting both x86 and aarch64. Therefore we will need to run our code on two architectures.
+The development is streamlined by docker, as switching between machines can be tedious; this section discribes
+a workflow that can potentially work on all systems.
+
+Acquire a development machine (mac, windows or linux) and install install [docker desktop](https://www.docker.com/products/docker-desktop/). Also, fork this repo and clone it to your development machine, let's say, to `/home/$USER/vt`.
+
+```
+# go to https://github.com/yundddd/vt and press on the fork button to make a copy of the repo under your name.
+# on development machine, run:
+cd ~
+git clone git@github.com:$YOUR_GIT_USERNAME/vt.git
+```
+
+Now, build images for x86 and aarch64, which will be used to create containers that can test your virus:
+```
+cd vt
+./build_dev_images.sh && ./run_dev_containers.sh
+```
+These commands will make two containers available for you, with direct access to the cloned repo. You can build and debug code inside the containers by:
+
+```
+# acquire a shell to the x86 container
+./x86_shell.sh
+$ vscode@x86 ~/vt master
+
+# acquire a shell to the aarch64 container
+./aarch64_shell.sh
+$ vscode@xaarch64 ~/vt master
+```
+
+The containers have setup everything you need to build and debug your code. The repo is mounted at /home/vscode/vt. The default non-root user is called `vscode` to facilitate those who use vscode docker plugin. It is also in sudoer file. Note that the machine type is displaced on the prompt in case you have multiple terminals running.
+
+Under the hood, these two containers mount our repo and all share the same code with our development host. In other words, any changes to our code will be immediately available to build and run inside our containers.
+
+Note: The containers do not have permission to push to your repo, in fact they don't even have git user or email setup to commit any changes. Ideally you should only commit and push from your development machine.
+
+Note: Users should not save any important data in containers as they do not perserve them. If there is any update to dockerfile, re-run these commands to refresh the containers. Users should only modify the code folder inside the containers.
+
+
+# Infection Algorithm
+
+In this repo we present three infection algorithms.
+
+| Algorithm     | Works on x86  | Works on aarch64  |
+| ------------- | ------------- | ----------------  |
+| Text Padding  | Yes           | Yes (*only pie)   |
+| Reverse Text  | WIP           | WIP               |
+| Extend Code   | WIP           | WIP               |
+
+The Text Padding infection was devised by Silvio Cesare in 1998. It takes advantage of the fact that ELF binaries are mapped into memory by pages, as we can only set access/execution control on page boundary. The TEXT segment has the execution bit set, while the next segment does not. This means, if the TEXT segment doesn't use up all the space in a page, there will be holes in our ELF file. This algorithm injects a virus into this space (provided there is enough space) and takes over the entry point to execute it first, before handing control back to the original entry point.
+
