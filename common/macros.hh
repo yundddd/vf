@@ -52,17 +52,35 @@
 #define CHECK_GT(a, b) CHECK_LE(b, a)
 #define CHECK_GE(a, b) CHECK_LT(b, a)
 
-// Extra 24 bytes (aarch64) or 10 bytes (x86-64) of instructions for loading
-// string literal address to str. This is basically using the a trick common in
-// buffer overflow, to use function call to load the next instruction address
-// automatically. Wrapping string literals with this macro will ensure they show
-// up in .text instead of in .rodata, which is preferred for parasites.
-// For example:
+// Viruses can be inserted into different places and run, therefore they cannot
+// reference strings stored in .rodata. This can be worked around by injecting
+// .rodata together with .text at the expense of a larger than desired virus.
+// Some syscall however requires initialized string to work. To support this, we
+// have provided the STR_LITERAL macro to put chars in the .text section. For
+// small strings (less than 8 chars including the null terminator), users may do
+//          char str[8] = {'m', 'y', '_', 's', 't', 'r', 0};
+// which generates code to initialize the string on stack. Anything longer
+// _might_ be put in .rodata. Users should always confirm that the virus has no
+// .rodata section by:
+//          readelf -e /PATH_TO_VIRUS | grep rodata
+//
+// Alternatively, users may resort to more tedious initialization:
+//          char str[30] = {};
+//          hello[0] = 'h'; hello[1] = 'e'; hello[2] = 'l'; ...
+// This is very error prone and if the string is long, can take up lot of code
+// space. Please consider the STR_LITERAL macro instead.
+
+// The following macro uses a trick common in buffer overflow that loads the
+// string literal address by a function call. It uses an extra 24 bytes
+// (aarch64) or 10 bytes (x86-64 variable length inst to the win!) of
+// instructions for loading, which is not too bad for long strings. Wrapping
+// string literals with this macro will ensure they show up in .text instead of
+// in .rodata, required by most parasites. For example:
 //   const char* str = nullptr;
 //   STR_LITERAL(str, PAD3("this binary is infected\\n"));
 //   write(1, str, strlen(str));
 // Even though it's no required to pad literals to align the next instruction on
-// x86, it's best to do it so your virus also run on arm.
+// x86, it's best to do it so your virus also run on aarch64.
 #if defined(__x86_64__)
 #define STR_LITERAL(str, literal) \
   asm volatile(                   \
@@ -84,12 +102,15 @@
 #define PAD3(literal) literal
 
 #elif defined(__aarch64__)
-// Unfortunately arm must run instructions aligned to 4-byte addresses.
+// Unfortunately aarch64 must run instructions aligned to 4-byte addresses.
 // Instructions after string literals could be mis-aligned. If linker complains,
 // wrap your literal with these macros. For example:
 //   const char* str = nullptr;
 //   STR_LITERAL(str, PAD3("this binary is infected\\n"));
 //   write(1, str, strlen(str));
+// The PAD macros essentially null extends the string to make the next
+// instruction aligned. If you know a smart way to hide it inside STR_LITERAL,
+// please submit a PR!
 #define PAD1(literal) literal "\\0"
 #define PAD2(literal) PAD1(literal "\\0")
 #define PAD3(literal) PAD2(literal "\\0")

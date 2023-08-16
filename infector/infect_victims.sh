@@ -5,7 +5,7 @@
 
 # please build the //infector package before running this script.
 # run with infector/infect_victims.sh [method] [dir]
-# for example: bazel build //infector/... --config=gcc_x86_64 && infector/infect_victimss.sh text_padding /usr/bin
+# for example: bazel build //infector/... --config=gcc_x86_64 && infector/infect_victims.sh text_padding /usr/bin
 IFS=""
 
 rm_trailing_slash() {
@@ -35,7 +35,8 @@ do
         detail="${red}fail $result${normal}"
         fail_counter=$((fail_counter+1))
     fi
-    printf 'infecting [%-45s] ===== %s\n' $file_name $detail
+    elf_type=$(readelf $file_name -h | grep Type | cut -f 2 -d ':' | cut -f 1 -d '(' | xargs)
+    printf ' [%-45s] == type: %-5s %s\n' $file_name $elf_type $detail
   fi
 
 done

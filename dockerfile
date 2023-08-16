@@ -42,5 +42,8 @@ RUN git config --global --add safe.directory "*" \
 RUN cd ~ && sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 COPY --chown=$USERNAME:$USERNAME .zshrc /home/$USERNAME/
 
-# We want the container to be the main dev place.
+# To make gdb less PITA
+RUN git clone https://github.com/pwndbg/pwndbg && cd pwndbg && ./setup.sh
+
+# It's just better
 CMD ["/bin/zsh"]
