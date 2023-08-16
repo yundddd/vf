@@ -72,7 +72,7 @@ In this repo we present three infection algorithms.
 
 | Algorithm     | Works on x86  | Works on aarch64  |
 | ------------- | ------------- | ----------------  |
-| Text Padding  | Yes           | Yes (*only pie)   |
+| Text Padding  | Yes           | Yes               |
 | Reverse Text  | WIP           | WIP               |
 | Extend Code   | WIP           | WIP               |
 

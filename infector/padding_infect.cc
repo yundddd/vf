@@ -118,7 +118,9 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
       // padding_size
       code_segment_end_offset = phdr_entry->p_offset + phdr_entry->p_filesz;
       // Sometimes the previous section is data. Make sure it's aligned to
-      // 32-bit for arm. x86 has not such requirement but do it anyways.
+      // 32-bit for arm. x86 has not such requirement but do it anyways. This
+      // may create a side effect of returning negative padding size, when the
+      // padding is exactly 0.
       parasite_offset = next_32_bit_aligned_addr(code_segment_end_offset);
 
       parasite_load_address =
@@ -136,12 +138,14 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
       // Return padding_size (maximum size of parasite that host can accomodate
       // in its padding between the end of CODE segment and start of next
       // loadable segment)
-      info =
-          ElfPaddingInfo{.padding_size = phdr_entry->p_offset - parasite_offset,
-                         .code_segment_end_offset = code_segment_end_offset,
-                         .parasite_offset = parasite_offset,
-                         .parasite_load_address = parasite_load_address,
-                         .patch_entry_idx = i - 1};
+      info = ElfPaddingInfo{
+          .padding_size = phdr_entry->p_offset > parasite_offset
+                              ? phdr_entry->p_offset - parasite_offset
+                              : 0,
+          .code_segment_end_offset = code_segment_end_offset,
+          .parasite_offset = parasite_offset,
+          .parasite_load_address = parasite_load_address,
+          .patch_entry_idx = i - 1};
       return true;
     }
   }
