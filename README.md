@@ -1,4 +1,7 @@
 [![CircleCI](https://circleci.com/gh/yundddd/vt.svg?style=shield)](https://app.circleci.com/pipelines/github/yundddd/vt)
+![](https://img.shields.io/badge/infects-x86_64-blue)
+![](https://img.shields.io/badge/infects-aarch64-yellow)
+
 
 Writing a virus is hard due to the following reasons:
 
@@ -68,13 +71,30 @@ Note: Users should not save any important data in containers as they do not pers
 
 # Infection Algorithm
 
-In this repo we present three infection algorithms.
+In this repo we present various infection algorithms that can infect:
 
-| Algorithm     | Works on x86  | Works on aarch64  |
-| ------------- | ------------- | ----------------  |
-| Text Padding  | Yes           | Yes               |
-| Reverse Text  | WIP           | WIP               |
-| Extend Code   | WIP           | WIP               |
+| Algorithm     | x86_64 DYN    | x86_64 EXEC       | aarch64 DYN       | aarch64 EXEC      |
+| ------------- | ------------- | ----------------  | ----------------  | ----------------  |
+| text_padding  | Yes           | Yes               | Yes               | Yes               |
+| reverse_text  | WIP           | WIP               | WIP               | WIP               |
+| extend_code   | WIP           | WIP               | WIP               | WIP               |
+
+To infect a single binary, run the following command:
+```
+# build the infector and sample virus first
+bazel build //infector/... --config=gcc_aarch64
+# infect a single binary (a copy of /usr/bin/ls) using the `text_padding` algorithm. 
+infector/infect_victim.sh text_padding /usr/bin/ls
+```
+
+To infect all binaries from a path, run:
+```
+bazel build //infector/... --config=gcc_aarch64
+# infect all binaries in /usr/bin using the `text_padding` algorithm. 
+infector/infect_victims.sh text_padding /usr/bin
+```
+
+The scripts will make a copy of the victim binary and infect it with a sample virus. For more details please read the source.
 
 The Text Padding infection was devised by Silvio Cesare in 1998. It takes advantage of the fact that ELF binaries are mapped into memory by pages, as we can only set access/execution control on page boundary. The TEXT segment has the execution bit set, while the next segment does not. This means, if the TEXT segment doesn't use up all the space in a page, there will be holes in our ELF file. This algorithm injects a virus into this space (provided there is enough space) and takes over the entry point to execute it first, before handing control back to the original entry point.
 
