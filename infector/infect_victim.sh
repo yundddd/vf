@@ -10,6 +10,7 @@
 set -e
 set -o pipefail
 
+rm -f /tmp/victim
 # extract virus's text segment
 chmod 700 bazel-bin/infector/test_parasite \
       && objcopy --dump-section .text=/tmp/parasite_code bazel-bin/infector/test_parasite
@@ -23,5 +24,3 @@ bazel-bin/infector/infector /tmp/victim /tmp/parasite_code $1
 # run the infected binary. Since most binaries terminate with --help, this is sufficient to
 # test that infection is working. In case any binaries is stuck, kill it after 1 sec.
 timeout -s KILL 1 /tmp/victim --help
-
-rm /tmp/victim

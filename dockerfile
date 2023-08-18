@@ -3,7 +3,7 @@ FROM ubuntu:latest
 # install all dependencies
 RUN apt-get update \
     && apt-get install -y language-pack-en zsh sudo git wget curl binutils \
-    npm nasm build-essential file vim
+    npm nasm build-essential file vim gdb
 
 # switch default shell
 RUN chsh -s $(which zsh)
@@ -43,7 +43,7 @@ RUN cd ~ && sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/to
 COPY --chown=$USERNAME:$USERNAME .zshrc /home/$USERNAME/
 
 # To make gdb less PITA
-RUN git clone https://github.com/pwndbg/pwndbg && cd pwndbg && ./setup.sh
+RUN sh -c "$(curl -fsSL https://gef.blah.cat/sh)"
 
 # It's just better
 CMD ["/bin/zsh"]

