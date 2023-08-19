@@ -27,9 +27,9 @@ cc_library(
 )
 
 cc_library(
-    name = "extend_code_infect",
-    srcs = ["extend_code_infect.cc"],
-    hdrs = ["extend_code_infect.hh"],
+    name = "pt_note_infect",
+    srcs = ["pt_note_infect.cc"],
+    hdrs = ["pt_note_infect.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:mmap",
