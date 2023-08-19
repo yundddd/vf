@@ -77,7 +77,7 @@ In this repo we present various infection algorithms that can infect:
 | ------------- | ------------- | ----------------  | ----------------  | ----------------  |
 | text_padding  |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 | reverse_text  | :question:    |:heavy_check_mark: | :question:        |:heavy_check_mark: |
-| extend_code   | WIP           | WIP               | WIP               | WIP               |
+| pt_note       | WIP           |:heavy_check_mark: | WIP               |:heavy_check_mark: |
 
 To infect a single binary, run the following command:
 ```

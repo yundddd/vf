@@ -6,7 +6,7 @@ cc_nolibc_binary(
     deps = [
         ":common_infection",
         "//common:string",
-        ":extend_code_infect",
+        ":pt_note_infect",
         ":padding_infect",
         ":reverse_text_infect",
         "//std:stdio",
