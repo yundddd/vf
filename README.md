@@ -75,8 +75,8 @@ In this repo we present various infection algorithms that can infect:
 
 | Algorithm     | x86_64 DYN    | x86_64 EXEC       | aarch64 DYN       | aarch64 EXEC      |
 | ------------- | ------------- | ----------------  | ----------------  | ----------------  |
-| text_padding  | Yes           | Yes               | Yes               | Yes               |
-| reverse_text  | WIP           | WIP               | WIP               | WIP               |
+| text_padding  |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
+| reverse_text  | WIP           |:heavy_check_mark:| WIP               |:heavy_check_mark:|
 | extend_code   | WIP           | WIP               | WIP               | WIP               |
 
 To infect a single binary, run the following command:

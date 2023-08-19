@@ -86,10 +86,8 @@ Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   Elf64_Addr original_entry_point = header->e_entry;
   if (header->e_type == ET_EXEC) {
     header->e_entry = info.parasite_load_address;
-  } else if (header->e_type == ET_DYN) {
-    header->e_entry = info.parasite_file_offset;
   } else {
-    CHECK_FAIL();
+    header->e_entry = info.parasite_file_offset;
   }
   return original_entry_point;
 }
