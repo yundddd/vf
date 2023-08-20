@@ -70,6 +70,15 @@ cc_nolibc_binary(
     ],
 )
 
+cc_binary(
+    name = "victim2",
+    srcs = ["victim2.cc"],
+    deps = [
+        "//nostdlib:stdio",
+        "//nostdlib:unistd",
+    ],
+)
+
 cc_parasite_binary(
     name = "test_parasite",
     srcs = ["test_parasite.cc"],
