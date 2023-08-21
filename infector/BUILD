@@ -1,19 +1,18 @@
-load("//common:parasite.bzl", "cc_nolibc_binary", "cc_parasite_binary")
+load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
 
-cc_nolibc_binary(
+cc_binary(
     name = "infector",
     srcs = ["infector.cc"],
     deps = [
         ":common_infection",
-        "//common:string",
-        ":pt_note_infect",
         ":padding_infect",
+        ":pt_note_infect",
         ":reverse_text_infect",
-        "//std:stdio",
+        "//common:string","//nostdlib:stdio"
     ],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "padding_infect",
     srcs = ["padding_infect.cc"],
     hdrs = ["padding_infect.hh"],
@@ -22,11 +21,12 @@ cc_library(
         "//common:mmap",
         "//common:patch_pattern",
         "//common:patch_relinguish_control",
-        "//std:string",
+        "//nostdlib:stdio",
+        "//nostdlib:string",
     ],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "pt_note_infect",
     srcs = ["pt_note_infect.cc"],
     hdrs = ["pt_note_infect.hh"],
@@ -35,11 +35,12 @@ cc_library(
         "//common:mmap",
         "//common:patch_pattern",
         "//common:patch_relinguish_control",
-        "//std:string",
+        "//nostdlib:stdio",
+        "//nostdlib:string",
     ],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "reverse_text_infect",
     srcs = ["reverse_text_infect.cc"],
     hdrs = ["reverse_text_infect.hh"],
@@ -48,67 +49,34 @@ cc_library(
         "//common:mmap",
         "//common:patch_pattern",
         "//common:patch_relinguish_control",
-        "//std:string",
+        "//nostdlib:stdio",
+        "//nostdlib:string",
     ],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "common_infection",
     hdrs = ["common_infection.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:mmap",
-        "//std:string",
-    ],
-)
-
-cc_nolibc_binary(
-    name = "victim",
-    srcs = ["victim.cc"],
-    deps = [
-        "//std:stdio",
+        "//nostdlib:stdio",
+        "//nostdlib:string",
     ],
 )
 
 cc_binary(
-    name = "victim2",
-    srcs = ["victim2.cc"],
-    deps = [
-        "//nostdlib:stdio",
-        "//nostdlib:unistd",
-        "//std:parasite_startup",
-    ],
-    copts = [
-        "-Wunused",
-        "-Werror",
-        "-fno-use-cxa-atexit",
-        "-fno-rtti",
-        "-fno-exceptions",
-        "-fomit-frame-pointer",
-        "-ffunction-sections",
-        "-Os",
-        "-fno-stack-protector",
-        "-fno-unwind-tables",
-        "-fno-asynchronous-unwind-tables",
-        "-fno-builtin",
-    ],
-    linkopts = [
-        "-Wl,--gc-sections",
-        "-nostdlib",
-        "-nolibc",
-        "-nodefaultlibs",
-        "-fno-stack-protector",
-    ]
-
+    name = "victim",
+    srcs = ["victim.cc"],
 )
 
-cc_parasite_binary(
+cc_nostdlib_binary(
     name = "test_parasite",
     srcs = ["test_parasite.cc"],
     deps = [
         "//common:macros",
-        "//std:stdio",
-        "//std:string",
+        "//nostdlib:string",
+        "//nostdlib:unistd",
     ],
 )
 
@@ -116,8 +84,8 @@ sh_test(
     name = "padding_infector_test",
     srcs = ["padding_infector_test.sh"],
     data = [
-        ":victim",
         ":infector",
         ":test_parasite",
+        ":victim",
     ],
 )

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <signal.h>
 
 namespace vt {

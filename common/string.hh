@@ -1,5 +1,6 @@
 #pragma once
-#include "std/std.hh"
+#include <cstddef>
+
 namespace vt::common {
 
 class String final {

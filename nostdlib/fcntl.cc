@@ -1,6 +1,5 @@
 #include "nostdlib/fcntl.hh"
 #include <asm/unistd.h>
-#include <cstdarg>
 #include "nostdlib/arch.hh"
 
 namespace vt {
@@ -16,17 +15,8 @@ int sys_open(const char* path, int flags, mode_t mode) {
 }
 }  // namespace
 
-int open(const char* path, int flags, ...) {
-  mode_t mode = 0;
-
-  if (flags & O_CREAT) {
-    va_list args;
-
-    va_start(args, flags);
-    mode = va_arg(args, mode_t);
-    va_end(args);
-  }
-
+int open(const char* path, int flags) { return open(path, flags, 0); }
+int open(const char* path, int flags, mode_t mode) {
   return sys_open(path, flags, mode);
 }
 

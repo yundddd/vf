@@ -2,9 +2,6 @@
 
 namespace vt {
 
-// Forward decl to avoid circular dep.
-void* malloc(size_t len);
-
 namespace {
 void* _nolibc_memcpy_up(void* dst, const void* src, size_t len) {
   size_t pos = 0;
@@ -128,33 +125,6 @@ size_t strnlen(const char* str, size_t maxlen) {
   for (len = 0; (len < maxlen) && str[len]; len++)
     ;
   return len;
-}
-
-char* strdup(const char* str) {
-  size_t len;
-  char* ret;
-
-  len = strlen(str);
-  ret = (char*)vt::malloc(len + 1);
-  if (__builtin_expect(ret != nullptr, 1)) {
-    memcpy(ret, str, len + 1);
-  }
-
-  return ret;
-}
-
-char* strndup(const char* str, size_t maxlen) {
-  size_t len;
-  char* ret;
-
-  len = strnlen(str, maxlen);
-  ret = (char*)vt::malloc(len + 1);
-  if (__builtin_expect(ret != nullptr, 1)) {
-    memcpy(ret, str, len);
-    ret[len] = '\0';
-  }
-
-  return ret;
 }
 
 size_t strlcat(char* dst, const char* src, size_t size) {

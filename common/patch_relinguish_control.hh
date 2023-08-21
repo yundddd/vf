@@ -1,5 +1,5 @@
 #pragma once
-#include <linux/elf.h>
+#include <elf.h>
 #include "common/mmap.hh"
 
 namespace vt::common {

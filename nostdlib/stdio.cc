@@ -7,8 +7,6 @@
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
 #include "nostdlib/unistd.hh"
-extern "C" void __stack_chk_fail(void) {}
-__attribute__((weak)) uintptr_t __stack_chk_guard = 1;
 
 namespace vt {
 namespace {
@@ -37,7 +35,7 @@ int fgetc(FILE* stream) {
   unsigned char ch;
   int fd;
 
-  if (stream < stdin()|| stream > stderr()) {
+  if (stream < stdin() || stream > stderr()) {
     return EOF;
   }
 
@@ -57,7 +55,7 @@ int fputc(int c, FILE* stream) {
   unsigned char ch = c;
   int fd;
 
-  if (stream < stdin()|| stream > stderr()) {
+  if (stream < stdin() || stream > stderr()) {
     return EOF;
   }
 
@@ -80,7 +78,7 @@ int _fwrite(const void* buf, size_t size, FILE* stream) {
   ssize_t ret;
   int fd;
 
-  if (stream < stdin()|| stream > stderr()) {
+  if (stream < stdin() || stream > stderr()) {
     return EOF;
   }
 
@@ -187,17 +185,17 @@ int vfprintf(FILE* stream, const char* fmt, va_list args) {
             out[1] = 0;
             break;
           case 'd':
-            i64toa_r(v, out);
+            vt::i64toa_r(v, out);
             break;
           case 'u':
-            u64toa_r(v, out);
+            vt::u64toa_r(v, out);
             break;
           case 'p':
             *(out++) = '0';
             *(out++) = 'x';
             /* fall through */
           default: /* 'x' and 'p' above */
-            u64toh_r(v, out);
+            vt::u64toh_r(v, out);
             break;
         }
         outstr = tmpbuf;
@@ -218,7 +216,7 @@ int vfprintf(FILE* stream, const char* fmt, va_list args) {
         escape = 1;
         goto do_escape;
       }
-      len = strlen(outstr);
+      len = vt::strlen(outstr);
       goto flush_str;
     }
 
@@ -684,7 +682,7 @@ int print_float_g(char* buf, int max, double value, int prec) {
     /* see if the last decimals are zero, if so, skip them */
     len = print_remainder(buf, max, remain, prec - before);
     while (len > 0 && buf[0] == '0') {
-      memmove(buf, buf + 1, --len);
+      vt::memmove(buf, buf + 1, --len);
     }
   }
   len += print_dec_ll(buf + len, max - len, whole);
@@ -713,9 +711,9 @@ void print_str(char** at, size_t* left, int* ret, char* s, int minw,
   int w;
   /* with prec: no more than x characters from this string, stop at 0 */
   if (prgiven)
-    w = strnlen(s, precision);
+    w = vt::strnlen(s, precision);
   else
-    w = (int)strlen(s); /* up to the nul */
+    w = (int)vt::strlen(s); /* up to the nul */
   if (w < minw && !minus) print_pad(at, left, ret, ' ', minw - w);
   spool_str(at, left, ret, s, w);
   if (w < minw && minus) print_pad(at, left, ret, ' ', minw - w);
@@ -915,7 +913,7 @@ int snprintf(char* str, size_t size, const char* format, ...) {
   int r;
   va_list args;
   va_start(args, format);
-  r = vsnprintf(str, size, format, args);
+  r = vt::vsnprintf(str, size, format, args);
   va_end(args);
   return r;
 }

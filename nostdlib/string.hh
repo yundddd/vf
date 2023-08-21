@@ -22,10 +22,6 @@ size_t strlen(const char* str);
 
 size_t strnlen(const char* str, size_t maxlen);
 
-char* strdup(const char* str);
-
-char* strndup(const char* str, size_t maxlen);
-
 size_t strlcat(char* dst, const char* src, size_t size);
 
 size_t strlcpy(char* dst, const char* src, size_t size);

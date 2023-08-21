@@ -25,9 +25,9 @@ struct sys_stat_struct {
   long st_blocks;
   unsigned long sys_st_atime;
   unsigned long st_atime_nsec;
-  unsigned long st_mtime;
+  unsigned long sys_st_mtime;
 
-  unsigned long sys_st_mtime_nsec;
+  unsigned long st_mtime_nsec;
   unsigned long sys_st_ctime;
   unsigned long st_ctime_nsec;
   long __unused[3];

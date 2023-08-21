@@ -1,127 +1,113 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
-load("//testing:test.bzl", "nostdlib_cc_test")
+load("//nostdlib:nostdlib.bzl", "cc_nostdlib_library")
 
 package(default_visibility = ["//visibility:public"])
 
-config_setting(
-    name = "aarch64_cpu",
-    values = {"cpu": "aarch64"},
-)
-
-config_setting(
-    name = "x86_64_cpu",
-    values = {
-        "cpu": "x86_64",
-    },
-)
-
-cc_library(
+cc_nostdlib_library(
     name = "mmap",
     hdrs = ["mmap.hh"],
     deps = [
+        ":check",
         ":macros",
-        "//std:stdio",
-        "//std:sys",
+        "//nostdlib/sys:mman",
         "//std:utility",
     ],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "file_descriptor",
     hdrs = ["file_descriptor.hh"],
     deps = [
+        ":check",
         ":macros",
-        "//std:stdio",
-        "//std:sys",
+        "//nostdlib:fcntl",
+        "//nostdlib/sys:stat",
         "//std:utility",
     ],
 )
 
-cc_library(
-    name = "macros",
-    hdrs = ["macros.hh"],
-    deps = ["//std:sys"],
+cc_nostdlib_library(
+    name = "check",
+    hdrs = ["check.hh"],
+    deps = [
+        "//nostdlib:unistd",
+    ],
 )
 
-cc_library(
+cc_nostdlib_library(
+    name = "macros",
+    hdrs = ["macros.hh"],
+)
+
+cc_nostdlib_library(
     name = "string",
     srcs = ["string.cc"],
     hdrs = ["string.hh"],
     deps = [
+        ":check",
         ":macros",
-        "//std",
-        "//std:stdlib",
-        "//std:sys",
+        "//nostdlib:stdlib",
         "//std:utility",
     ],
 )
 
-nostdlib_cc_test(
+cc_test(
     name = "string_test",
     srcs = ["string_test.cc"],
     deps = [
         ":string",
-        "//testing:test",
+        "@gtest",
+        "@gtest//:gtest_main",
     ],
 )
 
-nostdlib_cc_test(
+cc_test(
     name = "file_descriptor_test",
     srcs = ["file_descriptor_test.cc"],
     deps = [
         ":file_descriptor",
-        "//testing:test",
         "//testing:test_support",
+        "@gtest",
+        "@gtest//:gtest_main",
     ],
 )
 
-nostdlib_cc_test(
+cc_test(
     name = "mmap_test",
     srcs = ["mmap_test.cc"],
     deps = [
         ":file_descriptor",
         ":mmap",
-        "//testing:test",
         "//testing:test_support",
+        "@gtest",
+        "@gtest//:gtest_main",
     ],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "hex_dump",
     srcs = ["hex_dump.cc"],
     hdrs = ["hex_dump.hh"],
     deps = [
-        "//std:ctype",
-        "//std:stdio",
+        "//nostdlib:ctype",
+        "//nostdlib:stdio",
     ],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "patch_pattern",
     hdrs = ["patch_pattern.hh"],
-    deps = ["//std:types"],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "patch_relinguish_control",
     srcs = select({
-        ":aarch64_cpu": ["patch_relinguish_control_aarch64.cc"],
-        ":x86_64_cpu": ["patch_relinguish_control_x86_64.cc"],
+        "@platforms//cpu:aarch64": ["patch_relinguish_control_aarch64.cc"],
+        "@platforms//cpu:x86_64": ["patch_relinguish_control_x86_64.cc"],
     }),
     hdrs = ["patch_relinguish_control.hh"],
     deps = [
         ":mmap",
-        ":patch_pattern"
+        ":patch_pattern",
+        "//nostdlib:stdio"
     ],
-)
-
-filegroup(
-    name = "parasite_linker",
-    srcs = select(
-        {
-            ":aarch64_cpu": ["parasite_linker_aarch64.lds"],
-            ":x86_64_cpu": ["parasite_linker_x86_64.lds"],
-        },
-    ),
-    visibility = ["//visibility:public"],
 )

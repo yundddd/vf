@@ -1,8 +1,9 @@
 #pragma once
 
+#include "common/check.hh"
 #include "common/macros.hh"
-#include "std/stdio.hh"
-#include "std/sys.hh"
+#include "nostdlib/fcntl.hh"
+#include "nostdlib/sys/stat.hh"
 #include "std/utility.hh"
 
 namespace vt::common {
@@ -11,14 +12,14 @@ class FileDescriptor {
   FileDescriptor() = default;
   FileDescriptor(const char* path, int flags, int mode)
       : flags_(flags), mode_(mode) {
-    fd_ = ::open(path, flags_, mode_);
+    fd_ = vt::open(path, flags_, mode_);
     if (fd_ == -1) {
       CHECK_FAIL();
     }
   }
 
   FileDescriptor(const char* path, int flags) : flags_(flags) {
-    fd_ = ::open(path, flags_, 0);
+    fd_ = vt::open(path, flags_, 0);
     if (fd_ == -1) {
       CHECK_FAIL();
     }
@@ -26,7 +27,7 @@ class FileDescriptor {
 
   ~FileDescriptor() {
     if (fd_ != -1) {
-      if (::close(fd_) == -1) {
+      if (vt::close(fd_) == -1) {
         CHECK_FAIL();
       }
     }
@@ -46,7 +47,7 @@ class FileDescriptor {
   size_t file_size() const {
     CHECK_NE(fd_, -1);
     struct stat s {};
-    auto ret = ::fstat(fd_, &s);
+    auto ret = vt::fstat(fd_, &s);
     CHECK_NE(ret, -1);
     return s.st_size;
   }

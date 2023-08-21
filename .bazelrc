@@ -1,11 +1,1 @@
 build --cxxopt='-std=c++2a' --copt='-fconcepts'
-
-build:gcc_x86_64 --crosstool_top=//toolchain:gcc_x86_64
-build:gcc_x86_64 --cpu=x86_64
-build:gcc_x86_64 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-
-build:gcc_aarch64 --crosstool_top=//toolchain:gcc_aarch64
-build:gcc_aarch64 --cpu=aarch64
-build:gcc_aarch64 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-
-

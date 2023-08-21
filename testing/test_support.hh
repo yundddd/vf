@@ -1,8 +1,8 @@
 #pragma once
-#include "common/string.hh"
+#include <string>
 namespace vt {
 namespace testing {
-common::String get_bazel_test_dir();
-common::String get_bazel_test_dir_unique();
+std::string get_bazel_test_dir();
+std::string get_bazel_test_dir_unique();
 }  // namespace testing
 }  // namespace vt

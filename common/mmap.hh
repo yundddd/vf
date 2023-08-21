@@ -1,8 +1,8 @@
 #pragma once
 
+#include "common/check.hh"
 #include "common/macros.hh"
-#include "std/stdio.hh"
-#include "std/sys.hh"
+#include "nostdlib/sys/mman.hh"
 #include "std/utility.hh"
 
 namespace vt::common {
@@ -16,7 +16,7 @@ class Mmap {
   MAKE_NON_COPYABLE(Mmap);
   Mmap(size_t size, int flags, int fd, size_t offset)
       : size_(size), flags_(flags), offset_(offset) {
-    auto ret = ::mmap(nullptr, size, PROT, flags, fd, offset);
+    auto ret = vt::mmap(nullptr, size, PROT, flags, fd, offset);
     if (ret == MAP_FAILED) {
       CHECK_FAIL();
     } else {
@@ -26,7 +26,7 @@ class Mmap {
 
   ~Mmap() {
     if (base_ != nullptr) {
-      CHECK_NE(::munmap(base_, size_), -1);
+      CHECK_NE(vt::munmap(base_, size_), -1);
     }
   }
 
@@ -42,7 +42,11 @@ class Mmap {
 
   const char* base() const { return base_; }
 
-  char* mutable_base() requires WRITABLE<PROT> { return base_; }
+  char* mutable_base()
+    requires WRITABLE<PROT>
+  {
+    return base_;
+  }
 
   bool valid() const { return base() != nullptr; }
 

@@ -27,10 +27,7 @@ void* realloc(void* old_ptr, size_t new_size);
  * dependency on large external functions.
  */
 int utoh_r(unsigned long in, char* buffer);
-/* converts unsigned long <in> to an hex string using the static itoa_buffer
- * and returns the pointer to that string.
- */
-char* utoh(unsigned long in);
+
 /* Converts the unsigned long integer <in> to its string representation into
  * buffer <buffer>, which must be long enough to store the number and the
  * trailing zero (21 bytes for 18446744073709551615 in 64-bit, 11 for
@@ -54,21 +51,6 @@ int itoa_r(long in, char* buffer);
  */
 char* ltoa_r(long in, char* buffer);
 
-/* converts long integer <in> to a string using the static itoa_buffer and
- * returns the pointer to that string.
- */
-char* itoa(long in);
-
-/* converts long integer <in> to a string using the static itoa_buffer and
- * returns the pointer to that string. Same as above, for compatibility.
- */
-char* ltoa(long in);
-
-/* converts unsigned long integer <in> to a string using the static itoa_buffer
- * and returns the pointer to that string.
- */
-char* utoa(unsigned long in);
-
 /* Converts the unsigned 64-bit integer <in> to its hex representation into
  * buffer <buffer>, which must be long enough to store the number and the
  * trailing zero (17 bytes for "ffffffffffffffff"). The buffer is filled from
@@ -78,10 +60,6 @@ char* utoa(unsigned long in);
  * external functions.
  */
 int u64toh_r(uint64_t in, char* buffer);
-/* converts uint64_t <in> to an hex string using the static itoa_buffer and
- * returns the pointer to that string.
- */
-char* u64toh(uint64_t in);
 
 /* Converts the unsigned 64-bit integer <in> to its string representation into
  * buffer <buffer>, which must be long enough to store the number and the
@@ -100,8 +78,6 @@ int u64toa_r(uint64_t in, char* buffer);
  * trailing zero) is returned.
  */
 int i64toa_r(int64_t in, char* buffer);
-char* i64toa(int64_t in);
-char* u64toa(uint64_t in);
 }  // namespace vt
 
 void* operator new(size_t n);

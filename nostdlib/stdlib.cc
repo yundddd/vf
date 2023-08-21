@@ -94,7 +94,7 @@ void* calloc(size_t size, size_t nmemb) {
    * No need to zero the heap, the MAP_ANONYMOUS in malloc()
    * already does it.
    */
-  return malloc(res);
+  return vt::malloc(res);
 }
 
 void* realloc(void* old_ptr, size_t new_size) {
@@ -103,7 +103,7 @@ void* realloc(void* old_ptr, size_t new_size) {
   void* ret;
 
   if (!old_ptr) {
-    return malloc(new_size);
+    return vt::malloc(new_size);
   }
 
   heap = container_of((char(*)[])old_ptr, struct nolibc_heap, user_p);
@@ -117,12 +117,12 @@ void* realloc(void* old_ptr, size_t new_size) {
     return old_ptr;
   }
 
-  ret = malloc(new_size);
+  ret = vt::malloc(new_size);
   if (__builtin_expect(!ret, 0)) {
     return nullptr;
   }
 
-  memcpy(ret, heap->user_p, heap->len);
+  vt::memcpy(ret, heap->user_p, heap->len);
   munmap(heap, heap->len);
   return ret;
 }
@@ -154,15 +154,6 @@ int utoh_r(unsigned long in, char* buffer) {
 
   buffer[digits] = 0;
   return digits;
-}
-
-/* converts unsigned long <in> to an hex string using the static itoa_buffer
- * and returns the pointer to that string.
- */
-char* utoh(unsigned long in) {
-  static char itoa_buffer[21];
-  utoh_r(in, itoa_buffer);
-  return itoa_buffer;
 }
 
 /* Converts the unsigned long integer <in> to its string representation into
@@ -223,33 +214,6 @@ char* ltoa_r(long in, char* buffer) {
   return buffer;
 }
 
-/* converts long integer <in> to a string using the static itoa_buffer and
- * returns the pointer to that string.
- */
-char* itoa(long in) {
-  static char itoa_buffer[21];
-  itoa_r(in, itoa_buffer);
-  return itoa_buffer;
-}
-
-/* converts long integer <in> to a string using the static itoa_buffer and
- * returns the pointer to that string. Same as above, for compatibility.
- */
-char* ltoa(long in) {
-  static char itoa_buffer[21];
-  itoa_r(in, itoa_buffer);
-  return itoa_buffer;
-}
-
-/* converts unsigned long integer <in> to a string using the static itoa_buffer
- * and returns the pointer to that string.
- */
-char* utoa(unsigned long in) {
-  static char itoa_buffer[21];
-  utoa_r(in, itoa_buffer);
-  return itoa_buffer;
-}
-
 /* Converts the unsigned 64-bit integer <in> to its hex representation into
  * buffer <buffer>, which must be long enough to store the number and the
  * trailing zero (17 bytes for "ffffffffffffffff"). The buffer is filled from
@@ -282,15 +246,6 @@ int u64toh_r(uint64_t in, char* buffer) {
 
   buffer[digits] = 0;
   return digits;
-}
-
-/* converts uint64_t <in> to an hex string using the static itoa_buffer and
- * returns the pointer to that string.
- */
-char* u64toh(uint64_t in) {
-  static char itoa_buffer[21];
-  u64toh_r(in, itoa_buffer);
-  return itoa_buffer;
 }
 
 /* Converts the unsigned 64-bit integer <in> to its string representation into
@@ -341,24 +296,6 @@ int i64toa_r(int64_t in, char* buffer) {
   }
   len += u64toa_r(in, ptr);
   return len;
-}
-
-/* converts int64_t <in> to a string using the static itoa_buffer and returns
- * the pointer to that string.
- */
-char* i64toa(int64_t in) {
-  static char itoa_buffer[21];
-  i64toa_r(in, itoa_buffer);
-  return itoa_buffer;
-}
-
-/* converts uint64_t <in> to a string using the static itoa_buffer and returns
- * the pointer to that string.
- */
-char* u64toa(uint64_t in) {
-   static char itoa_buffer[21];
-  u64toa_r(in, itoa_buffer);
-  return itoa_buffer;
 }
 }  // namespace vt
 

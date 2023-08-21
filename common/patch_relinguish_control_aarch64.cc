@@ -1,5 +1,6 @@
 #include "common/patch_pattern.hh"
 #include "common/patch_relinguish_control.hh"
+#include "nostdlib/stdio.hh"
 
 namespace vt::common {
 
@@ -42,10 +43,12 @@ bool patch_parasite_and_relinquish_control(
                           patch_offset_from_parasite_start);
 
   *inst = rel;
+
+    *inst &= 0b11111111111111111111111111;
   // fill in op-code
   constexpr auto op_code = 0b00010100000000000000000000000000;
 
-  *inst &= 0b11111111111111111111111111;
+
   *inst |= (op_code);
 
   return true;

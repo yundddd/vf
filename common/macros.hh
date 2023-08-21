@@ -1,5 +1,4 @@
 #pragma once
-#include "std/sys.hh"
 
 #define MAKE_NON_COPYABLE(class_name)     \
   class_name(const class_name&) = delete; \
@@ -24,33 +23,6 @@
 #define MAKE_COPYABLE_AND_MOVABLE(class_name) \
   MAKE_COPYABLE(class_name);                  \
   MAKE_MOVABLE(class_name);
-
-#define CHECK_TRUE(cond) \
-  if (!(cond)) {         \
-    CHECK_FAIL();        \
-  }
-
-#define CHECK_FALSE(cond) CHECK_TRUE(!!cond)
-
-#define CHECK_FAIL() exit(-1)
-#define CHECK_NE(a, b)         \
-  if (a == b) {                \
-    [[unlikely]] CHECK_FAIL(); \
-  }
-#define CHECK_EQ(a, b)         \
-  if (a != b) {                \
-    [[unlikely]] CHECK_FAIL(); \
-  }
-#define CHECK_LT(a, b)         \
-  if (a >= b) {                \
-    [[unlikely]] CHECK_FAIL(); \
-  }
-#define CHECK_LE(a, b)         \
-  if (a > b) {                 \
-    [[unlikely]] CHECK_FAIL(); \
-  }
-#define CHECK_GT(a, b) CHECK_LE(b, a)
-#define CHECK_GE(a, b) CHECK_LT(b, a)
 
 // Viruses can be inserted into different places and run, therefore they cannot
 // reference strings stored in .rodata. This can be worked around by injecting

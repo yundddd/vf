@@ -18,9 +18,9 @@ chmod 700 bazel-bin/infector/test_parasite \
 # copy victim to tmp to be infected
 cp $2 /tmp/victim \
       && chmod 700 /tmp/victim
-
+echo "infect111111"
 bazel-bin/infector/infector /tmp/victim /tmp/parasite_code $1
-
+echo "infected"
 # run the infected binary. Since most binaries terminate with --help, this is sufficient to
 # test that infection is working. In case any binaries is stuck, kill it after 1 sec.
 timeout -s KILL 1 /tmp/victim --help

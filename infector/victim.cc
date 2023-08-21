@@ -1,6 +1,6 @@
-#include "std/stdio.hh"
+#include <iostream>
 
 int main() {
-  printf("victim binary is running!\n");
+  std::cout << "victim binary is running!" << std::endl;
   return 0;
 }

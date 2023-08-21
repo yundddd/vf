@@ -1,5 +1,6 @@
 #pragma once
-#include "std/types.hh"
+#include <cstddef>
+#include <cstdint>
 
 namespace vt::common {
 

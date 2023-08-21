@@ -1,23 +1,21 @@
 #include "common/string.hh"
-#include "std/string.hh"
-#include "std/utility.hh"
-#include "testing/test.hh"
+#include <gtest/gtest.h>
 
 using namespace vt::common;
-class StringTest : public TestFixture {
+class StringTest : public testing::Test {
  protected:
   const char* small_literal = "abcdefg";
   const char* large_literal = "123456789abcdef123456789abcdef";
 };
 
-DEFINE_TEST_F(CanConstructEmptyString, StringTest) {
+TEST_F(StringTest, CanConstructEmptyString) {
   String uut;
   EXPECT_EQ(uut.length(), 0u);
   EXPECT_TRUE(uut.empty());
   EXPECT_EQ(uut.capacity(), String::ksmall_buffer_size);
 }
 
-DEFINE_TEST_F(CanCopyConstructStringFromLiteral, StringTest) {
+TEST_F(StringTest, CanCopyConstructStringFromLiteral) {
   String uut(small_literal);
   EXPECT_EQ(uut.capacity(), String::ksmall_buffer_size);
   EXPECT_EQ(uut.length(), strlen(small_literal));
@@ -25,7 +23,7 @@ DEFINE_TEST_F(CanCopyConstructStringFromLiteral, StringTest) {
   EXPECT_EQ(uut, small_literal);
 }
 
-DEFINE_TEST_F(CanCopyStringFromLiteral, StringTest) {
+TEST_F(StringTest, CanCopyStringFromLiteral) {
   String uut;
   uut = small_literal;
   EXPECT_EQ(uut.capacity(), String::ksmall_buffer_size);
@@ -34,7 +32,7 @@ DEFINE_TEST_F(CanCopyStringFromLiteral, StringTest) {
   EXPECT_EQ(uut, small_literal);
 }
 
-DEFINE_TEST_F(CanCopyStringFromString, StringTest) {
+TEST_F(StringTest, CanCopyStringFromString) {
   String uut(small_literal);
   uut = String(large_literal);
   EXPECT_NE(uut.capacity(), String::ksmall_buffer_size);
@@ -43,7 +41,7 @@ DEFINE_TEST_F(CanCopyStringFromString, StringTest) {
   EXPECT_EQ(uut, large_literal);
 }
 
-DEFINE_TEST_F(CanModifyStringOperatorBrakets, StringTest) {
+TEST_F(StringTest, CanModifyStringOperatorBrakets) {
   String uut(small_literal);
   uut[0] = 'd';
   uut[6] = 'd';
@@ -53,7 +51,7 @@ DEFINE_TEST_F(CanModifyStringOperatorBrakets, StringTest) {
   EXPECT_EQ(uut, "dbcdefd");
 }
 
-DEFINE_TEST_F(CanCopyConstructStringFromLiteralOnHeap, StringTest) {
+TEST_F(StringTest, CanCopyConstructStringFromLiteralOnHeap) {
   String uut(large_literal);
   EXPECT_NE(uut.capacity(), String::ksmall_buffer_size);
   EXPECT_EQ(uut.length(), strlen(large_literal));
@@ -61,7 +59,7 @@ DEFINE_TEST_F(CanCopyConstructStringFromLiteralOnHeap, StringTest) {
   EXPECT_EQ(uut, large_literal);
 }
 
-DEFINE_TEST_F(CanCopyStringFromLiteralOnHeap, StringTest) {
+TEST_F(StringTest, CanCopyStringFromLiteralOnHeap) {
   String uut;
   uut = large_literal;
   EXPECT_NE(uut.capacity(), String::ksmall_buffer_size);
@@ -70,7 +68,7 @@ DEFINE_TEST_F(CanCopyStringFromLiteralOnHeap, StringTest) {
   EXPECT_EQ(uut, large_literal);
 }
 
-DEFINE_TEST_F(CanModifyStringOperatorBraketsOnHeap, StringTest) {
+TEST_F(StringTest, CanModifyStringOperatorBraketsOnHeap) {
   String uut(large_literal);
   uut[0] = 'd';
   uut[6] = 'd';
@@ -80,7 +78,7 @@ DEFINE_TEST_F(CanModifyStringOperatorBraketsOnHeap, StringTest) {
   EXPECT_EQ(uut, "d23456d89abcdef123456789abcdef");
 }
 
-DEFINE_TEST_F(CanReserveSmallBufferSize, StringTest) {
+TEST_F(StringTest, CanReserveSmallBufferSize) {
   String uut;
   uut = small_literal;
   uut.reserve(3);
@@ -90,7 +88,7 @@ DEFINE_TEST_F(CanReserveSmallBufferSize, StringTest) {
   EXPECT_EQ(uut, small_literal);
 }
 
-DEFINE_TEST_F(CanReserveLargeBufferSize, StringTest) {
+TEST_F(StringTest, CanReserveLargeBufferSize) {
   String uut;
   uut = small_literal;
   uut.reserve(32);
@@ -100,7 +98,7 @@ DEFINE_TEST_F(CanReserveLargeBufferSize, StringTest) {
   EXPECT_EQ(uut, small_literal);
 }
 
-DEFINE_TEST_F(CanReserveDiscardSmallBuffer, StringTest) {
+TEST_F(StringTest, CanReserveDiscardSmallBuffer) {
   String uut;
   uut = small_literal;
   uut.reserve_discard(3);
@@ -109,7 +107,7 @@ DEFINE_TEST_F(CanReserveDiscardSmallBuffer, StringTest) {
   EXPECT_FALSE(uut.empty());
 }
 
-DEFINE_TEST_F(CanReserveDiscardSmallBufferLarger, StringTest) {
+TEST_F(StringTest, CanReserveDiscardSmallBufferLarger) {
   String uut;
   uut = small_literal;
   uut.reserve_discard(17);
@@ -118,7 +116,7 @@ DEFINE_TEST_F(CanReserveDiscardSmallBufferLarger, StringTest) {
   EXPECT_TRUE(uut.empty());
 }
 
-DEFINE_TEST_F(CanReserveDiscardOnHeap, StringTest) {
+TEST_F(StringTest, CanReserveDiscardOnHeap) {
   String uut(large_literal);
   uut.reserve_discard(17);
   EXPECT_NE(uut.capacity(), 17);
@@ -126,7 +124,7 @@ DEFINE_TEST_F(CanReserveDiscardOnHeap, StringTest) {
   EXPECT_FALSE(uut.empty());
 }
 
-DEFINE_TEST_F(CanReserveDiscardOnLarger, StringTest) {
+TEST_F(StringTest, CanReserveDiscardOnLarger) {
   String uut(large_literal);
   uut.reserve_discard(4096);
   EXPECT_EQ(uut.capacity(), 4096);
@@ -134,49 +132,49 @@ DEFINE_TEST_F(CanReserveDiscardOnLarger, StringTest) {
   EXPECT_TRUE(uut.empty());
 }
 
-DEFINE_TEST_F(CanMoveConstructFromSmallString, StringTest) {
+TEST_F(StringTest, CanMoveConstructFromSmallString) {
   String small(small_literal);
-  String uut(vt::move(small));
+  String uut(std::move(small));
   EXPECT_EQ(uut.capacity(), String::ksmall_buffer_size);
   EXPECT_EQ(uut.length(), strlen(small_literal));
   EXPECT_FALSE(uut.empty());
   EXPECT_EQ(uut, small_literal);
 }
 
-DEFINE_TEST_F(CanMoveConstructFromLargeString, StringTest) {
+TEST_F(StringTest, CanMoveConstructFromLargeString) {
   String large(large_literal);
-  String uut(vt::move(large));
+  String uut(std::move(large));
   EXPECT_NE(uut.capacity(), String::ksmall_buffer_size);
   EXPECT_EQ(uut.length(), strlen(large_literal));
   EXPECT_FALSE(uut.empty());
   EXPECT_EQ(uut, large_literal);
 }
 
-DEFINE_TEST_F(LargeStringCanMoveConstructFromLargeString, StringTest) {
+TEST_F(StringTest, LargeStringCanMoveConstructFromLargeString) {
   const char* kAnotherLiteral = "123123123123123123123123123123123123";
   String large(kAnotherLiteral);
-  String uut(vt::move(large));
+  String uut(std::move(large));
   EXPECT_NE(uut.capacity(), String::ksmall_buffer_size);
   EXPECT_EQ(uut.length(), strlen(kAnotherLiteral));
   EXPECT_FALSE(uut.empty());
   EXPECT_EQ(uut, kAnotherLiteral);
 }
 
-DEFINE_TEST_F(LargeStringCanMoveAssignFromSmallString, StringTest) {
+TEST_F(StringTest, LargeStringCanMoveAssignFromSmallString) {
   String uut(large_literal);
   String small(small_literal);
-  uut = vt::move(small);
+  uut = std::move(small);
   EXPECT_NE(uut.capacity(), String::ksmall_buffer_size);
   EXPECT_EQ(uut.length(), strlen(small_literal));
   EXPECT_FALSE(uut.empty());
   EXPECT_EQ(uut, small_literal);
 }
 
-DEFINE_TEST_F(SmallStringCanMoveAssignFromSmallString, StringTest) {
+TEST_F(StringTest, SmallStringCanMoveAssignFromSmallString) {
   const char* kAnotherLiteral = "123";
   String uut(kAnotherLiteral);
   String small(small_literal);
-  uut = vt::move(small);
+  uut = std::move(small);
   EXPECT_EQ(uut.capacity(), String::ksmall_buffer_size);
   EXPECT_EQ(uut.length(), strlen(small_literal));
   EXPECT_FALSE(uut.empty());

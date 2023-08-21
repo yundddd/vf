@@ -3,7 +3,7 @@
 #include "infector/padding_infect.hh"
 #include "infector/pt_note_infect.hh"
 #include "infector/reverse_text_infect.hh"
-#include "std/stdio.hh"
+#include "nostdlib/stdio.hh"
 
 const char* TEXT_PADDING = "text_padding";
 const char* REVERSE_TEXT = "reverse_text";

