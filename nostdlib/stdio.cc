@@ -2,10 +2,13 @@
 #include <asm/unistd.h>
 #include <fcntl.h>
 #include <cstdarg>
+#include <cstdint>
 #include "nostdlib/arch.hh"
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
 #include "nostdlib/unistd.hh"
+extern "C" void __stack_chk_fail(void) {}
+__attribute__((weak)) uintptr_t __stack_chk_guard = 1;
 
 namespace vt {
 namespace {
@@ -22,9 +25,9 @@ int sys_rename(const char* old, const char* cur) {
 /* We define the 3 common stdio files as constant invalid pointers that
  * are easily recognized.
  */
-FILE* stdin = reinterpret_cast<FILE*>(-3);
-FILE* stdout = reinterpret_cast<FILE*>(-2);
-FILE* stderr = reinterpret_cast<FILE*>(-1);
+FILE* stdin() { return reinterpret_cast<FILE*>(-3); }
+FILE* stdout() { return reinterpret_cast<FILE*>(-2); }
+FILE* stderr() { return reinterpret_cast<FILE*>(-1); }
 
 }  // namespace
 
@@ -34,7 +37,7 @@ int fgetc(FILE* stream) {
   unsigned char ch;
   int fd;
 
-  if (stream < stdin || stream > stderr) {
+  if (stream < stdin()|| stream > stderr()) {
     return EOF;
   }
 
@@ -46,7 +49,7 @@ int fgetc(FILE* stream) {
   return ch;
 }
 
-int getchar(void) { return vt::fgetc(stdin); }
+int getchar(void) { return vt::fgetc(stdin()); }
 
 int putc(int c, FILE* stream) { return vt::fputc(c, stream); }
 
@@ -54,7 +57,7 @@ int fputc(int c, FILE* stream) {
   unsigned char ch = c;
   int fd;
 
-  if (stream < stdin || stream > stderr) {
+  if (stream < stdin()|| stream > stderr()) {
     return EOF;
   }
 
@@ -66,7 +69,7 @@ int fputc(int c, FILE* stream) {
   return ch;
 }
 
-int putchar(int c) { return vt::fputc(c, stdout); }
+int putchar(int c) { return vt::fputc(c, stdout()); }
 
 /* fwrite(), puts(), fputs(). Note that puts() emits '\n' but not fputs(). */
 
@@ -77,7 +80,7 @@ int _fwrite(const void* buf, size_t size, FILE* stream) {
   ssize_t ret;
   int fd;
 
-  if (stream < stdin || stream > stderr) {
+  if (stream < stdin()|| stream > stderr()) {
     return EOF;
   }
 
@@ -111,7 +114,7 @@ int fputs(const char* s, FILE* stream) {
 }
 
 int puts(const char* s) {
-  if (vt::fputs(s, stdout) == EOF) {
+  if (vt::fputs(s, stdout()) == EOF) {
     return EOF;
   }
   return putchar('\n');
@@ -261,7 +264,7 @@ int printf(const char* fmt, ...) {
   int ret;
 
   va_start(args, fmt);
-  ret = vt::vfprintf(stdout, fmt, args);
+  ret = vt::vfprintf(stdout(), fmt, args);
   va_end(args);
   return ret;
 }

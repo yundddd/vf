@@ -23,7 +23,7 @@ struct nolibc_heap {
  * any of the related functions is implemented. The area is large enough to
  * store "18446744073709551615" or "-9223372036854775808" and the final zero.
  */
-char itoa_buffer[21];
+
 }  // namespace
 
 void abort(void) {
@@ -160,6 +160,7 @@ int utoh_r(unsigned long in, char* buffer) {
  * and returns the pointer to that string.
  */
 char* utoh(unsigned long in) {
+  static char itoa_buffer[21];
   utoh_r(in, itoa_buffer);
   return itoa_buffer;
 }
@@ -226,6 +227,7 @@ char* ltoa_r(long in, char* buffer) {
  * returns the pointer to that string.
  */
 char* itoa(long in) {
+  static char itoa_buffer[21];
   itoa_r(in, itoa_buffer);
   return itoa_buffer;
 }
@@ -234,6 +236,7 @@ char* itoa(long in) {
  * returns the pointer to that string. Same as above, for compatibility.
  */
 char* ltoa(long in) {
+  static char itoa_buffer[21];
   itoa_r(in, itoa_buffer);
   return itoa_buffer;
 }
@@ -242,6 +245,7 @@ char* ltoa(long in) {
  * and returns the pointer to that string.
  */
 char* utoa(unsigned long in) {
+  static char itoa_buffer[21];
   utoa_r(in, itoa_buffer);
   return itoa_buffer;
 }
@@ -284,6 +288,7 @@ int u64toh_r(uint64_t in, char* buffer) {
  * returns the pointer to that string.
  */
 char* u64toh(uint64_t in) {
+  static char itoa_buffer[21];
   u64toh_r(in, itoa_buffer);
   return itoa_buffer;
 }
@@ -342,6 +347,7 @@ int i64toa_r(int64_t in, char* buffer) {
  * the pointer to that string.
  */
 char* i64toa(int64_t in) {
+  static char itoa_buffer[21];
   i64toa_r(in, itoa_buffer);
   return itoa_buffer;
 }
@@ -350,17 +356,18 @@ char* i64toa(int64_t in) {
  * the pointer to that string.
  */
 char* u64toa(uint64_t in) {
+   static char itoa_buffer[21];
   u64toa_r(in, itoa_buffer);
   return itoa_buffer;
 }
 }  // namespace vt
 
-void* operator new(size_t n) { return malloc(n); }
-void* operator new[](size_t n) { return malloc(n); }
+void* operator new(size_t n) { return vt::malloc(n); }
+void* operator new[](size_t n) { return vt::malloc(n); }
 
-void operator delete(void* p) { free(p); }
-void operator delete(void* ptr, unsigned long) { free(ptr); }
-void operator delete[](void* m) { free(m); }
+void operator delete(void* p) { vt::free(p); }
+void operator delete(void* ptr, unsigned long) { vt::free(ptr); }
+void operator delete[](void* m) { vt::free(m); }
 
 extern "C" void __cxa_pure_virtual() {
   while (1)

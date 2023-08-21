@@ -76,7 +76,30 @@ cc_binary(
     deps = [
         "//nostdlib:stdio",
         "//nostdlib:unistd",
+        "//std:parasite_startup",
     ],
+    copts = [
+        "-Wunused",
+        "-Werror",
+        "-fno-use-cxa-atexit",
+        "-fno-rtti",
+        "-fno-exceptions",
+        "-fomit-frame-pointer",
+        "-ffunction-sections",
+        "-Os",
+        "-fno-stack-protector",
+        "-fno-unwind-tables",
+        "-fno-asynchronous-unwind-tables",
+        "-fno-builtin",
+    ],
+    linkopts = [
+        "-Wl,--gc-sections",
+        "-nostdlib",
+        "-nolibc",
+        "-nodefaultlibs",
+        "-fno-stack-protector",
+    ]
+
 )
 
 cc_parasite_binary(

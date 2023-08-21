@@ -18,23 +18,7 @@ int strcmp(const char* a, const char* b);
 
 char* strcpy(char* dst, const char* src);
 
-/* this function is only used with arguments that are not constants or when
- * it's not known because optimizations are disabled.
- */
-size_t nolibc_strlen(const char* str);
-
-/* do not trust __builtin_constant_p() at -O0, as clang will emit a test and
- * the two branches, then will rely on an external definition of strlen().
- */
-#if defined(__OPTIMIZE__)
-#define strlen(str)                                       \
-  ({                                                      \
-    __builtin_constant_p((str)) ? __builtin_strlen((str)) \
-                                : nolibc_strlen((str));   \
-  })
-#else
-#define strlen(str) nolibc_strlen((str))
-#endif
+size_t strlen(const char* str);
 
 size_t strnlen(const char* str, size_t maxlen);
 

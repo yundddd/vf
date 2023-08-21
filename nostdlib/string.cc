@@ -23,6 +23,17 @@ void* _nolibc_memcpy_down(void* dst, const void* src, size_t len) {
   }
   return dst;
 }
+
+/* this function is only used with arguments that are not constants or when
+ * it's not known because optimizations are disabled.
+ */
+size_t nolibc_strlen(const char* str) {
+  size_t len;
+
+  for (len = 0; str[len]; len++) {
+  }
+  return len;
+}
 }  // namespace
 
 int memcmp(const void* s1, const void* s2, size_t n) {
@@ -99,15 +110,16 @@ char* strcpy(char* dst, const char* src) {
   return ret;
 }
 
-/* this function is only used with arguments that are not constants or when
- * it's not known because optimizations are disabled.
+/* do not trust __builtin_constant_p() at -O0, as clang will emit a test and
+ * the two branches, then will rely on an external definition of strlen().
  */
-size_t nolibc_strlen(const char* str) {
-  size_t len;
-
-  for (len = 0; str[len]; len++) {
-  }
-  return len;
+size_t strlen(const char* str) {
+#if defined(__OPTIMIZE__)
+  return __builtin_constant_p((str)) ? __builtin_strlen((str))
+                                     : nolibc_strlen((str));
+#else
+  return nolibc_strlen((str));
+#endif
 }
 
 size_t strnlen(const char* str, size_t maxlen) {
@@ -123,7 +135,7 @@ char* strdup(const char* str) {
   char* ret;
 
   len = strlen(str);
-  ret = (char*)malloc(len + 1);
+  ret = (char*)vt::malloc(len + 1);
   if (__builtin_expect(ret != nullptr, 1)) {
     memcpy(ret, str, len + 1);
   }
@@ -136,7 +148,7 @@ char* strndup(const char* str, size_t maxlen) {
   char* ret;
 
   len = strnlen(str, maxlen);
-  ret = (char*)malloc(len + 1);
+  ret = (char*)vt::malloc(len + 1);
   if (__builtin_expect(ret != nullptr, 1)) {
     memcpy(ret, str, len);
     ret[len] = '\0';
