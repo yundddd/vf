@@ -23,13 +23,10 @@ jobs:
       - run: ./dev_setup.sh
       - run:
           name: "Build x86_64"
-          command: "bazel build //common/... --config=gcc_x86_64 && bazel build //std/... --config=gcc_x86_64"
-      - run:
-          name: "Build aarch64"
-          command: "bazel build //common/... --config=gcc_aarch64 && bazel build //std/... --config=gcc_aarch64"
+          command: "bazel build //..."
       - run:
           name: "Test"
-          command: "bazel test //common/... //infector/... --config=gcc_x86_64 --test_output=all"
+          command: "bazel test //... --test_output=all"
 
   build-and-test-aarch64:
     machine:
@@ -47,10 +44,10 @@ jobs:
      
       - run:
           name: "Build aarch64"
-          command: "bazel build //common/... --config=gcc_aarch64 && bazel build //std/... --config=gcc_aarch64"
+          command: "bazel build //..."
       - run:
           name: "Test"
-          command: "bazel test //common/... //infector/... --config=gcc_aarch64 --test_output=all"
+          command: "bazel test //... --test_output=all"
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

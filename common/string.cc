@@ -1,9 +1,9 @@
 #include "common/string.hh"
+#include <utility>
 #include "common/check.hh"
 #include "common/macros.hh"
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
-#include "std/utility.hh"
 
 namespace vt::common {
 
@@ -16,7 +16,7 @@ String::String(const String& rhs) : String() { set(rhs); }
 
 String::String(const char* rhs) : String() { set(rhs); }
 
-String::String(String&& rhs) : String() { *this = vt::move(rhs); }
+String::String(String&& rhs) : String() { *this = std::move(rhs); }
 
 String::~String() {
   if (!is_using_local_buf()) {
@@ -50,7 +50,7 @@ String& String::operator=(String&& rhs) {
     *this = rhs;
   } else {
     if (!is_using_local_buf()) {
-      vt::swap(Data, rhs.Data);
+      std::swap(Data, rhs.Data);
     } else {
       Data = rhs.Data;
       rhs.Data = rhs.small_buff;

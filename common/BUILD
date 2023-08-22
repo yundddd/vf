@@ -9,7 +9,6 @@ cc_nostdlib_library(
         ":check",
         ":macros",
         "//nostdlib/sys:mman",
-        "//std:utility",
     ],
 )
 
@@ -21,7 +20,6 @@ cc_nostdlib_library(
         ":macros",
         "//nostdlib:fcntl",
         "//nostdlib/sys:stat",
-        "//std:utility",
     ],
 )
 
@@ -46,7 +44,6 @@ cc_nostdlib_library(
         ":check",
         ":macros",
         "//nostdlib:stdlib",
-        "//std:utility",
     ],
 )
 
@@ -108,6 +105,6 @@ cc_nostdlib_library(
     deps = [
         ":mmap",
         ":patch_pattern",
-        "//nostdlib:stdio"
+        "//nostdlib:stdio",
     ],
 )

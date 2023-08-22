@@ -50,7 +50,7 @@ TEST_F(MmapTest, CanMapFileToWrite) {
 TEST_F(MmapTest, CanBeMoved) {
   vt::common::FileDescriptor fd(test_file_.c_str(), O_RDONLY);
   vt::common::Mmap<PROT_READ> uut(3, MAP_PRIVATE, fd.handle(), 0);
-  vt::common::Mmap<PROT_READ> uut2(vt::move(uut));
+  vt::common::Mmap<PROT_READ> uut2(std::move(uut));
   EXPECT_FALSE(uut.valid());
   EXPECT_TRUE(uut2.valid());
 }

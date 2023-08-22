@@ -8,7 +8,8 @@ cc_binary(
         ":padding_infect",
         ":pt_note_infect",
         ":reverse_text_infect",
-        "//common:string","//nostdlib:stdio"
+        "//common:string",
+        "//nostdlib:stdio",
     ],
 )
 
@@ -66,8 +67,17 @@ cc_nostdlib_library(
 )
 
 cc_binary(
-    name = "victim",
+    name = "victim_pie",
     srcs = ["victim.cc"],
+    copts = ["-fpie"],
+    linkopts = ["-pie"],
+)
+
+cc_binary(
+    name = "victim_no_pie",
+    srcs = ["victim.cc"],
+    copts = ["-fno-pie"],
+    linkopts = ["-no-pie"],
 )
 
 cc_nostdlib_binary(
@@ -80,12 +90,39 @@ cc_nostdlib_binary(
     ],
 )
 
+sh_library(
+    name = "infector_test_util",
+    srcs = ["infector_test_util.sh"],
+    data = [
+        ":infector",
+        ":test_parasite",
+    ],
+)
+
 sh_test(
     name = "padding_infector_test",
     srcs = ["padding_infector_test.sh"],
     data = [
-        ":infector",
-        ":test_parasite",
-        ":victim",
+        ":infector_test_util",
+        ":victim_no_pie",
+        ":victim_pie",
+    ],
+)
+
+sh_test(
+    name = "reverse_text_infector_test",
+    srcs = ["reverse_text_infector_test.sh"],
+    data = [
+        ":infector_test_util",
+        ":victim_no_pie",
+    ],
+)
+
+sh_test(
+    name = "pt_note_infector_test",
+    srcs = ["pt_note_infector_test.sh"],
+    data = [
+        ":infector_test_util",
+        ":victim_no_pie",
     ],
 )

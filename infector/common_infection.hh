@@ -49,7 +49,7 @@ bool infect(const char* host_path, const char* parasite_path) {
              host_mapping.size());
 
   Infect infector;
-  if (!infector(vt::move(output_host_mapping), vt::move(parasite_mapping))) {
+  if (!infector(std::move(output_host_mapping), std::move(parasite_mapping))) {
     return false;
   }
 

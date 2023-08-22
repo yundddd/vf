@@ -1,10 +1,10 @@
 #pragma once
 
+#include <utility>
 #include "common/check.hh"
 #include "common/macros.hh"
 #include "nostdlib/fcntl.hh"
 #include "nostdlib/sys/stat.hh"
-#include "std/utility.hh"
 
 namespace vt::common {
 class FileDescriptor {
@@ -33,11 +33,11 @@ class FileDescriptor {
     }
   }
 
-  FileDescriptor(FileDescriptor&& other) { *this = vt::move(other); }
+  FileDescriptor(FileDescriptor&& other) { *this = std::move(other); }
 
   FileDescriptor& operator=(FileDescriptor&& other) {
-    vt::swap(flags_, other.flags_);
-    vt::swap(fd_, other.fd_);
+    std::swap(flags_, other.flags_);
+    std::swap(fd_, other.fd_);
     return *this;
   }
 

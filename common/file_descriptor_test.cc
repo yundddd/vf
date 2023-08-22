@@ -37,7 +37,7 @@ TEST_F(FileDescriptorTest, CanBeMoved) {
                                 S_IRUSR | S_IWUSR);
   EXPECT_TRUE(fd.valid());
 
-  vt::common::FileDescriptor fd2(vt::move(fd));
+  vt::common::FileDescriptor fd2(std::move(fd));
   EXPECT_TRUE(fd2.valid());
   EXPECT_FALSE(fd.valid());
 }
