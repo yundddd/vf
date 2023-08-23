@@ -10,14 +10,15 @@ jobs:
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
       - image: ubuntu:focal-20201106
+        user: non-root
     environment:
       DEBIAN_FRONTEND: noninteractive
     steps:
       # setup bazel
       - run: apt-get update && apt-get install -y g++ unzip zip wget git
-      - run: wget https://github.com/bazelbuild/bazel/releases/download/5.2.0/bazel-5.2.0-linux-x86_64
-      - run: chmod +x bazel-5.2.0-linux-x86_64
-      - run: mv bazel-5.2.0-linux-x86_64 /usr/bin/bazel
+      - run: wget https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-x86_64
+      - run: chmod +x bazel-6.3.2-linux-x86_64
+      - run: mv bazel-6.3.2-linux-x86_64 /usr/bin/bazel
 
       - checkout
       - run: ./dev_setup.sh
@@ -35,9 +36,9 @@ jobs:
     steps:
       # setup bazel
       - run: sudo apt install -y g++ unzip zip
-      - run: wget https://github.com/bazelbuild/bazel/releases/download/5.2.0/bazel-5.2.0-linux-arm64
-      - run: chmod +x bazel-5.2.0-linux-arm64
-      - run: sudo mv bazel-5.2.0-linux-arm64 /usr/bin/bazel
+      - run: wget https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-arm64
+      - run: chmod +x bazel-6.3.2-linux-arm64
+      - run: sudo mv bazel-6.3.2-linux-arm64 /usr/bin/bazel
 
       - checkout
       - run: sudo ./dev_setup.sh
