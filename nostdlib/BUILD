@@ -2,15 +2,10 @@ load("//nostdlib:nostdlib.bzl", "cc_nostdlib_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = "startup",
-    srcs = select(
-        {
-            "@platforms//cpu:aarch64": ["startup_aarch64.s"],
-            "@platforms//cpu:x86_64": ["startup_x86_64.s"],
-        },
-    ),
-)
+exports_files([
+    "startup_aarch64.S",
+    "startup_x86_64.S",
+])
 
 filegroup(
     name = "linker_script",

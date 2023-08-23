@@ -1,4 +1,5 @@
 load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
+load("//tools/pytest:defs.bzl", "pytest_test")
 
 cc_binary(
     name = "infector",
@@ -86,43 +87,66 @@ cc_nostdlib_binary(
     deps = [
         "//common:macros",
         "//nostdlib:string",
-        "//nostdlib:unistd",
+        "//nostdlib:unistd","//nostdlib:stdlib"
     ],
 )
 
-sh_library(
-    name = "infector_test_util",
-    srcs = ["infector_test_util.sh"],
+pytest_test(
+    name = "test_parasite_bin_test",
+    size = "small",
+    srcs = ["test_parasite_bin_test.py"],
+    data = [":test_parasite"],
+    deps = [
+        "@pypi_lief//:pkg",
+    ],
+)
+
+py_library(
+    name = "infector_test_util_py",
+    srcs = ["infector_test_util.py"],
+    deps = [
+        "@pypi_lief//:pkg",
+    ],
+)
+
+pytest_test(
+    name = "padding_infector_test",
+    srcs = ["padding_infector_test.py"],
     data = [
         ":infector",
         ":test_parasite",
-    ],
-)
-
-sh_test(
-    name = "padding_infector_test",
-    srcs = ["padding_infector_test.sh"],
-    data = [
-        ":infector_test_util",
         ":victim_no_pie",
         ":victim_pie",
     ],
-)
-
-sh_test(
-    name = "reverse_text_infector_test",
-    srcs = ["reverse_text_infector_test.sh"],
-    data = [
-        ":infector_test_util",
-        ":victim_no_pie",
+    deps = [
+        ":infector_test_util_py",
     ],
 )
 
-sh_test(
-    name = "pt_note_infector_test",
-    srcs = ["pt_note_infector_test.sh"],
+pytest_test(
+    name = "reverse_text_infector_test",
+    srcs = ["reverse_text_infector_test.py"],
     data = [
-        ":infector_test_util",
+        ":infector",
+        ":test_parasite",
         ":victim_no_pie",
+        ":victim_pie",
+    ],
+    deps = [
+        ":infector_test_util_py",
+    ],
+)
+
+pytest_test(
+    name = "pt_note_infector_test",
+    srcs = ["pt_note_infector_test.py"],
+    data = [
+        ":infector",
+        ":test_parasite",
+        ":victim_no_pie",
+        ":victim_pie",
+    ],
+    deps = [
+        ":infector_test_util_py",
     ],
 )
