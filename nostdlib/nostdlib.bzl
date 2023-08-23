@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//tools/pytest:defs.bzl", "pytest_test")
 
 common_copts = [
     "-Wunused",
@@ -68,3 +69,35 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
         ),
         **kwargs
     )
+
+    gen_bin_test_file(name = name + "_bin_valid_test_gen", binary = native.package_relative_label(name), output = name + "_bin_test.py")
+
+    pytest_test(
+        name = name + "_bin_test",
+        srcs = [name + "_bin_test.py"],
+        data = [str(native.package_relative_label(name))],
+        deps = [
+            "@pypi_lief//:pkg",
+        ],
+    )
+
+def _gen_bin_test_fileimpl(ctx):
+    ctx.actions.expand_template(
+        template = ctx.file._template,
+        output = ctx.outputs.output,
+        substitutions = {
+            "{path_to_binary}": ctx.attr.binary.files.to_list()[0].short_path,
+        },
+    )
+
+gen_bin_test_file = rule(
+    implementation = _gen_bin_test_fileimpl,
+    attrs = {
+        "binary": attr.label(mandatory = True),
+        "_template": attr.label(
+            default = "//nostdlib:test_bin.tpl",
+            allow_single_file = True,
+        ),
+        "output": attr.output(mandatory = True),
+    },
+)

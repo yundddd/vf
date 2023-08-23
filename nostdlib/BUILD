@@ -5,6 +5,7 @@ package(default_visibility = ["//visibility:public"])
 exports_files([
     "startup_aarch64.S",
     "startup_x86_64.S",
+    "test_bin.tpl",
 ])
 
 filegroup(

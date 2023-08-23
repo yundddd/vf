@@ -1,6 +1,8 @@
 load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
 load("//tools/pytest:defs.bzl", "pytest_test")
 
+package(default_visibility = ["//visibility:public"])
+
 cc_binary(
     name = "infector",
     srcs = ["infector.cc"],
@@ -86,18 +88,9 @@ cc_nostdlib_binary(
     srcs = ["test_parasite.cc"],
     deps = [
         "//common:macros",
+        "//nostdlib:stdlib",
         "//nostdlib:string",
-        "//nostdlib:unistd","//nostdlib:stdlib"
-    ],
-)
-
-pytest_test(
-    name = "test_parasite_bin_test",
-    size = "small",
-    srcs = ["test_parasite_bin_test.py"],
-    data = [":test_parasite"],
-    deps = [
-        "@pypi_lief//:pkg",
+        "//nostdlib:unistd",
     ],
 )
 
