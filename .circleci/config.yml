@@ -10,7 +10,6 @@ jobs:
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
       - image: ubuntu:focal-20201106
-        user: non-root
     environment:
       DEBIAN_FRONTEND: noninteractive
     steps:
@@ -20,7 +19,7 @@ jobs:
       - run: mv bazel-6.3.2-linux-x86_64 /usr/bin/bazel
 
       - checkout
-      - run: ./dev_setup.sh
+
       - run:
           name: "Build x86_64"
           command: "bazel build //..."
@@ -39,7 +38,6 @@ jobs:
       - run: sudo mv bazel-6.3.2-linux-arm64 /usr/bin/bazel
 
       - checkout
-      - run: sudo ./dev_setup.sh
      
       - run:
           name: "Build aarch64"
