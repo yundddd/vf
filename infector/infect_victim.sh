@@ -5,7 +5,7 @@
 
 # please build the //infector package before running this script.
 # run with infector/infect_victim.sh [method] [victim]
-# for example: bazel build //infector/... && infector/infect_victim.sh text_padding bazel-bin/infector/victim
+# for example: bazel build //infector/... && infector/infect_victim.sh text_padding bazel-bin/infector/victim_pie
 
 set -e
 set -o pipefail

