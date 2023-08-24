@@ -48,12 +48,7 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
 
     cc_binary(
         name = name,
-        srcs = srcs + select(
-            {
-                "@platforms//cpu:aarch64": ["//nostdlib:startup_aarch64.S"],
-                "@platforms//cpu:x86_64": ["//nostdlib:startup_x86_64.S"],
-            },
-        ),
+        srcs = srcs,
         copts = common_copts,
         linkopts = common_linkopts + use_custom_linker_script + [
             "-nostdlib",
@@ -66,7 +61,7 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
                 "@platforms//cpu:aarch64": ["//nostdlib:aarch64.lds"],
                 "@platforms//cpu:x86_64": ["//nostdlib:x86_64.lds"],
             },
-        ),
+        ) + ["//nostdlib:startup"],
         **kwargs
     )
 

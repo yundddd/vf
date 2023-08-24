@@ -3,8 +3,6 @@ load("//nostdlib:nostdlib.bzl", "cc_nostdlib_library")
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
-    "startup_aarch64.S",
-    "startup_x86_64.S",
     "test_bin.tpl",
 ])
 
@@ -17,6 +15,16 @@ filegroup(
         },
     ),
     visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "startup",
+    srcs = select(
+        {
+            "@platforms//cpu:aarch64": ["startup_aarch64.S"],
+            "@platforms//cpu:x86_64": ["startup_x86_64.S"],
+        },
+    ),
 )
 
 cc_nostdlib_library(
