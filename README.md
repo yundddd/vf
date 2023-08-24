@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/yundddd/vt.svg?style=shield)](https://app.circleci.com/pipelines/github/yundddd/vt)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/yundddd/vt/tree/master.svg?style=svg&circle-token=e2d070ac00987abbcbd0410247d9dc9b4102775d)](https://dl.circleci.com/status-badge/redirect/gh/yundddd/vt/tree/master)
 ![](https://img.shields.io/badge/infects-x86_64-blue)
 ![](https://img.shields.io/badge/infects-aarch64-yellow)
 

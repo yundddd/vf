@@ -27,9 +27,10 @@ def infection_test_fixture():
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        infection_ret_code = infection_result.returncode
         assert (
             infection_result.returncode == 0
-        ), f"infection has failed with {infection_result.returncode}, and stdout: {infection_result.stdout}\nstderr{infection_result.stderr}"
+        ), f"infection has failed with {get_signal_name(-infection_ret_code) if infection_ret_code < 0 else infection_ret_code}, and stdout: {infection_result.stdout}\nstderr{infection_result.stderr}"
 
         run_victim_result = subprocess.run(
             tmp_victim, stdout=subprocess.PIPE, stderr=subprocess.PIPE
