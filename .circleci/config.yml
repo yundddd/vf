@@ -9,7 +9,7 @@ jobs:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
-      - image: ubuntu:focal-20201106
+      - image: ubuntu-2204:current
     environment:
       DEBIAN_FRONTEND: noninteractive
     steps:
@@ -30,7 +30,7 @@ jobs:
 
   build-and-test-aarch64:
     machine:
-      image: ubuntu-2004:202101-01
+      image: ubuntu-2204:current
     resource_class: arm.medium
     steps:
       # setup bazel
