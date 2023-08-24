@@ -17,7 +17,7 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y wget git
       - run: wget https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-x86_64
       - run: chmod +x bazel-6.3.2-linux-x86_64
-      - run: mv bazel-6.3.2-linux-x86_64 /usr/bin/bazel
+      - run: sudo mv bazel-6.3.2-linux-x86_64 /usr/bin/bazel
 
       - checkout
 
