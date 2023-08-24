@@ -22,10 +22,6 @@ jobs:
 
       - checkout
       - run: ./dev_setup.sh
-      - run: groupadd --gid 1000 vscode \
-              && useradd -s /bin/bash --uid 1000 --gid 1000 -m vscode \
-              && echo vscode ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/vscode \
-              && chmod 0440 /etc/sudoers.d/vscode && su -l vscode -s /bin/bash
       - run:
           name: "Build x86_64"
           command: "bazel build //..."
