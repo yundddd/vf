@@ -299,14 +299,13 @@ int i64toa_r(int64_t in, char* buffer) {
 }
 }  // namespace vt
 
-void* operator new(size_t n) { return vt::malloc(n); }
-void* operator new[](size_t n) { return vt::malloc(n); }
+extern "C" [[noreturn]] void __cxa_pure_virtual() {
+  while (1)
+    ;
+}
 
-void operator delete(void* p) { vt::free(p); }
-void operator delete(void* ptr, unsigned long) { vt::free(ptr); }
-void operator delete[](void* m) { vt::free(m); }
-
-extern "C" void __cxa_pure_virtual() {
+extern "C" [[noreturn]] void abort(void) {
+  vt::abort();
   while (1)
     ;
 }

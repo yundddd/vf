@@ -5,8 +5,13 @@
 
 # please build the //infector package before running this script.
 # run with infector/infect_victims.sh [method] [dir]
-# for example: bazel build //infector/... --config=gcc_x86_64 && infector/infect_victims.sh text_padding /usr/bin
+# for example: bazel build //infector/... && infector/infect_victims.sh text_padding /usr/bin
 IFS=""
+
+if [[ -z $1 || -z $2 ]]; then
+        echo "Usage infector/infect_victims.sh [method] [victim_dir]"
+        exit 0
+fi
 
 rm_trailing_slash() {
     echo "$1" | sed 's/\/*$//g'
