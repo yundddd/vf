@@ -21,7 +21,6 @@ py_repositories()
 python_register_toolchains(
     name = "python39",
     python_version = "3.9",
-    ignore_root_user_error = True,
 )
 
 load("@python39//:defs.bzl", "interpreter")
