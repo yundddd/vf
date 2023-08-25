@@ -21,7 +21,6 @@ cc_nostdlib_library(
     srcs = ["padding_infect.cc"],
     hdrs = ["padding_infect.hh"],
     deps = [
-        "//common:file_descriptor",
         "//common:mmap",
         "//common:patch_pattern",
         "//common:patch_relinguish_control",

