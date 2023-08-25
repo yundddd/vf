@@ -74,6 +74,8 @@ export LC_ALL=C.UTF-8
 plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
+alias bb="bazel build"
+alias btest="bazel test"
 
 # User configuration
 

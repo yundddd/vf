@@ -1,1 +1,1 @@
-build --cxxopt='-std=c++2a' --copt='-fconcepts'
+build --copt='-fconcepts'

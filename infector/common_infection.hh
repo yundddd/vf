@@ -54,7 +54,7 @@ bool infect(const char* host_path, const char* parasite_path) {
   vt::memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
              host_mapping.size());
 
-  if (!infector.infect(std::move(output_host_mapping),
+  if (!infector.inject(std::move(output_host_mapping),
                        std::move(parasite_mapping))) {
     return false;
   }
