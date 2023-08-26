@@ -80,14 +80,13 @@ int u64toa_r(uint64_t in, char* buffer);
 int i64toa_r(int64_t in, char* buffer);
 }  // namespace vt
 
-inline void* operator new(size_t n) { return vt::malloc(n); }
-inline void* operator new[](size_t n) { return vt::malloc(n); }
-
-inline void operator delete(void* p) { vt::free(p); }
-inline void operator delete(void* ptr, unsigned long) { vt::free(ptr); }
-inline void operator delete[](void* m) { vt::free(m); }
+void* operator new(size_t n);
+void* operator new[](size_t n);
+void operator delete(void* p);
+void operator delete(void* ptr, unsigned long);
+void operator delete[](void* m);
 
 // Definition of the error function to call if the constructor goes bonkers
-extern "C" [[noreturn]] void __cxa_pure_virtual();
+extern "C" void __cxa_pure_virtual();
 
-extern "C" [[noreturn]] void abort(void);
+extern "C" void abort(void) noexcept;

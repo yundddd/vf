@@ -4,10 +4,6 @@
 
 namespace vt {
 
-// signal.h
-
-// sys/mount.h
-
 // poll.h
 int poll(struct pollfd* fds, int nfds, int timeout);
 
