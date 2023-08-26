@@ -96,15 +96,23 @@ cc_nostdlib_library(
 )
 
 cc_nostdlib_library(
-    name = "patch_relinguish_control",
+    name = "redirect_elf_entry_point",
     srcs = select({
-        "@platforms//cpu:aarch64": ["patch_relinguish_control_aarch64.cc"],
-        "@platforms//cpu:x86_64": ["patch_relinguish_control_x86_64.cc"],
+        "@platforms//cpu:aarch64": ["redirect_elf_entry_point_aarch64.cc"],
+        "@platforms//cpu:x86_64": ["redirect_elf_entry_point_x86_64.cc"],
     }),
-    hdrs = ["patch_relinguish_control.hh"],
+    hdrs = ["redirect_elf_entry_point.hh"],
     deps = [
         ":mmap",
         ":patch_pattern",
         "//nostdlib:stdio",
+    ],
+)
+
+cc_nostdlib_library(
+    name = "expected",
+    hdrs = ["expected.hh"],
+    deps = [
+        "@expected_lite//:expected",
     ],
 )

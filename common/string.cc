@@ -25,11 +25,11 @@ String::~String() {
 }
 
 bool String::operator==(const char* rhs) const {
-  return strcmp(c_str(), rhs) == 0;
+  return vt::strcmp(c_str(), rhs) == 0;
 }
 
 bool String::operator==(const String& rhs) const {
-  return strcmp(c_str(), rhs.c_str()) == 0;
+  return vt::strcmp(c_str(), rhs.c_str()) == 0;
 }
 
 String& String::operator=(const char* rhs) {
@@ -99,14 +99,14 @@ void String::set(const char* src) {
   if (Capacity <= src_len) {
     reserve_discard(src_len + 1);  // reserve for null terminator.
   }
-  memcpy(Data, src, src_len + 1);  // copy the null terminator.
+  vt::memcpy(Data, src, src_len + 1);  // copy the null terminator.
 }
 
 void String::set(const char* src, const char* src_end) {
   CHECK_TRUE(src != nullptr && src_end >= src);
   int buf_len = (int)(src_end - src) + 1;
   if ((int)Capacity < buf_len) reserve_discard(buf_len);
-  memcpy(Data, src, (size_t)(buf_len - 1));
+  vt::memcpy(Data, src, (size_t)(buf_len - 1));
   Data[buf_len - 1] = 0;
 }
 
@@ -119,14 +119,14 @@ void String::reserve(size_t new_capacity) {
   if (new_capacity <= Capacity) return;
 
   char* new_data;
-  new_data = (char*)malloc((size_t)new_capacity * sizeof(char));
+  new_data = (char*)vt::malloc((size_t)new_capacity * sizeof(char));
 
   auto cur_len = length();
-  strncpy(new_data, Data, cur_len);
+  vt::strncpy(new_data, Data, cur_len);
 
   new_data[cur_len] = 0;
 
-  free(Data);
+  vt::free(Data);
 
   Data = new_data;
   Capacity = new_capacity;
@@ -137,9 +137,9 @@ void String::reserve(size_t new_capacity) {
 void String::reserve_discard(size_t new_capacity) {
   if (new_capacity <= Capacity) return;
 
-  free(Data);
+  vt::free(Data);
 
-  Data = (char*)malloc((size_t)new_capacity * sizeof(char));
+  Data = (char*)vt::malloc((size_t)new_capacity * sizeof(char));
   Capacity = new_capacity;
   Data[0] = 0;
 }
@@ -150,8 +150,8 @@ void String::shrink_to_fit() {
   if (Capacity <= new_capacity) return;
 
   char* new_data = (char*)malloc((size_t)new_capacity * sizeof(char));
-  memcpy(new_data, Data, (size_t)new_capacity);
-  free(Data);
+  vt::memcpy(new_data, Data, (size_t)new_capacity);
+  vt::free(Data);
   Data = new_data;
   Capacity = new_capacity;
 }

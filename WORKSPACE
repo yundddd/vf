@@ -51,3 +51,12 @@ load("@pypi//:requirements.bzl", "install_deps")
 
 # Initialize repositories for all packages in requirements_lock.txt.
 install_deps()
+
+http_archive(
+    name = "expected_lite",
+    build_file = "//third_party/expected_lite:BUILD",
+    sha256 = "b2f90d5f03f6423ec67cc3c06fd0c4e813ec10c4313062b875b37d17593b57b4",
+    urls =
+        ["https://github.com/martinmoene/expected-lite/archive/refs/tags/v0.6.3.tar.gz"],
+    strip_prefix = "expected-lite-0.6.3/include/nonstd/"
+)
