@@ -1,1 +1,3 @@
 build --cxxopt='-std=c++2a' --copt='-fconcepts'
+
+build --incompatible_enable_cc_toolchain_resolution
