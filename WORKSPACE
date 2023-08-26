@@ -1,6 +1,17 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+http_archive(
+    name = "bazel_bootlin",
+    sha256 = "3f199458adef05bad1834bb2dfc20845965c47e4c763e5819a2421e87471191c",
+    strip_prefix = "bazel_bootlin-0.2.0",
+    url = "https://github.com/agoessling/bazel_bootlin/archive/refs/tags/v0.2.0.zip",
+)
+
+load("@bazel_bootlin//toolchains:toolchains.bzl", "bootlin_all_toolchain_deps")
+
+bootlin_all_toolchain_deps()
+
 git_repository(
     name = "gtest",
     remote = "https://github.com/google/googletest",
@@ -56,7 +67,7 @@ http_archive(
     name = "expected_lite",
     build_file = "//third_party/expected_lite:BUILD",
     sha256 = "b2f90d5f03f6423ec67cc3c06fd0c4e813ec10c4313062b875b37d17593b57b4",
+    strip_prefix = "expected-lite-0.6.3/include/nonstd/",
     urls =
         ["https://github.com/martinmoene/expected-lite/archive/refs/tags/v0.6.3.tar.gz"],
-    strip_prefix = "expected-lite-0.6.3/include/nonstd/"
 )
