@@ -23,7 +23,7 @@ jobs:
 
       - run:
           name: "Build x86_64"
-          command: "bazel build //..."
+          command: "bazel build -s //..."
       - run:
           name: "Test"
           command: "bazel test //... --test_output=all"
@@ -45,7 +45,7 @@ jobs:
      
       - run:
           name: "Build aarch64"
-          command: "bazel build //..."
+          command: "bazel build -s //..."
       - run:
           name: "Test"
           command: "bazel test //... --test_output=all"
