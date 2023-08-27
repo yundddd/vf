@@ -8,9 +8,28 @@ http_archive(
     url = "https://github.com/agoessling/bazel_bootlin/archive/refs/tags/v0.2.0.zip",
 )
 
-load("@bazel_bootlin//toolchains:toolchains.bzl", "bootlin_all_toolchain_deps")
+HERMETIC_CC_TOOLCHAIN_VERSION = "v2.0.0"
 
-bootlin_all_toolchain_deps()
+http_archive(
+    name = "hermetic_cc_toolchain",
+    sha256 = "57f03a6c29793e8add7bd64186fc8066d23b5ffd06fe9cc6b0b8c499914d3a65",
+    urls = [
+        "https://mirror.bazel.build/github.com/uber/hermetic_cc_toolchain/releases/download/{0}/hermetic_cc_toolchain-{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
+        "https://github.com/uber/hermetic_cc_toolchain/releases/download/{0}/hermetic_cc_toolchain-{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
+    ],
+)
+
+load("@hermetic_cc_toolchain//toolchain:defs.bzl", zig_toolchains = "toolchains")
+
+# Plain zig_toolchains() will pick reasonable defaults. See
+# toolchain/defs.bzl:toolchains on how to change the Zig SDK version and
+# download URL.
+zig_toolchains()
+
+register_toolchains(
+    "@zig_sdk//toolchain:linux_amd64_gnu.2.28",
+    "@zig_sdk//toolchain:linux_arm64_gnu.2.28",
+)
 
 git_repository(
     name = "gtest",

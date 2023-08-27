@@ -50,6 +50,7 @@ cc_nostdlib_library(
 cc_test(
     name = "string_test",
     srcs = ["string_test.cc"],
+    linkstatic = True,  # clang would crap out with undefined symbol
     deps = [
         ":string",
         "@gtest",
@@ -60,6 +61,7 @@ cc_test(
 cc_test(
     name = "file_descriptor_test",
     srcs = ["file_descriptor_test.cc"],
+    linkstatic = True,  # clang would crap out with undefined symbol
     deps = [
         ":file_descriptor",
         "//testing:test_support",
@@ -71,6 +73,7 @@ cc_test(
 cc_test(
     name = "mmap_test",
     srcs = ["mmap_test.cc"],
+    linkstatic = True,  # clang would crap out with undefined symbol
     deps = [
         ":file_descriptor",
         ":mmap",

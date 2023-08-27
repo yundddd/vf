@@ -31,7 +31,6 @@ def cc_nostdlib_library(linkopts = None, copts = None, **kwargs):
     cc_library(
         copts = copts + common_copts,
         linkopts = linkopts + common_linkopts,
-        linkstatic = 1,
         **kwargs
     )
 
@@ -50,6 +49,7 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
     cc_binary(
         name = name,
         srcs = srcs,
+        linkstatic = True,
         copts = common_copts + ["-fpie"],
         linkopts = common_linkopts + use_custom_linker_script + [
             "-nostdlib",
