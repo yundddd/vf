@@ -11,12 +11,14 @@ def infection_test_fixture():
         return signal.Signals(signum).name
 
     def test_infection(victim_path: str, parasite_path: str, method: str):
+        assert lief.parse(victim_path) is not None
         tmp_victim = victim_path + ".tmp"
         shutil.copy2(victim_path, tmp_victim)
 
         parasite_binary = lief.parse(parasite_path)
-        parasite_text = parasite_binary.get_section(".text")
+        assert parasite_binary is not None
 
+        parasite_text = parasite_binary.get_section(".text")
         extracted_text = parasite_path + ".text"
 
         with open(extracted_text, "wb") as f:
@@ -33,18 +35,17 @@ def infection_test_fixture():
         ), f"infection has failed with {get_signal_name(-infection_ret_code) if infection_ret_code < 0 else infection_ret_code}, and stdout: {infection_result.stdout}\nstderr{infection_result.stderr}"
 
         run_victim_result = subprocess.run(
-            tmp_victim, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            [tmp_victim, "--help"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
-        victim_stdout = str(run_victim_result.stdout)
+        victim_out = str(run_victim_result.stdout) + str(run_victim_result.stderr)
         victim_ret_code = run_victim_result.returncode
         assert (
-            run_victim_result.returncode == 0
+            run_victim_result.returncode >= 0
         ), f"infection has failed with {get_signal_name(-victim_ret_code) if victim_ret_code < 0 else victim_ret_code}, and stdout: {run_victim_result.stdout}\nstderr{run_victim_result.stderr}"
 
         assert (
-            "victim binary is running!" in victim_stdout
-            and "*** Running virus code." in victim_stdout
+            len(victim_out) != 0 and "*** Running virus code." in victim_out
         ), f"failed to detect required output from victim, stdout: {run_victim_result.stdout}\nstderr{run_victim_result.stderr}"
 
     return test_infection

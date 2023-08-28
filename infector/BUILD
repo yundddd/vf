@@ -97,6 +97,12 @@ cc_nostdlib_binary(
 py_library(
     name = "infector_test_util_py",
     srcs = ["infector_test_util.py"],
+    data = select(
+        {
+            "@platforms//cpu:aarch64": ["//victims:aarch64"],
+            "@platforms//cpu:x86_64": ["//victims:x86_64"],
+        },
+    ),
     deps = [
         "@pypi_lief//:pkg",
     ],

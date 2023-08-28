@@ -37,9 +37,9 @@ USER $USERNAME
 # setup, containers don't have permission to push.
 RUN git config --global --add safe.directory "*" \
     # makes pagination better in container
-    && git config --global core.pager 'less -+F -+X'
-    && git config --global core.ignorecase false
-    && git config --global alias.st status
+    && git config --global core.pager 'less -+F -+X' \
+    && git config --global core.ignorecase false \
+    && git config --global alias.st status \
     && git config --global alias.co checkout
 
 RUN cd ~ && sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
