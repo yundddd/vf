@@ -1,13 +1,17 @@
-from pathlib import Path
 from infector.infector_test_util import infection_test_fixture
-import lief
 
 
-def test_infecting(infection_test_fixture):
-    for victim in Path("victims/").rglob("*"):
-        if not victim.is_dir():
-            infection_test_fixture(
-                victim_path=str(victim),
-                parasite_path="infector/test_parasite",
-                method="text_padding",
-            )
+def test_infecting_pie(infection_test_fixture):
+    infection_test_fixture(
+        victim_path="infector/victim_pie",
+        parasite_path="infector/test_parasite",
+        method="text_padding",
+    )
+
+
+def test_infecting_no_pie(infection_test_fixture):
+    infection_test_fixture(
+        victim_path="infector/victim_no_pie",
+        parasite_path="infector/test_parasite",
+        method="text_padding",
+    )
