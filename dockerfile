@@ -3,7 +3,7 @@ FROM ubuntu:latest
 # install all dependencies
 RUN apt-get update \
     && apt-get install -y language-pack-en zsh sudo git wget curl binutils \
-    npm nasm build-essential file vim gdb
+    nasm build-essential file vim gdb
 
 # switch default shell
 RUN chsh -s $(which zsh)
