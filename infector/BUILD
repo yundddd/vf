@@ -1,7 +1,68 @@
 load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
-load("//tools/pytest:defs.bzl", "pytest_test")
+load("//infector:infector.bzl", "infector_docker_image")
 
 package(default_visibility = ["//visibility:public"])
+
+infector_docker_image(
+    name = "infect_ubuntu_jammy",
+    arch = select({
+        "@platforms//cpu:aarch64": "aarch64",
+        "@platforms//cpu:x86_64": "x86_64",
+    }),
+    base = select({
+        "@platforms//cpu:aarch64": "@ubuntu_jammy_aarch64//image",
+        "@platforms//cpu:x86_64": "@ubuntu_jammy_x86_64//image",
+    }),
+    infection_methods = [
+        "text_padding",
+        "pt_note",
+        "reverse_text",
+    ],
+    parasite = ":test_parasite",
+)
+
+infector_docker_image(
+    name = "infect_ubuntu_focal",
+    arch = select({
+        "@platforms//cpu:aarch64": "aarch64",
+        "@platforms//cpu:x86_64": "x86_64",
+    }),
+    base = select({
+        "@platforms//cpu:aarch64": "@ubuntu_focal_aarch64//image",
+        "@platforms//cpu:x86_64": "@ubuntu_focal_x86_64//image",
+    }),
+    infection_methods = [
+        "text_padding",
+        "pt_note",
+        "reverse_text",
+    ],
+    parasite = ":test_parasite",
+)
+
+infector_docker_image(
+    name = "infect_ubuntu_bionic",
+    arch = select({
+        "@platforms//cpu:aarch64": "aarch64",
+        "@platforms//cpu:x86_64": "x86_64",
+    }),
+    base = select({
+        "@platforms//cpu:aarch64": "@ubuntu_bionic_aarch64//image",
+        "@platforms//cpu:x86_64": "@ubuntu_bionic_x86_64//image",
+    }),
+    infection_methods = [
+        "text_padding",
+        "pt_note",
+        "reverse_text",
+    ],
+    parasite = ":test_parasite",
+)
+
+filegroup(
+    name = "infect_scripts",
+    srcs = [
+        "infect_victims.sh",
+    ],
+)
 
 cc_binary(
     name = "infector",
@@ -91,55 +152,5 @@ cc_nostdlib_binary(
         "//nostdlib:stdlib",
         "//nostdlib:string",
         "//nostdlib:unistd",
-    ],
-)
-
-py_library(
-    name = "infector_test_util_py",
-    srcs = ["infector_test_util.py"],
-    deps = [
-        "@pypi_lief//:pkg",
-    ],
-)
-
-pytest_test(
-    name = "padding_infector_test",
-    srcs = ["padding_infector_test.py"],
-    data = [
-        ":infector",
-        ":test_parasite",
-        ":victim_no_pie",
-        ":victim_pie",
-    ],
-    deps = [
-        ":infector_test_util_py",
-    ],
-)
-
-pytest_test(
-    name = "reverse_text_infector_test",
-    srcs = ["reverse_text_infector_test.py"],
-    data = [
-        ":infector",
-        ":test_parasite",
-        ":victim_no_pie",
-        ":victim_pie",
-    ],
-    deps = [
-        ":infector_test_util_py",
-    ],
-)
-
-pytest_test(
-    name = "pt_note_infector_test",
-    srcs = ["pt_note_infector_test.py"],
-    data = [
-        ":infector",
-        ":test_parasite",
-        ":victim_no_pie",
-        ":victim_pie",
-    ],
-    deps = [
-        ":infector_test_util_py",
     ],
 )

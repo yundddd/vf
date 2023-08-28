@@ -83,6 +83,92 @@ load("@pypi//:requirements.bzl", "install_deps")
 install_deps()
 
 http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
+    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
+)
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+
+container_repositories()
+
+load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
+
+container_deps()
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
+)
+
+# 22.04
+container_pull(
+    name = "ubuntu_jammy_aarch64",
+    architecture = "arm64v8",
+    digest = "sha256:cf3cc0848a5d6241b6218bdb51d42be7a9f9bd8c505f3abe1222b9c2ce2451ac",
+    registry = "index.docker.io",
+    repository = "arm64v8/ubuntu",
+    tag = "jammy",
+)
+
+container_pull(
+    name = "ubuntu_jammy_x86_64",
+    architecture = "amd64",
+    digest = "sha256:56887c5194fddd8db7e36ced1c16b3569d89f74c801dc8a5adbf48236fb34564",
+    registry = "index.docker.io",
+    repository = "amd64/ubuntu",
+    tag = "jammy",
+)
+
+# 20.04
+container_pull(
+    name = "ubuntu_focal_aarch64",
+    architecture = "arm64v8",
+    digest = "sha256:af43d52ea8f98c8ab92858a37b87be1805ce16f5300cb38b9958e63ac6b25902",
+    registry = "index.docker.io",
+    repository = "arm64v8/ubuntu",
+    tag = "focal",
+)
+
+container_pull(
+    name = "ubuntu_focal_x86_64",
+    architecture = "amd64",
+    digest = "sha256:3246518d9735254519e1b2ff35f95686e4a5011c90c85344c1f38df7bae9dd37",
+    registry = "index.docker.io",
+    repository = "amd64/ubuntu",
+    tag = "focal",
+)
+
+# 18.04
+container_pull(
+    name = "ubuntu_bionic_aarch64",
+    architecture = "arm64v8",
+    digest = "sha256:f97a5103cca28097326814718e711c9c41b54853c26959d73495e40b1dd608f2",
+    registry = "index.docker.io",
+    repository = "arm64v8/ubuntu",
+    tag = "bionic",
+)
+
+container_pull(
+    name = "ubuntu_bionic_x86_64",
+    architecture = "amd64",
+    digest = "sha256:dca176c9663a7ba4c1f0e710986f5a25e672842963d95b960191e2d9f7185ebe",
+    registry = "index.docker.io",
+    repository = "amd64/ubuntu",
+    tag = "bionic",
+)
+
+# other third-party libs
+git_repository(
+    name = "gtest",
+    remote = "https://github.com/google/googletest",
+    tag = "release-1.11.0",
+)
+
+http_archive(
     name = "expected_lite",
     build_file = "//third_party/expected_lite:BUILD",
     sha256 = "b2f90d5f03f6423ec67cc3c06fd0c4e813ec10c4313062b875b37d17593b57b4",

@@ -8,8 +8,9 @@ jobs:
   build-and-test-x86:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
+    machine:
       - image: cimg/base:2023.08
+    docker_layer_caching: true
     environment:
       DEBIAN_FRONTEND: noninteractive
     steps:
@@ -29,8 +30,9 @@ jobs:
           command: "bazel test //... --test_output=all"
 
   build-and-test-aarch64:
-    docker:
+    machine:
       - image: cimg/base:2023.08
+    docker_layer_caching: true
     environment:
       DEBIAN_FRONTEND: noninteractive
     resource_class: arm.medium
