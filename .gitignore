@@ -25,4 +25,3 @@
 user.bazelrc
 .gdb_history
 .bazelignore
-**/.DS_Store
