@@ -38,14 +38,14 @@ def infection_test_fixture():
             [tmp_victim, "--help"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
-        victim_out = str(run_victim_result.stdout) + str(run_victim_result.stderr)
+        victim_stdout = str(run_victim_result.stdout)
         victim_ret_code = run_victim_result.returncode
         assert (
             run_victim_result.returncode >= 0
         ), f"infection has failed with {get_signal_name(-victim_ret_code) if victim_ret_code < 0 else victim_ret_code}, and stdout: {run_victim_result.stdout}\nstderr{run_victim_result.stderr}"
 
         assert (
-            len(victim_out) != 0 and "*** Running virus code." in victim_out
+            len(victim_stdout) != 0 and "*** Running virus code." in victim_stdout
         ), f"failed to detect required output from victim, stdout: {run_victim_result.stdout}\nstderr{run_victim_result.stderr}"
 
     return test_infection

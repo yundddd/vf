@@ -14,7 +14,6 @@ def test_infecting(infection_test_fixture):
             )
             infected_victims.append(str(victim))
     # known non pie in victim dir
-    print(infected_victims)
-    assert any("-g++-" in v for v in infected_victims)
-    assert any("-ar-" in v for v in infected_victims)
-    assert any("-ranlib-" in v for v in infected_victims)
+    assert any("linux-gnu-g++" in v for v in infected_victims)
+    assert any("linux-gnu-ar" in v for v in infected_victims)
+    assert any("linux-gnu-ranlib" in v for v in infected_victims)
