@@ -9,8 +9,8 @@ jobs:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     machine:
-      - image: cimg/base:2023.08
-    docker_layer_caching: true
+      image: ubuntu-2204:current
+      docker_layer_caching: true
     environment:
       DEBIAN_FRONTEND: noninteractive
     steps:
@@ -31,8 +31,8 @@ jobs:
 
   build-and-test-aarch64:
     machine:
-      - image: cimg/base:2023.08
-    docker_layer_caching: true
+      image: ubuntu-2204:current
+      docker_layer_caching: true
     environment:
       DEBIAN_FRONTEND: noninteractive
     resource_class: arm.medium
