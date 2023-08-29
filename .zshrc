@@ -77,6 +77,9 @@ source $ZSH/oh-my-zsh.sh
 alias bb="bazel build"
 alias btest="bazel test"
 
+# make sure docker sock can be accessed to support docker
+# outside of docker tests.
+sudo chmod 666 /var/run/docker.sock
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"

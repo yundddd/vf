@@ -1,5 +1,6 @@
 #/bin/bash
 
-REPO=/home/vscode/vt
+USERNAME=$(whoami)
+REPO=/home/$USERNAME/vt
 
-docker exec -it -u vscode -w $REPO ubuntu_x86 zsh
+docker exec -it -u $USERNAME -w $REPO ubuntu_x86 zsh
