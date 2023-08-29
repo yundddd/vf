@@ -5,6 +5,18 @@ RUN apt-get update \
     && apt-get install -y language-pack-en zsh sudo git wget curl binutils \
     nasm build-essential file vim gdb
 
+RUN install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && chmod a+r /etc/apt/keyrings/docker.gpg
+
+RUN echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+RUN apt-get update \
+    && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
 # switch default shell
 RUN chsh -s $(which zsh)
 
@@ -40,7 +52,8 @@ RUN git config --global --add safe.directory "*" \
     && git config --global core.pager 'less -+F -+X' \
     && git config --global core.ignorecase false \
     && git config --global alias.st status \
-    && git config --global alias.co checkout
+    && git config --global alias.co checkout \
+    && git config --global alias.br branch
 
 RUN cd ~ && sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 COPY --chown=$USERNAME:$USERNAME .zshrc /home/$USERNAME/
