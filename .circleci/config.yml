@@ -15,7 +15,6 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       # setup bazel
-      - run: sudo apt-get update && sudo apt-get install -y wget git xorg
       - run: wget https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-x86_64
       - run: chmod +x bazel-6.3.2-linux-x86_64
       - run: sudo mv bazel-6.3.2-linux-x86_64 /usr/bin/bazel
@@ -29,6 +28,9 @@ jobs:
           name: "Test"
           command: "bazel test //... --test_output=all"
 
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_focal_pt_note/infection_result.txt
+
   build-and-test-aarch64:
     machine:
       image: ubuntu-2204:current
@@ -38,7 +40,6 @@ jobs:
     resource_class: arm.medium
     steps:
       # setup bazel
-      - run: sudo apt-get update && sudo apt-get install -y wget git xorg
       - run: wget https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-arm64
       - run: chmod +x bazel-6.3.2-linux-arm64
       - run: sudo mv bazel-6.3.2-linux-arm64 /usr/bin/bazel
