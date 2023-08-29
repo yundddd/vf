@@ -29,7 +29,25 @@ jobs:
           command: "bazel test //... --test_output=all"
 
       - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_jammy_text_padding/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_jammy_reverse_text/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_jammy_pt_note/infection_result.txt
+
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_focal_text_padding/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_focal_reverse_text/infection_result.txt
+      - store_artifacts:
           path: bazel-bin/infector/infect_ubuntu_focal_pt_note/infection_result.txt
+
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_bionic_text_padding/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_bionic_reverse_text/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_bionic_pt_note/infection_result.txt
 
   build-and-test-aarch64:
     machine:
@@ -52,6 +70,27 @@ jobs:
       - run:
           name: "Test"
           command: "bazel test //... --test_output=all"
+
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_jammy_text_padding/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_jammy_reverse_text/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_jammy_pt_note/infection_result.txt
+
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_focal_text_padding/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_focal_reverse_text/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_focal_pt_note/infection_result.txt
+
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_bionic_text_padding/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_bionic_reverse_text/infection_result.txt
+      - store_artifacts:
+          path: bazel-bin/infector/infect_ubuntu_bionic_pt_note/infection_result.txt
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
