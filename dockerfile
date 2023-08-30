@@ -1,5 +1,6 @@
-FROM ubuntu:latest
+FROM ubuntu:focal
 
+ARG DEBIAN_FRONTEND=noninteractive
 # install all dependencies
 RUN apt-get update \
     && apt-get install -y language-pack-en zsh sudo git wget curl binutils \

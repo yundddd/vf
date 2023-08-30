@@ -38,12 +38,12 @@ class ReverseTextInfect {
               common::Mmap<PROT_READ> parasite_mapping);
 
  private:
-  size_t host_size_;
-  size_t parasite_size_;
-  Elf64_Addr original_e_entry_;
-  Elf64_Addr original_code_segment_p_vaddr_;
-  Elf64_Off original_code_segment_file_offset_;
-  size_t code_segment_idx_;
+  size_t host_size_{};
+  size_t parasite_size_{};
+  Elf64_Addr original_e_entry_{};
+  Elf64_Addr original_code_segment_p_vaddr_{};
+  Elf64_Off original_code_segment_file_offset_{};
+  size_t code_segment_idx_{};
 };
 
 }  // namespace vt::infector

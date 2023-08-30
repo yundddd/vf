@@ -15,13 +15,13 @@ class PtNoteInfect {
               common::Mmap<PROT_READ> parasite_mapping);
 
  private:
-  size_t host_size_;
-  size_t parasite_size_;
-  Elf64_Addr original_e_entry_;
-  Elf64_Off original_pt_note_file_offset_;
-  Elf64_Addr parasite_load_address_;
-  Elf64_Xword pt_load_alignment_;
-  size_t pt_note_to_be_infected_idx_ = 0;
+  size_t host_size_{};
+  size_t parasite_size_{};
+  Elf64_Addr original_e_entry_{};
+  Elf64_Off original_pt_note_file_offset_{};
+  Elf64_Addr parasite_load_address_{};
+  Elf64_Xword pt_load_alignment_{};
+  size_t pt_note_to_be_infected_idx_{};
 };
 
 }  // namespace vt::infector

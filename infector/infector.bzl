@@ -49,10 +49,14 @@ def infector_docker_image(name, arch, base, infection_methods, parasite):
 
     for method in infection_methods:
         result_file = "/infection_result.txt"
+        parasite = relative_parasite_label.name
+
+        os_release_command = "uname -a > {} && cat /etc/os-release | grep VERSION >> {}".format(result_file, result_file)
+        infect = "./infect_victims.sh {} {} {} {} >> {}"
         container_run_and_extract(
             name = name + "_" + method,
             commands = [
-                "uname -a > " + result_file + " && cat /etc/os-release | grep VERSION >> " + result_file + " && ./infect_victims.sh " + relative_parasite_label.name + " infector " + method + " /bin >> " + result_file,
+                os_release_command + " && " + infect.format(parasite, "infector", method, "/bin", result_file) + " && " + infect.format(parasite, "infector", method, "/sbin", result_file),
             ],
             extract_file = result_file,
             image = native.package_relative_label(name + "_bin_pkgs_image.tar"),

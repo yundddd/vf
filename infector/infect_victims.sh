@@ -23,8 +23,8 @@ function infect_one_victim() {
     # copy victim to tmp to be infected
     cp $victim /tmp/victim &&
         chmod 700 /tmp/victim
-    ./$infector /tmp/victim /tmp/parasite_code $method
 
+    $infector /tmp/victim /tmp/parasite_code $method
     if [ $? -eq 0 ]; then
         # run the infected binary. Since most binaries terminate with --help, this is sufficient to
         # test that infection is working.

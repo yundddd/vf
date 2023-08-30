@@ -43,27 +43,27 @@ class PaddingInfect {
               common::Mmap<PROT_READ> parasite_mapping);
 
  private:
-  size_t host_size_ = 0;
+  size_t host_size_{};
 
   // the code cave size that is available for insertion.
-  size_t padding_size_;
+  size_t padding_size_{};
 
   // the last byte offset of code setment in file.
-  Elf64_Off code_segment_last_byte_offset_;
+  Elf64_Off code_segment_last_byte_offset_{};
 
   // the offset in file that the first byte of parasite code starts.
-  Elf64_Off parasite_file_offset_;
+  Elf64_Off parasite_file_offset_{};
 
   // the fixed virtual memory address the parasite code is loaded to. Only
   // valid for EXEC elfs.
-  Elf64_Addr parasite_load_address_;
+  Elf64_Addr parasite_load_address_{};
 
   // the program header entry corresponding to the code segment that will be
   // patched.
-  size_t patch_phdr_entry_idx_;
+  size_t patch_phdr_entry_idx_{};
 
   // the parasite size with extra alignment padding accounted for.
-  size_t parasite_size_and_padding_;
+  size_t parasite_size_and_padding_{};
 };
 
 }  // namespace vt::infector

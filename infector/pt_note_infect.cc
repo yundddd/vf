@@ -106,7 +106,27 @@ bool PtNoteInfect::analyze(const common::Mmap<PROT_READ>& host_mapping,
   // binary distributed by bazel does this https://github.com/bazelbuild/bazel
   if (parasite_load_address_ <=
       host_mapping.size() - ehdr.e_shnum * ehdr.e_shentsize) {
+    printf("gave up because there are bytes appended\n");
     return false;
+  }
+
+  auto sht_entry_count = ehdr.e_shnum;
+  auto shdr =
+      reinterpret_cast<const Elf64_Shdr*>(host_mapping.base() + ehdr.e_shoff);
+  auto shstrtab_idx = ehdr.e_shstrndx;
+  auto shstrtab = static_cast<const char*>(host_mapping.base() +
+                                           (shdr + shstrtab_idx)->sh_offset);
+  for (size_t i = 0; i < sht_entry_count; ++i) {
+    auto cur_entry = shdr + i;
+    if (cur_entry->sh_type == SHT_NOTE) {
+      const char* name = shstrtab + cur_entry->sh_name;
+      if (name[6] == 'g' && name[7] == 'o') {
+        // This is a go elf, which relies on the note section to work. We cannot
+        // mutate it.
+        printf("cannot infect elf compiled from golang");
+        return false;
+      }
+    }
   }
 
   return true;
