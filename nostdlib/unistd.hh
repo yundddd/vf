@@ -47,5 +47,17 @@ int symlink(const char* old, const char* cur);
 ssize_t read(int fd, void* buf, size_t count);
 int unlink(const char* path);
 
+/*
+glibc does not provide a wrapper for getdents(); call getdents()
+using syscall(2).  In that case you will need to define the
+linux_dirent or linux_dirent64 structure yourself.
+*/
+struct linux_dirent64 {
+  unsigned long d_ino;
+  long d_off;
+  unsigned short d_reclen;
+  unsigned char d_type;
+  char d_name[];
+};
 int getdents64(int fd, struct linux_dirent64* dirp, int count);
 }  // namespace vt

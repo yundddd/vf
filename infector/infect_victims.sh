@@ -6,7 +6,7 @@
 # please build the //infector package before running this script.
 # run with infector/infect_victims.sh [method] [dir] [parasite] [infector]
 # for example: bazel build //infector/... && \
-# infector/infect_victims.sh bazel-bin/infector/test_parasite bazel-bin/infector/infector text_padding /usr/bin
+# infector/infect_victims.sh bazel-bin/infector/test_parasite.text bazel-bin/infector/infector text_padding /usr/bin
 
 IFS=""
 
@@ -16,15 +16,12 @@ function infect_one_victim() {
     infector=$2
     method=$3
     victim=$4
-    # extract virus's text segment
-    chmod 700 $virus &&
-        objcopy --dump-section .text=/tmp/parasite_code $virus
 
     # copy victim to tmp to be infected
     cp $victim /tmp/victim &&
         chmod 700 /tmp/victim
 
-    $infector /tmp/victim /tmp/parasite_code $method
+    $infector /tmp/victim $virus $method
     if [ $? -eq 0 ]; then
         # run the infected binary. Since most binaries terminate with --help, this is sufficient to
         # test that infection is working.

@@ -31,12 +31,6 @@ register_toolchains(
     "@zig_sdk//toolchain:linux_arm64_gnu.2.28",
 )
 
-git_repository(
-    name = "gtest",
-    remote = "https://github.com/google/googletest",
-    tag = "release-1.11.0",
-)
-
 http_archive(
     name = "rules_python",
     sha256 = "8c8fe44ef0a9afc256d1e75ad5f448bb59b81aba149b8958f02f7b3a98f5d9b4",

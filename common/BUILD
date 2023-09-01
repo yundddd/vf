@@ -24,6 +24,28 @@ cc_nostdlib_library(
 )
 
 cc_nostdlib_library(
+    name = "directory_iterator",
+    hdrs = ["directory_iterator.hh"],
+    srcs = ["directory_iterator.cc"],
+    deps = [
+        ":check",
+        ":macros",
+        ":file_descriptor",
+    ],
+)
+
+cc_test(
+    name = "directory_iterator_test",
+    srcs = ["directory_iterator_test.cc"],
+    deps = [
+        ":directory_iterator",
+        "//testing:test_support",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_nostdlib_library(
     name = "check",
     hdrs = ["check.hh"],
     deps = [
@@ -50,7 +72,6 @@ cc_nostdlib_library(
 cc_test(
     name = "string_test",
     srcs = ["string_test.cc"],
-    linkstatic = True,  # clang would crap out with undefined symbol
     deps = [
         ":string",
         "@gtest",
@@ -61,7 +82,6 @@ cc_test(
 cc_test(
     name = "file_descriptor_test",
     srcs = ["file_descriptor_test.cc"],
-    linkstatic = True,  # clang would crap out with undefined symbol
     deps = [
         ":file_descriptor",
         "//testing:test_support",
@@ -73,7 +93,6 @@ cc_test(
 cc_test(
     name = "mmap_test",
     srcs = ["mmap_test.cc"],
-    linkstatic = True,  # clang would crap out with undefined symbol
     deps = [
         ":file_descriptor",
         ":mmap",
@@ -118,4 +137,10 @@ cc_nostdlib_library(
     deps = [
         "@expected_lite//:expected",
     ],
+)
+
+py_binary(
+    name = "extract_text_section",
+    srcs = ["extract_text_section.py"],
+    deps = ["@pypi_lief//:pkg"],
 )

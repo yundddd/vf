@@ -31,6 +31,7 @@ def cc_nostdlib_library(linkopts = None, copts = None, **kwargs):
     cc_library(
         copts = copts + common_copts,
         linkopts = linkopts + common_linkopts,
+        linkstatic = 1,  # always static.
         **kwargs
     )
 
@@ -45,6 +46,8 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
         linkopts = []
     if copts == None:
         copts = []
+
+    relative_label = str(native.package_relative_label(name))
 
     cc_binary(
         name = name,
@@ -69,13 +72,23 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
 
     gen_bin_test_file(name = name + "_bin_valid_test_gen", binary = native.package_relative_label(name), output = name + "_bin_test.py")
 
+    # generate a test to ensure this binary satisfies all properties for a parasite so it can be injected.
     pytest_test(
         name = name + "_bin_test",
         srcs = [name + "_bin_test.py"],
-        data = [str(native.package_relative_label(name))],
+        data = [relative_label],
         deps = [
             "@pypi_lief//:pkg",
         ],
+    )
+
+    # genrate the text section only parasite that is ready to be injected.
+    native.genrule(
+        name = name + "_text_only",
+        outs = [name + ".text"],
+        srcs = [relative_label],
+        tools = ["//common:extract_text_section"],
+        cmd = "$(location //common:extract_text_section) --input $(location {}) --output $(OUTS)".format(relative_label),
     )
 
 def _gen_bin_test_fileimpl(ctx):

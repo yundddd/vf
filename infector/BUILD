@@ -152,5 +152,6 @@ cc_nostdlib_binary(
         "//nostdlib:stdlib",
         "//nostdlib:string",
         "//nostdlib:unistd",
+        "//common:directory_iterator",
     ],
 )

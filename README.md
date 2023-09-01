@@ -98,3 +98,5 @@ The scripts will make a copy of the victim binary and infect it with a sample vi
 
 The Text Padding infection was devised by Silvio Cesare in 1998. It takes advantage of the fact that ELF binaries are mapped into memory by pages, as we can only set access/execution control on page boundary. The TEXT segment has the execution bit set, while the next segment does not. This means, if the TEXT segment doesn't use up all the space in a page, there will be holes in our ELF file. This algorithm injects a virus into this space (provided there is enough space) and takes over the entry point to execute it first, before handing control back to the original entry point.
 
+# Using C++
+enum class has to specify the underlying type to be uint8_t. Anythin larger or by default the compiler might put enums in to .rodata section. Luckily, all nostdlib_cc_binary has an auto-genrated test to ensure that it has no .rodata.
