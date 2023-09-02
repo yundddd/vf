@@ -35,7 +35,21 @@ def cc_nostdlib_library(linkopts = None, copts = None, **kwargs):
         **kwargs
     )
 
-def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = None, copts = None, **kwargs):
+# Define a cc_binary target but with extra properties that make it suitable for injection.
+# This generates the following targets:
+#    //package:{name}            The binary itself.
+#    //package:{name}_bin_test   A unittest that ensures the parasite is valid.
+#    //package:{name}_text_only  Run a rule to extract the .text section
+#    //package:{name}.text       The text only binary output artifact
+def cc_nostdlib_binary(
+        name,
+        srcs = None,
+        deps = None,
+        data = None,
+        linkopts = None,
+        copts = None,
+        allow_rodata_merging = False,
+        **kwargs):
     if srcs == None:
         srcs = []
     if deps == None:
@@ -70,7 +84,12 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
         **kwargs
     )
 
-    gen_bin_test_file(name = name + "_bin_valid_test_gen", binary = native.package_relative_label(name), output = name + "_bin_test.py")
+    gen_bin_test_file(
+        name = name + "_bin_valid_test_gen",
+        binary = native.package_relative_label(name),
+        output = name + "_bin_test.py",
+        allow_rodata_merging = allow_rodata_merging,
+    )
 
     # generate a test to ensure this binary satisfies all properties for a parasite so it can be injected.
     pytest_test(
@@ -92,12 +111,13 @@ def cc_nostdlib_binary(name, srcs = None, deps = None, data = None, linkopts = N
     )
 
 def _gen_bin_test_fileimpl(ctx):
+    ignore_check_rodata = {".rodata": ".data"} if ctx.attr.allow_rodata_merging else {}
     ctx.actions.expand_template(
         template = ctx.file._template,
         output = ctx.outputs.output,
         substitutions = {
             "{path_to_binary}": ctx.attr.binary.files.to_list()[0].short_path,
-        },
+        } | ignore_check_rodata,
     )
 
 gen_bin_test_file = rule(
@@ -109,5 +129,6 @@ gen_bin_test_file = rule(
             allow_single_file = True,
         ),
         "output": attr.output(mandatory = True),
+        "allow_rodata_merging": attr.bool(mandatory = True),
     },
 )

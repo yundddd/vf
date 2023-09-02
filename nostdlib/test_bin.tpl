@@ -7,7 +7,7 @@ def test_parasite_binary():
     return lief.parse("{path_to_binary}")
 
 def test_binary_does_not_exist(test_parasite_binary):
-    for s in [".data", ".rodata", ".plt", ".got"]:
+    for s in [".data", ".rodata", ".plt", ".got", "bss", "tdata", "tbss", "eh_frame", "except", "fini", "init", "ctors", "dtors", ".interp"]:
         for section in test_parasite_binary.sections:
             assert s not in str(section)
 

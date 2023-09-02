@@ -146,12 +146,14 @@ cc_binary(
 cc_nostdlib_binary(
     name = "test_parasite",
     srcs = ["test_parasite.cc"],
+    allow_rodata_merging = True,
     deps = [
+        "//common:directory_iterator",
         "//common:expected",
         "//common:macros",
+        "//nostdlib:stdio",
         "//nostdlib:stdlib",
         "//nostdlib:string",
         "//nostdlib:unistd",
-        "//common:directory_iterator",
     ],
 )
