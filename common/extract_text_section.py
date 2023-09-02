@@ -23,9 +23,23 @@ def main():
 
     start = parasite_text.offset
     num = parasite_text.size
+
+    """
+    .text is always aligned. however rodata might not be.
+        .text          padding .rodata
+        ==============|=======|============
+        0  1  2  3  4 5 6    7 8  9  10  11
+    total num = 12 bytes
+              = 8 - 0 + len(rodata)
+    """
     if parasite_rodata:
-        num = num + parasite_rodata.offset - parasite_text.offset
-    # TO-DO: add validation so that text and rodata are next to each other.
+        num = parasite_rodata.size + parasite_rodata.offset - parasite_text.offset
+        # if there is padding, it can at most be 3 bytes. This also implies these two
+        # sections must be contigous.
+        assert (
+            num >= parasite_text.size + parasite_rodata.size
+            and num < parasite_text.size + parasite_rodata.size + 4
+        )
     with open(args.output, "wb") as f:
         with open(args.input, "rb") as input:
             input.seek(start, 0)

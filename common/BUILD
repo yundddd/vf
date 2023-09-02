@@ -25,12 +25,11 @@ cc_nostdlib_library(
 
 cc_nostdlib_library(
     name = "directory_iterator",
-    hdrs = ["directory_iterator.hh"],
     srcs = ["directory_iterator.cc"],
+    hdrs = ["directory_iterator.hh"],
     deps = [
-        ":check",
-        ":macros",
         ":file_descriptor",
+        "//nostdlib:fcntl",
     ],
 )
 
