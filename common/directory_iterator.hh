@@ -37,6 +37,9 @@ class DirectoryIterator {
    private:
     bool fill();
     void consume();
+    // skip the "." and ".." dir, conforming to
+    // https://en.cppreference.com/w/cpp/filesystem/directory_iterator
+    Iterator& skip_dots();
 
     int directory_fd_ = -1;
     int total_filled_ = 0;

@@ -24,6 +24,7 @@ DirectoryIterator::Iterator::Iterator(int directory_fd)
     : directory_fd_(directory_fd) {
   if (fill()) {
     consume();
+    skip_dots();
   }
 }
 
@@ -39,12 +40,13 @@ DirectoryIterator::Iterator& DirectoryIterator::Iterator::operator++() {
     consume();
   }
 
-  // skip the "." and ".." dir, conforming to
-  // https://en.cppreference.com/w/cpp/filesystem/directory_iterator
+  return skip_dots();
+}
+
+DirectoryIterator::Iterator& DirectoryIterator::Iterator::skip_dots() {
   if (cur_.name[0] == '.') {
     return ++(*this);
   }
-
   return *this;
 }
 
