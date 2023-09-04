@@ -14,6 +14,7 @@ common_copts = [
     "-fno-unwind-tables",
     "-fno-asynchronous-unwind-tables",
     "-fno-builtin",
+    "-fpic",
 ]
 
 common_linkopts = [
@@ -36,7 +37,7 @@ def cc_nostdlib_library(linkopts = None, copts = None, **kwargs):
     )
 
 # Define a cc_binary target but with extra properties that make it suitable for injection.
-# This generates the following targets:
+# This generates the following targets:12
 #    //package:{name}            The binary itself.
 #    //package:{name}_bin_test   A unittest that ensures the parasite is valid.
 #    //package:{name}_text_only  Run a rule to extract the .text section
@@ -75,12 +76,7 @@ def cc_nostdlib_binary(
             "-pie",
         ],
         data = data + ["//nostdlib:linker_script"],
-        deps = deps + select(
-            {
-                "@platforms//cpu:aarch64": ["//nostdlib:aarch64.lds"],
-                "@platforms//cpu:x86_64": ["//nostdlib:x86_64.lds"],
-            },
-        ) + ["//nostdlib:startup"],
+        deps = deps + ["//nostdlib:parasite.lds"] + ["//nostdlib:startup"],
         **kwargs
     )
 

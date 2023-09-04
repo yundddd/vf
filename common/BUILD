@@ -143,3 +143,8 @@ py_binary(
     srcs = ["extract_text_section.py"],
     deps = ["@pypi_lief//:pkg"],
 )
+
+cc_library(
+    name = "get_symbol_addr",
+    hdrs = ["get_symbol_addr.hh"],
+)

@@ -20,6 +20,7 @@ def main():
 
     parasite_rodata = parasite_binary.get_section(".rodata")
     parasite_text = parasite_binary.get_section(".text")
+    parasite_got = parasite_binary.get_section(".got")
 
     start = parasite_text.offset
     num = parasite_text.size
@@ -34,12 +35,18 @@ def main():
     """
     if parasite_rodata:
         num = parasite_rodata.size + parasite_rodata.offset - parasite_text.offset
-        # if there is padding, it can at most be 3 bytes. This also implies these two
+        # if there is padding, it can at most be 15 bytes. This also implies these two
         # sections must be contigous.
         assert (
             num >= parasite_text.size + parasite_rodata.size
-            and num < parasite_text.size + parasite_rodata.size + 4
-        )
+            and num < parasite_text.size + parasite_rodata.size + 15
+        ), "There are other sections between rodata and text"
+
+    # for some reason clang 16 puts all symbol addresses in got even they are known at compile time.
+    # copy over the got section as well.
+    if parasite_got:
+        num = parasite_got.size + parasite_got.offset - parasite_text.offset
+
     with open(args.output, "wb") as f:
         with open(args.input, "rb") as input:
             input.seek(start, 0)

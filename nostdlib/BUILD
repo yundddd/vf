@@ -8,12 +8,7 @@ exports_files([
 
 filegroup(
     name = "linker_script",
-    srcs = select(
-        {
-            "@platforms//cpu:aarch64": ["aarch64.lds"],
-            "@platforms//cpu:x86_64": ["x86_64.lds"],
-        },
-    ),
+    srcs = ["parasite.lds"],
     visibility = ["//visibility:public"],
 )
 

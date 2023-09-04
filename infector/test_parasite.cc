@@ -1,16 +1,17 @@
 #include "common/directory_iterator.hh"
-#include "common/expected.hh"
-#include "common/macros.hh"
+#include "common/get_symbol_addr.hh"
+#include "common/hex_dump.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
 #include "nostdlib/unistd.hh"
 
 int main(int argc, char* argv[], char* env[]) {
-  for (auto dir_entry : vt::common::DirectoryIterator(".")) {
-    vt::write(1, dir_entry.name, vt::strlen(dir_entry.name));
-  }
-  vt::write(1, "123456\n", 7);
+  vt::printf("start vm addr 0x%lx end 0x%lx\n",
+             (long)vt::common::get_parasite_start_address(),
+             (long)vt::common::get_parasite_end_address());
 
+  vt::common::hex_dump(vt::common::get_parasite_start_address(),
+                       vt::common::get_parasite_len());
   return 0;
 }

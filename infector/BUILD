@@ -149,8 +149,8 @@ cc_nostdlib_binary(
     allow_rodata_merging = True,
     deps = [
         "//common:directory_iterator",
-        "//common:expected",
-        "//common:macros",
+        "//common:hex_dump",
+        "//common:get_symbol_addr",
         "//nostdlib:stdio",
         "//nostdlib:stdlib",
         "//nostdlib:string",

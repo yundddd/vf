@@ -1,6 +1,6 @@
 #include "common/hex_dump.hh"
+#include "nostdlib/ctype.hh"
 #include "nostdlib/stdio.hh"
- #include "nostdlib/ctype.hh"
 
 namespace vt::common {
 
