@@ -34,9 +34,9 @@ bool redirect_elf_entry_point(
   }
 
   constexpr uint64_t branch_op_code = 0xe9;
-  void* patch_addr = mapping.mutable_base() + parasite_offset +
+  auto* patch_addr = mapping.mutable_base() + parasite_offset +
                      patch_offset_from_parasite_start;
-  *static_cast<uint64_t*>(patch_addr) = branch_op_code;
+  *reinterpret_cast<uint64_t*>(patch_addr) = branch_op_code;
   *(int32_t*)(mapping.mutable_base() + parasite_offset +
               patch_offset_from_parasite_start + 1) = rel;
 

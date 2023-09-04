@@ -114,12 +114,12 @@ bool PtNoteInfect::analyze(const common::Mmap<PROT_READ>& host_mapping,
   auto shdr =
       reinterpret_cast<const Elf64_Shdr*>(host_mapping.base() + ehdr.e_shoff);
   auto shstrtab_idx = ehdr.e_shstrndx;
-  auto shstrtab = static_cast<const char*>(host_mapping.base() +
-                                           (shdr + shstrtab_idx)->sh_offset);
+  auto shstrtab = host_mapping.base() + (shdr + shstrtab_idx)->sh_offset;
   for (size_t i = 0; i < sht_entry_count; ++i) {
     auto cur_entry = shdr + i;
     if (cur_entry->sh_type == SHT_NOTE) {
-      const char* name = shstrtab + cur_entry->sh_name;
+      const auto* name =
+          reinterpret_cast<const char*>(shstrtab + cur_entry->sh_name);
       if (name[6] == 'g' && name[7] == 'o') {
         // This is a go elf, which relies on the note section to work. We cannot
         // mutate it.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <utility>
 #include "common/check.hh"
 #include "common/macros.hh"
@@ -20,7 +21,7 @@ class Mmap {
     if (ret == MAP_FAILED) {
       CHECK_FAIL();
     } else {
-      base_ = static_cast<char*>(ret);
+      base_ = static_cast<std::byte*>(ret);
     }
   }
 
@@ -40,9 +41,9 @@ class Mmap {
     return *this;
   }
 
-  const char* base() const { return base_; }
+  const std::byte* base() const { return base_; }
 
-  char* mutable_base()
+  std::byte* mutable_base()
     requires WRITABLE<PROT>
   {
     return base_;
@@ -56,7 +57,7 @@ class Mmap {
   size_t size_ = 0;
   int flags_ = 0;
   size_t offset_ = 0;
-  char* base_ = nullptr;
+  std::byte* base_ = nullptr;
 };
 
 }  // namespace vt::common

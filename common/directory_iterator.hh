@@ -43,7 +43,7 @@ class DirectoryIterator {
 
     int directory_fd_ = -1;
     int total_filled_ = 0;
-    char buf_[4096];
+    std::byte buf_[4096];
     size_t buf_pos_ = 0;
     Entry cur_{};
   };

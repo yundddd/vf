@@ -24,9 +24,9 @@ TEST_F(MmapTest, CanMapFileToRead) {
   {
     vt::common::Mmap<PROT_READ> uut(3, MAP_PRIVATE, fd.handle(), 0);
     EXPECT_TRUE(uut.valid());
-    EXPECT_EQ(uut.base()[0], 'a');
-    EXPECT_EQ(uut.base()[1], 'b');
-    EXPECT_EQ(uut.base()[2], 'c');
+    EXPECT_EQ(uut.base()[0], std::byte{'a'});
+    EXPECT_EQ(uut.base()[1], std::byte{'b'});
+    EXPECT_EQ(uut.base()[2], std::byte{'c'});
   }
 }
 
@@ -35,16 +35,16 @@ TEST_F(MmapTest, CanMapFileToWrite) {
     vt::common::FileDescriptor fd(test_file_.c_str(), O_RDWR);
     vt::common::Mmap<PROT_WRITE> uut(3, MAP_SHARED, fd.handle(), 0);
     EXPECT_TRUE(uut.valid());
-    uut.mutable_base()[1] = 'd';
+    uut.mutable_base()[1] = std::byte{'d'};
   }
 
   vt::common::FileDescriptor fd(test_file_.c_str(), O_RDONLY);
 
-  char buf[3];
-  EXPECT_NE(read(fd.handle(), buf, 3), -1);
-  EXPECT_EQ(buf[0], 'a');
-  EXPECT_EQ(buf[1], 'd');
-  EXPECT_EQ(buf[2], 'c');
+  std::byte buf[3] = {};
+  EXPECT_NE(read(fd.handle(), static_cast<void*>(buf), 3), -1);
+  EXPECT_EQ(buf[0], std::byte{'a'});
+  EXPECT_EQ(buf[1], std::byte{'d'});
+  EXPECT_EQ(buf[2], std::byte{'c'});
 }
 
 TEST_F(MmapTest, CanBeMoved) {

@@ -77,7 +77,7 @@ Elf64_Addr patch_ehdr(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
 // @param[out] info A struct of information.
 bool PaddingInfect::analyze(const common::Mmap<PROT_READ>& host,
                             const common::Mmap<PROT_READ>& parasite_mapping) {
-  const char* host_mapping = host.base();
+  const auto* host_mapping = host.base();
   auto elf_header = (const Elf64_Ehdr*)host_mapping;
 
   if ((elf_header->e_type != ET_EXEC && elf_header->e_type != ET_DYN) ||

