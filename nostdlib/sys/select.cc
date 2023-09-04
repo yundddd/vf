@@ -1,6 +1,6 @@
 #include "nostdlib/sys/select.hh"
-#include "nostdlib/arch.hh"
 #include <asm/unistd.h>
+#include "nostdlib/arch.hh"
 
 namespace vt {
 namespace {

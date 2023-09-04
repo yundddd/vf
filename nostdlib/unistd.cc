@@ -83,8 +83,6 @@ pid_t sys_getppid(void) { return my_syscall0(__NR_getppid); }
 
 pid_t sys_gettid(void) { return my_syscall0(__NR_gettid); }
 
-
-
 int sys_link(const char* old, const char* cur) {
 #ifdef __NR_linkat
   return my_syscall5(__NR_linkat, AT_FDCWD, old, AT_FDCWD, cur, 0);
@@ -102,7 +100,6 @@ off_t sys_lseek(int fd, off_t offset, int whence) {
 int sys_ftruncate(int fd, off_t length) {
   return my_syscall2(__NR_ftruncate, fd, length);
 }
-
 
 int sys_pivot_root(const char* cur, const char* old) {
   return my_syscall2(__NR_pivot_root, cur, old);
@@ -129,8 +126,6 @@ ssize_t sys_read(int fd, void* buf, size_t count) {
   return my_syscall3(__NR_read, fd, buf, count);
 }
 
-
-
 int sys_sched_yield(void) { return my_syscall0(__NR_sched_yield); }
 
 int sys_setpgid(pid_t pid, pid_t pgid) {
@@ -148,8 +143,6 @@ int sys_symlink(const char* old, const char* cur) {
 #error Neither __NR_symlinkat nor __NR_symlink defined, cannot implement sys_symlink()
 #endif
 }
-
-
 
 int sys_unlink(const char* path) {
 #ifdef __NR_unlinkat
@@ -233,7 +226,6 @@ pid_t getppid(void) { return sys_getppid(); }
 
 pid_t gettid(void) { return sys_gettid(); }
 
-
 int link(const char* old, const char* cur) { return sys_link(old, cur); }
 
 int sched_yield(void) { return sys_sched_yield(); }
@@ -243,8 +235,6 @@ off_t lseek(int fd, off_t offset, int whence) {
 }
 
 int ftruncate(int fd, off_t length) { return sys_ftruncate(fd, length); }
-
-
 
 int pivot_root(const char* cur, const char* old) {
   return sys_pivot_root(cur, old);
@@ -258,12 +248,9 @@ ssize_t read(int fd, void* buf, size_t count) {
   return sys_read(fd, buf, count);
 }
 
-
-
 pid_t setsid(void) { return sys_setsid(); }
 
 int symlink(const char* old, const char* cur) { return sys_symlink(old, cur); }
-
 
 int unlink(const char* path) { return sys_unlink(path); }
 

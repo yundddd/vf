@@ -159,13 +159,13 @@ struct sys_stat_struct {
         "int	$0x80\n\t"                                      \
         "popl	%%ebp\n\t"                                     \
         "addl	$4,%%esp\n\t"                                  \
-        : "+a"(_eax)           /* %eax */                    \
-        : "b"(arg1),           /* %ebx */                    \
-          "c"(arg2),           /* %ecx */                    \
-          "d"(arg3),           /* %edx */                    \
-          "S"(arg4),           /* %esi */                    \
-          "D"(arg5),           /* %edi */                    \
-          [ _arg6 ] "m"(_arg6) /* memory */                  \
+        : "+a"(_eax)         /* %eax */                      \
+        : "b"(arg1),         /* %ebx */                      \
+          "c"(arg2),         /* %ecx */                      \
+          "d"(arg3),         /* %edx */                      \
+          "S"(arg4),         /* %esi */                      \
+          "D"(arg5),         /* %edi */                      \
+          [_arg6] "m"(_arg6) /* memory */                    \
         : "memory", "cc");                                   \
     _eax;                                                    \
   })

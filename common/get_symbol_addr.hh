@@ -1,6 +1,6 @@
 #pragma once
 namespace vt::common {
-extern "C" {   // need to refer to symbols without name mangling
+extern "C" {  // need to refer to symbols without name mangling
 // We rely on the linker script to provide these symbols.
 extern long long __parasite_start[];
 extern long long __parasite_end[];
