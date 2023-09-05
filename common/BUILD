@@ -142,7 +142,12 @@ py_binary(
     deps = ["@pypi_lief//:pkg"],
 )
 
-cc_library(
+cc_nostdlib_library(
     name = "get_symbol_addr",
     hdrs = ["get_symbol_addr.hh"],
+)
+
+cc_nostdlib_library(
+    name = "math",
+    hdrs = ["math.hh"],
 )

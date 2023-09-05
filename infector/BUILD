@@ -83,6 +83,7 @@ cc_nostdlib_library(
     hdrs = ["padding_infect.hh"],
     deps = [
         "//common:macros",
+        "//common:math",
         "//common:patch_pattern",
         "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
@@ -97,6 +98,7 @@ cc_nostdlib_library(
     deps = [
         "//common:file_descriptor",
         "//common:macros",
+        "//common:math",
         "//common:patch_pattern",
         "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
@@ -110,6 +112,7 @@ cc_nostdlib_library(
     hdrs = ["reverse_text_infect.hh"],
     deps = [
         "//common:file_descriptor",
+        "//common:math",
         "//common:patch_pattern",
         "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",

