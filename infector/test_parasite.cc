@@ -1,17 +1,31 @@
 #include <cstddef>
+#include <expected>
 #include <span>
 #include "common/directory_iterator.hh"
 #include "common/get_symbol_addr.hh"
-#include "common/hex_dump.hh"
+#include "common/macros.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
 #include "nostdlib/unistd.hh"
 
+std::expected<bool, int> foo(int a) {
+  if (a > 0) return true;
+  return std::unexpected(4);
+}
+
 int main(int argc, char* argv[], char* env[]) {
-  std::byte ap[] = {std::byte{1}, std::byte{3}};
-  std::span<std::byte> s(ap);
-  for (std::byte i : s) vt::printf("%d ", std::to_integer<int>(i));
+  auto r = foo(argc);
+  if (r) {
+    vt::printf("%d\n", r.value());
+  } else {
+    vt::printf("%d\n", r.error());
+  }
+  vt::printf("%x\n", 3);
+
+  vt::printf("%lx %lx %lx\n", vt::common::get_parasite_start_address(),
+             vt::common::get_parasite_end_address(),
+             vt::common::get_parasite_len());
 
   return 0;
 }

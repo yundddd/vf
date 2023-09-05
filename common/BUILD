@@ -124,9 +124,7 @@ cc_nostdlib_library(
     }),
     hdrs = ["redirect_elf_entry_point.hh"],
     deps = [
-        ":mmap",
         ":patch_pattern",
-        "//nostdlib:stdio",
     ],
 )
 

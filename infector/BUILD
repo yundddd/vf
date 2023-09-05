@@ -82,7 +82,6 @@ cc_nostdlib_library(
     srcs = ["padding_infect.cc"],
     hdrs = ["padding_infect.hh"],
     deps = [
-        "//common:mmap",
         "//common:patch_pattern",
         "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
@@ -96,7 +95,6 @@ cc_nostdlib_library(
     hdrs = ["pt_note_infect.hh"],
     deps = [
         "//common:file_descriptor",
-        "//common:mmap",
         "//common:patch_pattern",
         "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
@@ -110,7 +108,6 @@ cc_nostdlib_library(
     hdrs = ["reverse_text_infect.hh"],
     deps = [
         "//common:file_descriptor",
-        "//common:mmap",
         "//common:patch_pattern",
         "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
@@ -149,8 +146,8 @@ cc_nostdlib_binary(
     allow_rodata_merging = True,
     deps = [
         "//common:directory_iterator",
-        "//common:hex_dump",
         "//common:get_symbol_addr",
+        "//common:macros",
         "//nostdlib:stdio",
         "//nostdlib:stdlib",
         "//nostdlib:string",

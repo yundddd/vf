@@ -1,6 +1,6 @@
 #pragma once
 #include <elf.h>
-#include "common/mmap.hh"
+#include <span>
 
 namespace vt::infector {
 
@@ -8,11 +8,11 @@ class PtNoteInfect {
  public:
   size_t injected_host_size();
 
-  bool analyze(const common::Mmap<PROT_READ>& host_mapping,
-               const common::Mmap<PROT_READ>& parasite_mapping);
+  bool analyze(std::span<const std::byte> host_mapping,
+               std::span<const std::byte> parasite_mapping);
 
-  bool inject(common::Mmap<PROT_READ | PROT_WRITE> host_mapping,
-              common::Mmap<PROT_READ> parasite_mapping);
+  bool inject(std::span<std::byte> host_mapping,
+              std::span<const std::byte> parasite_mapping);
 
  private:
   size_t host_size_{};
