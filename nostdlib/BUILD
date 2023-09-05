@@ -92,6 +92,7 @@ cc_nostdlib_library(
         ":stdlib",
         ":string",
         ":unistd",
+        "//common:macros",
     ],
 )
 

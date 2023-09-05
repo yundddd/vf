@@ -2,6 +2,7 @@
 #include <elf.h>
 #include <algorithm>
 #include "common/file_descriptor.hh"
+#include "common/macros.hh"
 #include "common/patch_pattern.hh"
 #include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
@@ -106,7 +107,9 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
   // binary distributed by bazel does this https://github.com/bazelbuild/bazel
   if (parasite_load_address_ <=
       host_mapping.size() - ehdr.e_shnum * ehdr.e_shentsize) {
-    printf("gave up because there are bytes appended\n");
+    const char* msg;
+    STR_LITERAL(msg, PAD2("gave up because there are bytes appended\n"));
+    printf(msg);
     return false;
   }
 
@@ -122,7 +125,9 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
       if (name[6] == 'g' && name[7] == 'o') {
         // This is a go elf, which relies on the note section to work. We cannot
         // mutate it.
-        printf("cannot infect elf compiled from golang");
+        const char* msg;
+        STR_LITERAL(msg, "cannot infect elf compiled from golang\n");
+        printf(msg);
         return false;
       }
     }

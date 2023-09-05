@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <cstdarg>
 #include <cstdint>
+#include "common/macros.hh"
 #include "nostdlib/arch.hh"
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
@@ -202,7 +203,7 @@ int vfprintf(FILE* stream, const char* fmt, va_list args) {
       } else if (c == 's') {
         outstr = va_arg(args, char*);
         if (!outstr) {
-          outstr = "(null)";
+          STR_LITERAL(outstr, PAD1("(null)"));
         }
       } else if (c == '%') {
         /* queue it verbatim */
@@ -336,9 +337,15 @@ int print_dec_ll(char* buf, int max, unsigned long long value) {
   return i;
 }
 
+const char* get_hex_char() {
+  const char* ret;
+  STR_LITERAL(ret, PAD3("0123456789abcdef"));
+  return ret;
+}
+
 /** print hex into buffer, returns length */
 int print_hex(char* buf, int max, unsigned int value) {
-  const char* h = "0123456789abcdef";
+  const char* h = get_hex_char();
   int i = 0;
   if (value == 0) {
     if (max > 0) {
@@ -355,7 +362,7 @@ int print_hex(char* buf, int max, unsigned int value) {
 
 /** print long hex into buffer, returns length */
 int print_hex_l(char* buf, int max, unsigned long value) {
-  const char* h = "0123456789abcdef";
+  const char* h = get_hex_char();
   int i = 0;
   if (value == 0) {
     if (max > 0) {
@@ -372,7 +379,7 @@ int print_hex_l(char* buf, int max, unsigned long value) {
 
 /** print long long hex into buffer, returns length */
 int print_hex_ll(char* buf, int max, unsigned long long value) {
-  const char* h = "0123456789abcdef";
+  const char* h = get_hex_char();
   int i = 0;
   if (value == 0) {
     if (max > 0) {

