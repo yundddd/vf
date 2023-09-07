@@ -17,17 +17,7 @@ std::expected<bool, int> foo(int a) {
 int main(int argc, char* argv[], char* env[]) {
   const char* str;
   STR_LITERAL(str, "Running virus code\n");
-  vt::printf(str);
-  auto r = foo(argc);
-  if (r) {
-    vt::printf("%d\n", r.value());
-  } else {
-    vt::printf("%d\n", r.error());
-  }
-
-  vt::printf("%lx %lx %lx\n", vt::common::get_parasite_start_address(),
-             vt::common::get_parasite_end_address(),
-             vt::common::get_parasite_len());
+  vt::write(1, str, vt::strlen(str));
 
   return 0;
 }

