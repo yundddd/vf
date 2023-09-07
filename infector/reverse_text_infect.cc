@@ -113,15 +113,13 @@ void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr original_code_segment_p_vaddr,
 }
 
 bool does_entry_contain_address(Elf64_Xword tag) {
-  // TODO: fix header includes.
   // https://codebrowser.dev/glibc/glibc/elf/elf.h.html
   // https://docs.oracle.com/cd/E23824_01/html/819-0690/chapter6-42444.html
-  // gnu elf header has more than kernel header we just want to patch those that
-  // have d_ptr.
   return (tag >= DT_PLTGOT && tag <= DT_RELA) || tag == DT_INIT ||
          tag == DT_FINI || tag == DT_REL || tag == DT_DEBUG ||
-         tag == DT_JMPREL || tag == 25 || tag == 26 || tag == 32 ||
-         (tag >= 0x6ffffe00 && tag <= 0x6ffffeff)  // this range uses d_ptr
+         tag == DT_JMPREL || tag == DT_INIT_ARRAY || tag == DT_FINI_ARRAY ||
+         tag == DT_ENCODING ||
+         (tag >= DT_ADDRRNGLO && tag <= DT_ADDRRNGHI)  // this range uses d_ptr
          || tag == DT_VERDEF || tag == DT_VERNEED ||
          tag == DT_VERSYM;  // sun extension
 }

