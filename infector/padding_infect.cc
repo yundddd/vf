@@ -75,7 +75,7 @@ bool PaddingInfect::analyze(std::span<const std::byte> host_mapping,
   Elf64_Addr parasite_load_address = 0;
 
   // Point to first entry in PHT
-  auto phdr_entry =
+  auto* phdr_entry =
       reinterpret_cast<const Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
 
   // Parse PHT entries

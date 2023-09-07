@@ -6,34 +6,27 @@ namespace vt::infector {
 // This algorithm injects a parasite into an 64 bit elf's code segment padding,
 // based on the paper publish by Silvio Cesare:
 // https://vxug.fakedoma.in/archive/VxHeaven/lib/vsc01.html
+// The original paper presented a POC but it was targeting 32-bit non-pie
+// binaries. We have extended it here to work on 64-bit pie and non-pie
+// binaries.
 //
-//  host elf file structure       infected elf file structure
-//  -------------------           -----------------------
-//  elf_hdr                       elf_hdr
-//  phdrs                         phdrs
-//  executable_sections           executable_sections
-//  padding                       padding             <- virus inserted here
-//  non-exec sections             non-exec sections
-//  shdrs                         shdrs
+//  host elf structure                           infected elf structure
+//  -------------------                          -----------------------
+//  elf_hdr            <------|    |----->       elf_hdr
+//  phdrs                 CODE|    |CODE         phdrs
+//  non-exec sections         |    |             non-exec sections
+//  exec sections             |    |             exec sections
+//  padding            <------|    |----->       *virus <---------
+//  non-exec sections  <------|    |----->       non-exec sections
+//  shdrs                 RO  |    | RO          shdrs
+//                     <------|    |----->
 //
+// The algorithm is fairly straight forward as it relies on the fact that mmap
+// can only assign different permission bits on pages, which creates a "code
+// cave" that the parasite can live in.
 //
-// Because the sections in file has the same padding, inserting virus doesn't
-// change file size.
-//
-//  infected elf segments
-//  -------------------
-//  LOAD RX
-//    Ehdr                      --
-//    phdrs                      |     executable segment
-//    interp                     |
-//    PADDING    <- virus here  --
-//  LOAD RW
-//    .data                     --
-//    ...                        |     ajacent non-executable segment
-//    ...                       --
-
-// Warning: because the insertion point is always not going to be page aligned
-// (padding insertion), for arm's adrp insruction will break if the parasite
+// WARNING: because the insertion point is always not going to be page aligned
+// (padding insertion), for arm's adrp insruction it will break if the parasite
 // refers to rodata.
 // For example:
 //    adrp	x0, 0x0
