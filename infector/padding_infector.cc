@@ -134,11 +134,10 @@ bool PaddingInfector::analyze(std::span<const std::byte> host_mapping,
 bool PaddingInfector::inject(std::span<std::byte> host_mapping,
                              std::span<const std::byte> parasite_mapping) {
   if (padding_size_ < parasite_mapping.size()) {
-    const char* msg;
-    STR_LITERAL(
-        msg, PAD1("Host cannot accomodate parasite padding size: %%d parasite "
-                  "size:%%d\n"));
-    vt::printf(msg, padding_size_, parasite_mapping.size());
+    vt::printf(STR_LITERAL(
+                   "Host cannot accomodate parasite padding size: %%d parasite "
+                   "size:%%d\n"),
+               padding_size_, parasite_mapping.size());
     return false;
   }
 

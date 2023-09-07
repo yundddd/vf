@@ -203,7 +203,7 @@ int vfprintf(FILE* stream, const char* fmt, va_list args) {
       } else if (c == 's') {
         outstr = va_arg(args, char*);
         if (!outstr) {
-          STR_LITERAL(outstr, PAD1("(null)"));
+          outstr = STR_LITERAL("(null)");
         }
       } else if (c == '%') {
         /* queue it verbatim */
@@ -337,11 +337,7 @@ int print_dec_ll(char* buf, int max, unsigned long long value) {
   return i;
 }
 
-const char* get_hex_char() {
-  const char* ret;
-  STR_LITERAL(ret, PAD3("0123456789abcdef"));
-  return ret;
-}
+const char* get_hex_char() { return STR_LITERAL("0123456789abcdef"); }
 
 /** print hex into buffer, returns length */
 int print_hex(char* buf, int max, unsigned int value) {

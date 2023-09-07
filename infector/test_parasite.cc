@@ -15,8 +15,7 @@ std::expected<bool, int> foo(int a) {
 }
 
 int main(int argc, char* argv[], char* env[]) {
-  const char* str;
-  STR_LITERAL(str, "Running virus code\n");
+  const char* str = STR_LITERAL("Running virus code1\n");
   vt::write(1, str, vt::strlen(str));
 
   return 0;
