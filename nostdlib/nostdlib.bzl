@@ -73,7 +73,7 @@ def cc_nostdlib_binary(
             "-nostdlib",
             "-nolibc",
             "-nodefaultlibs",
-            #"-pie",
+            "-pie",
         ],
         data = data + ["//nostdlib:linker_script"],
         deps = deps + ["//nostdlib:parasite.lds"] + ["//nostdlib:startup"],

@@ -69,18 +69,18 @@ cc_binary(
     srcs = ["infector.cc"],
     deps = [
         ":common_infection",
-        ":padding_infect",
-        ":pt_note_infect",
-        ":reverse_text_infect",
+        ":padding_infector",
+        ":pt_note_infector",
+        ":reverse_text_infector",
         "//common:string",
         "//nostdlib:stdio",
     ],
 )
 
 cc_nostdlib_library(
-    name = "padding_infect",
-    srcs = ["padding_infect.cc"],
-    hdrs = ["padding_infect.hh"],
+    name = "padding_infector",
+    srcs = ["padding_infector.cc"],
+    hdrs = ["padding_infector.hh"],
     deps = [
         "//common:macros",
         "//common:math",
@@ -92,9 +92,9 @@ cc_nostdlib_library(
 )
 
 cc_nostdlib_library(
-    name = "pt_note_infect",
-    srcs = ["pt_note_infect.cc"],
-    hdrs = ["pt_note_infect.hh"],
+    name = "pt_note_infector",
+    srcs = ["pt_note_infector.cc"],
+    hdrs = ["pt_note_infector.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:macros",
@@ -107,9 +107,9 @@ cc_nostdlib_library(
 )
 
 cc_nostdlib_library(
-    name = "reverse_text_infect",
-    srcs = ["reverse_text_infect.cc"],
-    hdrs = ["reverse_text_infect.hh"],
+    name = "reverse_text_infector",
+    srcs = ["reverse_text_infector.cc"],
+    hdrs = ["reverse_text_infector.hh"],
     deps = [
         "//common:file_descriptor",
         "//common:math",

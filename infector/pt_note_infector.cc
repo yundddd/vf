@@ -1,4 +1,4 @@
-#include "infector/pt_note_infect.hh"
+#include "infector/pt_note_infector.hh"
 #include <elf.h>
 #include <algorithm>
 #include "common/file_descriptor.hh"
@@ -62,8 +62,8 @@ void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr parasite_load_address,
 
 }  // namespace
 
-bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
-                           std::span<const std::byte> parasite_mapping) {
+bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
+                             std::span<const std::byte> parasite_mapping) {
   host_size_ = host_mapping.size();
   parasite_size_ = parasite_mapping.size();
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
@@ -139,8 +139,8 @@ bool PtNoteInfect::analyze(std::span<const std::byte> host_mapping,
   return true;
 }
 
-bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
-                          std::span<const std::byte> parasite_mapping) {
+bool PtNoteInfector::inject(std::span<std::byte> host_mapping,
+                            std::span<const std::byte> parasite_mapping) {
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   const auto virus_size = parasite_mapping.size();
@@ -178,7 +178,7 @@ bool PtNoteInfect::inject(std::span<std::byte> host_mapping,
       parasite_mapping.size(), host_mapping);
 }
 
-size_t PtNoteInfect::injected_host_size() {
+size_t PtNoteInfector::injected_host_size() {
   // In order to make this work on PIEs, the virus file offset must equal to
   // vaddr. Therefore, the file size will be extended. Note that this is not
   // necessary for non-PIE but doing this makes both PIE and non-PIE handling

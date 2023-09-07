@@ -1,4 +1,4 @@
-#include "infector/reverse_text_infect.hh"
+#include "infector/reverse_text_infector.hh"
 #include <elf.h>
 #include "common/file_descriptor.hh"
 #include "common/math.hh"
@@ -213,8 +213,8 @@ size_t inject_virus(std::span<std::byte> host_mapping,
 
 }  // namespace
 
-bool ReverseTextInfect::inject(std::span<std::byte> host_mapping,
-                               std::span<const std::byte> parasite_mapping) {
+bool ReverseTextInfector::inject(std::span<std::byte> host_mapping,
+                                 std::span<const std::byte> parasite_mapping) {
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   {
@@ -259,8 +259,8 @@ bool ReverseTextInfect::inject(std::span<std::byte> host_mapping,
       parasite_mapping.size(), host_mapping);
 }
 
-bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
-                                std::span<const std::byte> parasite_mapping) {
+bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
+                                  std::span<const std::byte> parasite_mapping) {
   host_size_ = host_mapping.size();
   parasite_size_ = parasite_mapping.size();
 
@@ -292,7 +292,7 @@ bool ReverseTextInfect::analyze(std::span<const std::byte> host_mapping,
   return false;
 }
 
-size_t ReverseTextInfect::injected_host_size() {
+size_t ReverseTextInfector::injected_host_size() {
   auto extra_padding = original_code_segment_file_offset_ == 0 ? 4096 : 0;
   padded_virus_size_ =
       common::round_up_to(padded_virus_size_, 4096) + extra_padding;
