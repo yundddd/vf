@@ -2,6 +2,29 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+restore_bazel_cache: &restore_bazel_cache
+  restore_cache:
+    keys:
+      - v4-bazel-cache-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ .Revision }}
+      - v4-bazel-cache-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}
+      - v4-bazel-cache-{{ .Environment.CIRCLE_JOB }}-main
+save_bazel_cache: &save_bazel_cache
+  save_cache:
+    # Always saving the cache, even in case of failures, helps with completing
+    # jobs where the bazel process was killed because it took too long or OOM.
+    # Restart the job if you see the bazel server being terminated abruptly.
+    when: always
+    key: v4-bazel-cache-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ .Revision }}
+    paths:
+      - /tmp/bazel-cache
+      - /tmp/bazel-disk-cache
+
+clean_bazel_cache: &clean_bazel_cache
+  run:
+    name: Clean Bazel disk cache of files that have not been modified in 30 days
+    # mtime is the only time preserved after untaring the cache.
+    command: /usr/bin/find /tmp/bazel-disk-cache -mtime +30 -exec rm -v {} \;
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
@@ -65,6 +88,8 @@ jobs:
 
       - checkout
      
+      - *restore_bazel_cache
+
       - run:
           name: "Build aarch64"
           command: "bazel build -s //..."
@@ -92,6 +117,9 @@ jobs:
           path: /tmp/bin/infector/infect_ubuntu_bionic_reverse_text/infection_result.txt
       - store_artifacts:
           path: /tmp/bin/infector/infect_ubuntu_bionic_pt_note/infection_result.txt
+
+      - *clean_bazel_cache
+      - *save_bazel_cache
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
