@@ -16,7 +16,7 @@ def infector_docker_image(name, arch, base, infection_methods, parasite):
     The result will be availabe in bazel-bin/<path-to-name-of-target>_<infection_method>/infection_result.txt
     which can be used as data depedency of other targets.
     """
-    relative_parasite_label = native.package_relative_label(parasite)
+    relative_parasite_label = native.package_relative_label(parasite + ".text")
     docker_arch = "amd64" if arch == "x86_64" else "arm64"
 
     container_image(
@@ -35,6 +35,8 @@ def infector_docker_image(name, arch, base, infection_methods, parasite):
         image_tar = native.package_relative_label(":" + name + "_image.tar"),
         packages = [
             "binutils",
+            "coreutils",
+            "build-essential",
             "file",
         ],
     )
@@ -56,7 +58,7 @@ def infector_docker_image(name, arch, base, infection_methods, parasite):
         container_run_and_extract(
             name = name + "_" + method,
             commands = [
-                os_release_command + " && " + infect.format(parasite, "infector", method, "/bin", result_file) + " && " + infect.format(parasite, "infector", method, "/sbin", result_file),
+                os_release_command + " && " + infect.format(parasite, "./infector", method, "/bin", result_file) + " && " + infect.format(parasite, "./infector", method, "/sbin", result_file),
             ],
             extract_file = result_file,
             image = native.package_relative_label(name + "_bin_pkgs_image.tar"),

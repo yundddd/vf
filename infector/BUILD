@@ -1,5 +1,6 @@
 load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
 load("//infector:infector.bzl", "infector_docker_image")
+load("//tools/pytest:defs.bzl", "pytest_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -143,6 +144,16 @@ cc_binary(
     srcs = ["victim.cc"],
     copts = ["-fno-pie"],
     linkopts = ["-no-pie"],
+)
+
+pytest_test(
+    name = "infector_integration_test",
+    srcs = ["infector_integration_test.py"],
+    data = [
+        "//infector:infect_ubuntu_jammy_pt_note",
+        "//infector:infect_ubuntu_jammy_reverse_text",
+        "//infector:infect_ubuntu_jammy_text_padding",
+    ],
 )
 
 cc_nostdlib_binary(
