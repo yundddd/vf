@@ -11,6 +11,7 @@ jobs:
     machine:
       image: ubuntu-2204:current
       docker_layer_caching: true
+    resource_class: large
     environment:
       DEBIAN_FRONTEND: noninteractive
     steps:
@@ -53,9 +54,9 @@ jobs:
     machine:
       image: ubuntu-2204:current
       docker_layer_caching: true
+    resource_class: arm.large
     environment:
       DEBIAN_FRONTEND: noninteractive
-    resource_class: arm.medium
     steps:
       # setup bazel
       - run: wget https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-arm64
