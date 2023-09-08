@@ -19,8 +19,8 @@ AARCH64_JAMMY_PT_NOTE_RESULTS = {
 }
 
 X86_64_JAMMY_TEXT_PADDING_RESULTS = {
-    "Result: [/bin/*] infected: 258, failed: 14\n",
-    "Result: [/sbin/*] infected: 80, failed: 5\n",
+    "Result: [/bin/*] infected: 262, failed: 10\n",
+    "Result: [/sbin/*] infected: 82, failed: 3\n",
 }
 
 X86_64_JAMMY_REVERSE_TEXT_RESULTS = {
