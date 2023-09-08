@@ -46,8 +46,6 @@ jobs:
 
       - checkout
 
-      - *restore_bazel_cache
-
       - run:
           name: "Build x86_64"
           command: "bazel build -s //..."
@@ -75,9 +73,6 @@ jobs:
           path: /tmp/bin/infector/infect_ubuntu_bionic_reverse_text/infection_result.txt
       - store_artifacts:
           path: /tmp/bin/infector/infect_ubuntu_bionic_pt_note/infection_result.txt
-
-      - *clean_bazel_cache
-      - *save_bazel_cache
 
   build-and-test-aarch64:
     machine:
