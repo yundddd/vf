@@ -1,0 +1,11 @@
+build --disk_cache=/tmp
+startup --output_user_root=/tmp
+
+build --cxxopt='-std=c++2b'
+
+build --incompatible_enable_cc_toolchain_resolution
+build --action_env BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+
+build --@io_bazel_rules_docker//transitions:enable=false
+
+build --symlink_prefix="/tmp/"

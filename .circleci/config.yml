@@ -18,7 +18,6 @@ save_bazel_cache: &save_bazel_cache
     paths:
       - /tmp/bazel-cache
       - /tmp/bazel-disk-cache
-      - /tmp/zig-cache
 
 clean_bazel_cache: &clean_bazel_cache
   run:
