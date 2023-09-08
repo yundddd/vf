@@ -12,3 +12,6 @@ build --@io_bazel_rules_docker//transitions:enable=false
 # building at the same time without interfering with each
 # other.
 build --symlink_prefix="/tmp/"
+
+build --disk_cache=/tmp/bazel-disk-cache
+startup --output_user_root=/tmp/bazel-cache/output-root
