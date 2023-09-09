@@ -124,7 +124,9 @@ cc_nostdlib_library(
     }),
     hdrs = ["redirect_elf_entry_point.hh"],
     deps = [
+        ":get_symbol_addr",
         ":patch_pattern",
+        "//nostdlib:stdio",
     ],
 )
 
@@ -144,6 +146,7 @@ py_binary(
 
 cc_nostdlib_library(
     name = "get_symbol_addr",
+    srcs = ["get_symbol_addr.cc"],
     hdrs = ["get_symbol_addr.hh"],
 )
 

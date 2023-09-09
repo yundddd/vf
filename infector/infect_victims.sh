@@ -26,6 +26,8 @@ function infect_one_victim() {
         # run the infected binary. Since most binaries terminate with --help, this is sufficient to
         # test that infection is working.
         /tmp/victim --help
+    else
+        echo "failed to infect"
     fi
 }
 

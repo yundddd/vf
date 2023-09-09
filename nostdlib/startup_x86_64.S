@@ -45,6 +45,8 @@ call main
 pop %rsp
 pop %rdx
 
+.global _patch_return
+_patch_return:
 nop                      /* zero the stack frame */
 nop
 nop

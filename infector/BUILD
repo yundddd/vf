@@ -164,6 +164,8 @@ cc_nostdlib_binary(
         "//common:directory_iterator",
         "//common:get_symbol_addr",
         "//common:macros",
+        "//infector:common_infection",
+        "//infector:pt_note_infector",
         "//nostdlib:stdio",
         "//nostdlib:stdlib",
         "//nostdlib:string",

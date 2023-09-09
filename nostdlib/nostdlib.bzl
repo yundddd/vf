@@ -67,7 +67,7 @@ def cc_nostdlib_binary(
     cc_binary(
         name = name,
         srcs = srcs,
-        linkstatic = True,
+        linkstatic = 1,
         copts = common_copts,
         linkopts = common_linkopts + use_custom_linker_script + [
             "-nostdlib",
