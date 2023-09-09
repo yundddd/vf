@@ -1,6 +1,6 @@
-#/bin/bash
+#!/bin/bash
 
 USERNAME=$(whoami)
-REPO=/home/$USERNAME/vt
+REPO=/home/${USERNAME}/vt
 
-docker exec -it -u $USERNAME -w $REPO ubuntu_x86 zsh
+docker exec -it -u "${USERNAME}" -w "${REPO}" ubuntu_x86 zsh

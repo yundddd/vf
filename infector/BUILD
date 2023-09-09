@@ -1,5 +1,6 @@
-load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//infector:infector.bzl", "infector_docker_image")
+load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
 load("//tools/pytest:defs.bzl", "pytest_test")
 
 package(default_visibility = ["//visibility:public"])

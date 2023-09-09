@@ -25,4 +25,5 @@ int64_t find(std::span<const std::byte> mem, T target) {
   }
   return -1;
 }
+
 }  // namespace vt::common
