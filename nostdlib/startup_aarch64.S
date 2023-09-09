@@ -41,9 +41,10 @@ add x2, x2, x1              /*          + argv */
      work anymore. but OS should always give us an aligned sp first.
      and sp, x1, #0xfffffffffffffff0 */
 
-bl main      
+bl main
 ldp x0, x1, [sp], #16       /* restore x0 */
 
+/* offset from _start is 0x20 */
 .global _patch_return
 _patch_return:
 .inst 0x11223344            /* to be patched */

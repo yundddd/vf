@@ -19,12 +19,14 @@ int main(int argc, char** argv) {
   bool ret = false;
 
   if (vt::common::String(method) == TEXT_PADDING) {
-    ret = vt::infector::infect<vt::infector::PaddingInfector>(argv[1], argv[2]);
+    ret = vt::infector::infect<vt::infector::PaddingInfector>(argv[1], argv[2],
+                                                              32);
   } else if (vt::common::String(method) == REVERSE_TEXT) {
     ret = vt::infector::infect<vt::infector::ReverseTextInfector>(argv[1],
-                                                                  argv[2]);
+                                                                  argv[2], 32);
   } else if (vt::common::String(method) == PT_NOTE_TO_LOAD) {
-    ret = vt::infector::infect<vt::infector::PtNoteInfector>(argv[1], argv[2]);
+    ret = vt::infector::infect<vt::infector::PtNoteInfector>(argv[1], argv[2],
+                                                             32);
   }
 
   return ret ? EXIT_SUCCESS : EXIT_FAILURE;

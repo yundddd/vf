@@ -83,10 +83,9 @@ cc_nostdlib_library(
     srcs = ["padding_infector.cc"],
     hdrs = ["padding_infector.hh"],
     deps = [
+        ":injection_result",
         "//common:macros",
         "//common:math",
-        "//common:patch_pattern",
-        "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
         "//nostdlib:string",
     ],
@@ -97,14 +96,18 @@ cc_nostdlib_library(
     srcs = ["pt_note_infector.cc"],
     hdrs = ["pt_note_infector.hh"],
     deps = [
+        ":injection_result",
         "//common:file_descriptor",
         "//common:macros",
         "//common:math",
-        "//common:patch_pattern",
-        "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
         "//nostdlib:string",
     ],
+)
+
+cc_nostdlib_library(
+    name = "injection_result",
+    hdrs = ["injection_result.hh"],
 )
 
 cc_nostdlib_library(
@@ -112,10 +115,9 @@ cc_nostdlib_library(
     srcs = ["reverse_text_infector.cc"],
     hdrs = ["reverse_text_infector.hh"],
     deps = [
+        ":injection_result",
         "//common:file_descriptor",
         "//common:math",
-        "//common:patch_pattern",
-        "//common:redirect_elf_entry_point",
         "//nostdlib:stdio",
         "//nostdlib:string",
     ],
@@ -129,6 +131,7 @@ cc_nostdlib_library(
         "//common:mmap",
         "//nostdlib:stdio",
         "//nostdlib:string",
+        "//redirection:entry_point",
     ],
 )
 

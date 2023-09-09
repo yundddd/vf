@@ -117,20 +117,6 @@ cc_nostdlib_library(
 )
 
 cc_nostdlib_library(
-    name = "redirect_elf_entry_point",
-    srcs = select({
-        "@platforms//cpu:aarch64": ["redirect_elf_entry_point_aarch64.cc"],
-        "@platforms//cpu:x86_64": ["redirect_elf_entry_point_x86_64.cc"],
-    }),
-    hdrs = ["redirect_elf_entry_point.hh"],
-    deps = [
-        ":get_symbol_addr",
-        ":patch_pattern",
-        "//nostdlib:stdio",
-    ],
-)
-
-cc_nostdlib_library(
     name = "expected",
     hdrs = ["expected.hh"],
     deps = [
