@@ -1,6 +1,6 @@
-import os
-import pytest
 import platform
+
+import pytest
 
 AARCH64_JAMMY_TEXT_PADDING_RESULTS = {
     "Result: [/bin/*] infected: 258, failed: 14\n",

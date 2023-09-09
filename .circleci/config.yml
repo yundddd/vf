@@ -23,11 +23,11 @@ jobs:
       - checkout
 
       - run:
-          name: "Build x86_64"
-          command: "bazel build -s //..."
+          name: Build x86_64
+          command: bazel build -s //...
       - run:
-          name: "Test"
-          command: "bazel test //... --test_output=all"
+          name: Test
+          command: bazel test //... --test_output=all
 
       - store_artifacts:
           path: /tmp/bin/infector/infect_ubuntu_jammy_text_padding/infection_result.txt
@@ -64,13 +64,13 @@ jobs:
       - run: sudo mv bazel-6.3.2-linux-arm64 /usr/bin/bazel
 
       - checkout
-     
+
       - run:
-          name: "Build aarch64"
-          command: "bazel build -s //..."
+          name: Build aarch64
+          command: bazel build -s //...
       - run:
-          name: "Test"
-          command: "bazel test //... --test_output=all"
+          name: Test
+          command: bazel test //... --test_output=all
 
       - store_artifacts:
           path: /tmp/bin/infector/infect_ubuntu_jammy_text_padding/infection_result.txt

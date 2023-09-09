@@ -75,6 +75,7 @@ cc_binary(
         ":reverse_text_infector",
         "//common:string",
         "//nostdlib:stdio",
+        "//redirection:entry_point",
     ],
 )
 
@@ -131,7 +132,6 @@ cc_nostdlib_library(
         "//common:mmap",
         "//nostdlib:stdio",
         "//nostdlib:string",
-        "//redirection:entry_point",
     ],
 )
 

