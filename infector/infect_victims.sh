@@ -6,7 +6,7 @@
 # please build the //infector package before running this script.
 # run with infector/infect_victims.sh [method] [dir] [parasite] [infector]
 # for example: bazel build //infector/... && \
-# infector/infect_victims.sh bazel-bin/infector/test_parasite.text bazel-bin/infector/infector text_padding /usr/bin
+# infector/infect_victims.sh bazel-bin/virus/test_virus.text bazel-bin/infector/infector text_padding /usr/bin
 
 IFS=""
 

