@@ -209,3 +209,7 @@ char* strrchr(const char* s, int c) {
   return (char*)ret;
 }
 }  // namespace vt
+
+extern "C" void* memset(void* dst, int b, size_t len) noexcept {
+  return vt::memset(dst, b, len);
+}

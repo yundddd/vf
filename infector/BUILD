@@ -102,8 +102,8 @@ cc_nostdlib_library(
         "//common:file_descriptor",
         "//common:macros",
         "//common:math",
-        "//nostdlib:stdio",
         "//nostdlib:string",
+        "//nostdlib:unistd",
     ],
 )
 

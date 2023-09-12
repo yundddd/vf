@@ -35,3 +35,5 @@ char* strncpy(char* dst, const char* src, size_t size);
 char* strrchr(const char* s, int c);
 
 }  // namespace vt
+
+extern "C" void* memset(void* dst, int b, size_t len) noexcept;
