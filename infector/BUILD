@@ -120,6 +120,7 @@ cc_nostdlib_library(
         ":injection_result",
         "//common:file_descriptor",
         "//common:math",
+        "//common:mmap_min_addr",
         "//nostdlib:stdio",
         "//nostdlib:string",
     ],

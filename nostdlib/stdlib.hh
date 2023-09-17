@@ -82,9 +82,9 @@ int i64toa_r(int64_t in, char* buffer);
 
 void* operator new(size_t n);
 void* operator new[](size_t n);
-void operator delete(void* p);
-void operator delete(void* ptr, unsigned long);
-void operator delete[](void* m);
+void operator delete(void* p) noexcept;
+void operator delete(void* ptr, unsigned long) noexcept;
+void operator delete[](void* m) noexcept;
 
 // Definition of the error function to call if the constructor goes bonkers
 extern "C" void __cxa_pure_virtual();

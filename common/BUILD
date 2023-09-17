@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_python//python:defs.bzl", "py_binary")
 load("//nostdlib:nostdlib.bzl", "cc_nostdlib_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -9,6 +11,16 @@ cc_nostdlib_library(
         ":check",
         ":macros",
         "//nostdlib/sys:mman",
+    ],
+)
+
+cc_nostdlib_library(
+    name = "mmap_min_addr",
+    hdrs = ["mmap_min_addr.hh"],
+    deps = [
+        ":file_descriptor",
+        "//nostdlib:stdlib",
+        "//nostdlib:unistd",
     ],
 )
 

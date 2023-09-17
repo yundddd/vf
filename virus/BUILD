@@ -19,10 +19,9 @@ cc_nostdlib_binary(
     allow_rodata_merging = True,
     deps = [
         "//common:directory_iterator",
-        "//common:get_symbol_addr",
         "//common:macros",
-        "//infector:common_infection",
         "//infector:pt_note_infector",
+        "//propagation:propagate",
         "//redirection:entry_point",
     ],
 )
