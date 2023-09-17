@@ -16,7 +16,7 @@ We should not refer to anything in .data sections that is global, such as enviro
 
 We rolled our own startup code as well as common utilities. Note that a subset of them are not suitable for viruses as they might take up too much space (ex. sprintf). Use them for developing viruses only. The startup code maybe patched to hand control back to host, while restoring important registers as if nothing has happened before host's entry.
 
-# Your virus needs to be patched to hand control back to host.
+# Your virus needs to be patched to hand control back to host
 
 Our startup code follows this convention for patching: for x86-64, the last 8 nop instructions should be patched to a jump instruction; for aarch64, the last nop instruction (4bytes) should be patched to a branch instruction.
 
@@ -26,12 +26,12 @@ We provided algorithms for users to choose, each with their own trade-offs on sp
 
 # It's hard to test viruses
 
-Our build system is setup in a way that allows us to select two binary modes (virus and normal). The former links our virus startup code, that enables patching and register restoration. The latter is simplier, and exposes environ, makes writing unittests/tools easier since we are not writing viruses any more. We also provide a test framework, that mimics GTEST framework, to make testing familiar to users.
+Virus writing is hard, and testing virus is even harder. This repo uses hermetic cc/python toolchains to ensure whatever works, can be deterministically reproduced on another developer's machine/CI agents. We also use docker images (currently ubuntu bionic, jammy, focal) as our infection test beds, so we can monitor not only the success rate of our virus infection algorithms, but also setup integration tests. Iterate with confidence. The infection results of various algorithms are recorded in each CI job's artifact sections.
 
 # Docker
 
 This framework is targeting both x86 and aarch64. Therefore we will need to run our code on two architectures.
-The development is streamlined by docker, as switching between machines can be tedious; this section discribes
+The development is streamlined by docker, as switching between machines can be tedious; this section describes
 a workflow that can potentially work on all systems.
 
 Acquire a development machine (mac, windows or linux) and install install [docker desktop](https://www.docker.com/products/docker-desktop/). Also, fork this repo and clone it to your development machine, let's say, to `/home/$USER/vt`.
@@ -50,7 +50,7 @@ cd vt
 ./build_dev_images.sh && ./run_dev_containers.sh
 ```
 
-These commands will make two containers available for you, with direct access to the cloned repo. You can build and debug code inside the containers by:
+These commands will make two containers available for you, with direct access to the cloned repo. You can build and debug code inside the containers from your host by:
 
 ```bash
 # acquire a shell to the x86 container
@@ -62,13 +62,13 @@ $ vscode@x86 ~/vt master
 $ vscode@xaarch64 ~/vt master
 ```
 
-The containers have setup everything you need to build and debug your code. The repo is mounted at /home/vscode/vt. The default non-root user is called `vscode` to facilitate those who use vscode docker plugin. It is also in sudoer file. Note that the machine type is displaced on the prompt in case you have multiple terminals running.
+The containers have setup everything you need to build and debug your code. The repo is mounted at /home/$USER/vt. It is also in sudoer file. Note that the machine type is displaced on the prompt in case you have multiple terminals running.
 
 Under the hood, these two containers mount our repo and all share the same code with our development host. In other words, any changes to our code will be immediately available to build and run inside our containers.
 
-Note: The containers do not have permission to push to your repo, in fact they don't even have git user or email setup to commit any changes. Ideally you should only commit and push from your development machine.
+Note: The containers do not have permission to push to your repo, in fact they don't even have git user or email setup to commit any changes. Ideally you should only commit and push from your trusted development machine outside of docker.
 
-Note: Users should not save any important data in containers as they do not perserve them. If there is any update to dockerfile, re-run these commands to refresh the containers. Users should only modify the code folder inside the containers.
+Note: Users should not save any important data in containers as they do not preserve them upon shutdown. If there is any update to dockerfile, re-run these commands to refresh the containers. Users should only modify the code folder inside the containers.
 
 # Infection Algorithm
 
@@ -84,23 +84,35 @@ To infect a single binary, run the following command:
 
 ```bash
 # build the infector and sample virus first
-bazel build //infector/... --config=gcc_aarch64
-# infect a single binary (a copy of /usr/bin/ls) using the `text_padding` algorithm.
-infector/infect_victim.sh text_padding /usr/bin/ls
+bazel build //virus/... //infector:infector
+# infect a single binary (a copy of /usr/bin/ls) using the `pt_note` algorithm.
+infector/infect_victims.sh /tmp/bin/virus/test_virus.text /tmp/bin/infector/infector pt_note /usr/bin/ls
 ```
 
 To infect all binaries from a path, run:
 
 ```bash
-bazel build //infector/... --config=gcc_aarch64
-# infect all binaries in /usr/bin using the `text_padding` algorithm.
-infector/infect_victims.sh text_padding /usr/bin
+bazel build //virus/... //infector:infector
+# infect all binaries in /usr/bin using the `pt_note` algorithm.
+infector/infect_victims.sh /tmp/bin/virus/test_virus.text /tmp/bin/infector/infector pt_note /usr/bin/
+```
+
+To infect a single binary with self-propagation, run the following command:
+
+```bash
+# build the infector and sample virus first
+bazel build //virus/... //infector:infector
+# infect a single binary (a copy of /usr/bin/ls) using the `pt_note` algorithm.
+infector/infect_victims.sh /tmp/bin/virus/self_propagating_virus.text /tmp/bin/infector/infector pt_note /usr/bin/ls
+cd /tmp && cp /usr/bin/pwd . && cp /usr/bin/ls .
+# run victim and let it propagate
+./victim
+# this binary is infected.
+./ls
 ```
 
 The scripts will make a copy of the victim binary and infect it with a sample virus. For more details please read the source.
 
-The Text Padding infection was devised by Silvio Cesare in 1998. It takes advantage of the fact that ELF binaries are mapped into memory by pages, as we can only set access/execution control on page boundary. The TEXT segment has the execution bit set, while the next segment does not. This means, if the TEXT segment doesn't use up all the space in a page, there will be holes in our ELF file. This algorithm injects a virus into this space (provided there is enough space) and takes over the entry point to execute it first, before handing control back to the original entry point.
-
 # Using C++
 
-enum class has to specify the underlying type to be uint8_t. Anythin larger or by default the compiler might put enums in to .rodata section. Luckily, all nostdlib_cc_binary has an auto-genrated test to ensure that it has no .rodata.
+enum class has to specify the underlying type to be uint8_t. Anything larger or by default the compiler might put enums in to .rodata section. Luckily, all nostdlib_cc_binary has an auto-genrated test to ensure that it has no sections that are not suitable for virus relocation.

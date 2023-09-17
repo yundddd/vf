@@ -16,6 +16,7 @@ cc_nostdlib_library(
 
 cc_nostdlib_library(
     name = "mmap_min_addr",
+    srcs = ["mmap_min_addr.cc"],
     hdrs = ["mmap_min_addr.hh"],
     deps = [
         ":file_descriptor",

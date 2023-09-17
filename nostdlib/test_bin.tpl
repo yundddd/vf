@@ -15,6 +15,6 @@ def test_binary_does_not_exist(test_parasite_binary):
 def test_parasite_has_text(test_parasite_binary):
     assert test_parasite_binary.get_section(".text") is not None
 
-# Parasite must be position indepedent.
+# Parasite must be position independent.
 def test_parasite_is_PIE(test_parasite_binary):
     assert test_parasite_binary.is_pie == True
