@@ -29,7 +29,7 @@
 // self-contained. Therefore they cannot reference strings stored in .rodata.
 // This can be worked around by merging virus's .rodata together with .text at
 // the expense of a larger than desired virus. But this only works for infection
-// methods that guarentee page alignment for arm, making the virus code
+// methods that guarantee page alignment for arm, making the virus code
 // non-portable.
 
 // Solutions:
@@ -48,7 +48,7 @@
 // space. Please consider the STR_LITERAL macro instead.
 //
 // The following macro uses an extra 8 bytes (aarch64) or 9 bytes (x86-64) of
-// instructions for loading string address that resides in the text segement,
+// instructions for loading string address that resides in the text segment,
 // which is not too bad for long strings.
 // example:
 //
@@ -57,7 +57,7 @@
 //      STR_LITERAL("this binary %%s is infected\\n");
 //   vt::printf(str, argv[0]);
 //
-// If it's guarenteed that the virus is relocated to a page aligned address,
+// If it's guaranteed that the virus is relocated to a page aligned address,
 // users can consider merging .text and .rodata without using this macro. Note
 // that we do not align the next instruction on 4 byte boundary on x86, but we
 // do that for aarch64 since arm instruction must be aligned.

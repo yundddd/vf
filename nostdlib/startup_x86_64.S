@@ -48,7 +48,41 @@ pop %rdx
 /* pad here so the _patch_return offset is the same on both x86_64 and aarch64*/
 nop
 nop
-/* offset from _start is 0x20 */
+
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+
+/* offset from _start is 64 */
 .global _patch_return
 _patch_return:
 nop                      /* zero the stack frame */
@@ -58,4 +92,4 @@ nop
 nop
 nop
 nop
-nop  
+nop

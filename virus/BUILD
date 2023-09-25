@@ -23,5 +23,6 @@ cc_nostdlib_binary(
         "//infector:pt_note_infector",
         "//propagation:propagate",
         "//redirection:entry_point",
+        "//redirection:libc_start_main",
     ],
 )

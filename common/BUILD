@@ -129,14 +129,6 @@ cc_nostdlib_library(
     hdrs = ["patch_pattern.hh"],
 )
 
-cc_nostdlib_library(
-    name = "expected",
-    hdrs = ["expected.hh"],
-    deps = [
-        "@expected_lite//:expected",
-    ],
-)
-
 py_binary(
     name = "extract_text_section",
     srcs = ["extract_text_section.py"],

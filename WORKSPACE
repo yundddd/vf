@@ -161,12 +161,3 @@ git_repository(
     remote = "https://github.com/google/googletest",
     tag = "release-1.11.0",
 )
-
-http_archive(
-    name = "expected_lite",
-    build_file = "//third_party/expected_lite:BUILD",
-    sha256 = "b2f90d5f03f6423ec67cc3c06fd0c4e813ec10c4313062b875b37d17593b57b4",
-    strip_prefix = "expected-lite-0.6.3/include/nonstd/",
-    urls =
-        ["https://github.com/martinmoene/expected-lite/archive/refs/tags/v0.6.3.tar.gz"],
-)

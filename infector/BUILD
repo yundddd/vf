@@ -77,6 +77,7 @@ cc_binary(
         "//common:string",
         "//nostdlib:stdio",
         "//redirection:entry_point",
+        "//redirection:libc_start_main",
     ],
 )
 

@@ -38,8 +38,8 @@ def main():
         # sections must be contigous.
         assert (
             num >= parasite_text.size + parasite_rodata.size
-            and num < parasite_text.size + parasite_rodata.size + 15
-        ), "There are other sections between rodata and text"
+            and num <= parasite_text.size + parasite_rodata.size + 15
+        ), f"There are other sections between rodata and text. text start:{parasite_text.offset} size:{parasite_text.size} rodata start:{parasite_rodata.offset} size:{parasite_rodata.size}"
 
     # for some reason clang 16 puts all symbol addresses in got even they are known at compile time.
     # copy over the got section as well.

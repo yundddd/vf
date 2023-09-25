@@ -310,8 +310,8 @@ extern "C" void abort(void) noexcept {
     ;
 }
 
-void* operator new(size_t n)  { return vt::malloc(n); }
-void* operator new[](size_t n)  { return vt::malloc(n); }
+void* operator new(size_t n) { return vt::malloc(n); }
+void* operator new[](size_t n) { return vt::malloc(n); }
 void operator delete(void* p) noexcept { vt::free(p); }
 void operator delete(void* ptr, unsigned long) noexcept { vt::free(ptr); }
 void operator delete[](void* m) noexcept { vt::free(m); }

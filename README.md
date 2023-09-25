@@ -70,7 +70,7 @@ Note: The containers do not have permission to push to your repo, in fact they d
 
 Note: Users should not save any important data in containers as they do not preserve them upon shutdown. If there is any update to dockerfile, re-run these commands to refresh the containers. Users should only modify the code folder inside the containers.
 
-# Infection Algorithm
+# Infection Algorithms
 
 In this repo we present various infection algorithms that can infect:
 
@@ -113,6 +113,10 @@ cd /tmp && cp /usr/bin/pwd . && cp /usr/bin/ls .
 
 The scripts will make a copy of the victim binary and infect it with a sample virus. For more details please read the source.
 
+# Redirection Algorithms
+
+After virus code is injected, we provide ways to redirect host execution to run the virus and then hand control back to the host as if nothing has happened. Please see //redirection for more details.
+
 # Using C++
 
-enum class has to specify the underlying type to be uint8_t. Anything larger or by default the compiler might put enums in to .rodata section. Luckily, all nostdlib_cc_binary has an auto-genrated test to ensure that it has no sections that are not suitable for virus relocation.
+enum class has to specify the underlying type to be uint8_t. Anything larger or by default the compiler might put enums in to .rodata section. Luckily, all nostdlib_cc_binary has an auto-genrated test to ensure that it has no sections that are not suitable for virus relocation. Since we do not link with libc++, we can only use header only libraries, such as unique_ptr, pair, optional, expected.

@@ -42,7 +42,7 @@ common::FileDescriptor infect(std::span<const std::byte> host_mapping,
   if (!result ||
       !Patch{}(result->parasite_entry_address, result->parasite_file_offset,
                parasite_patch_offset, output_victim)) {
-    // infection failed, close and remove the temprorary file.
+    // infection failed, close and remove the temporary file.
     output = {};
     (void)vt::unlink(tmp_file_name);
   }
