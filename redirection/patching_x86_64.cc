@@ -3,8 +3,8 @@
 namespace vt::redirection {
 
 namespace {
-constexpr uint8_t branch_link_op_code = 0xe8;
-constexpr uint8_t branch_op_code = 0xe9;
+constexpr uint16_t call_op_code = 0x15ff;
+constexpr uint8_t jmp_op_code = 0xe9;
 }  // namespace
 
 Elf64_Addr branch_destination(const std::byte* branch_inst,
@@ -28,15 +28,15 @@ Elf64_Addr branch_destination(const std::byte* branch_inst,
   }
 }
 
-// call rel32 e8 xxxxxxxx The rel32 offset is from the next instruction after
-// the jmp. The patched jump instruction is always 5 bytes.
+// call: ff 15 xxxxxxxx The rel32 offset is from the next instruction after
+// the jmp. The patched jump instruction is always 6 bytes.
 void patch_branch_with_return(std::byte* instruction_ptr, Elf64_Addr src_vaddr,
                               Elf64_Addr dst_vaddr) {
   // https://www.felixcloutier.com/x86/call
-  int32_t rel = dst_vaddr - (src_vaddr + 5);
+  int32_t rel = dst_vaddr - (src_vaddr + 6);
 
-  *reinterpret_cast<uint8_t*>(instruction_ptr) = branch_link_op_code;
-  *(int32_t*)(instruction_ptr + 1) = rel;
+  *reinterpret_cast<uint16_t*>(instruction_ptr) = call_op_code;
+  *(int32_t*)(instruction_ptr + 2) = rel;
 }
 
 // jmp rel32 e9 xxxxxxxx The rel32 offset is from the next instruction after
@@ -46,7 +46,7 @@ void patch_branch(std::byte* instruction_ptr, Elf64_Addr src_vaddr,
                   Elf64_Addr dst_vaddr) {
   int32_t rel = dst_vaddr - (src_vaddr + 5);
 
-  *reinterpret_cast<uint8_t*>(instruction_ptr) = branch_op_code;
+  *reinterpret_cast<uint8_t*>(instruction_ptr) = jmp_op_code;
   *(int32_t*)(instruction_ptr + 1) = rel;
 }
 
