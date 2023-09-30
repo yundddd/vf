@@ -29,8 +29,6 @@ push %r8
 push %r9
 push %rsp
 
-xor %ebp, %ebp           /* zero the stack frame */
-
 call main
 
 pop %rsp
@@ -45,26 +43,6 @@ pop %rbx
 pop %rax
 
 /* pad here so the _patch_return offset is the same on both x86_64 and aarch64*/
-nop
-nop
-
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
 nop
 nop
 nop
@@ -91,4 +69,4 @@ nop
 nop
 nop
 nop
-nop
+hlt

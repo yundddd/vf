@@ -28,7 +28,7 @@ stp x29, x30, [sp, #-16]!
 
 bl main
 
-ldp x29, x30, [sp], #16       /* restore x0 */
+ldp x29, x30, [sp], #16     /* restore x0 */
 ldp x6, x7, [sp], #16       /* restore x0 */
 ldp x4, x5, [sp], #16       /* restore x0 */
 ldp x2, x3, [sp], #16       /* restore x0 */
