@@ -29,26 +29,17 @@ jobs:
           name: Test
           command: bazel test //... --test_output=all
 
+      #@ vs = ["jammy", "focal"]
+      #@ injects = ["text_padding", "reverse_text", "pt_note"]
+      #@ redirects = ["entry_point", "libc_main_start"]
+      #@ for v in vs:
+      #@ for inject in injects:
+      #@ for redirect in redirects:
       - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_jammy_text_padding/infection_result.txt
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_jammy_reverse_text/infection_result.txt
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_jammy_pt_note/infection_result.txt
-
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_focal_text_padding/infection_result.txt
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_focal_reverse_text/infection_result.txt
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_focal_pt_note/infection_result.txt
-
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_bionic_text_padding/infection_result.txt
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_bionic_reverse_text/infection_result.txt
-      - store_artifacts:
-          path: /tmp/bin/infector/infect_ubuntu_bionic_pt_note/infection_result.txt
+          path: /tmp/bin/infector/infect_ubuntu_#@ v_#@ inject_#@ redirect/infection_result.txt
+      #@ end
+      #@ end
+      #@ end
 
   build-and-test-aarch64:
     machine:
