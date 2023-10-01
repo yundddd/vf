@@ -21,6 +21,10 @@ infector_docker_image(
         "reverse_text",
     ],
     parasite = "//virus:test_virus",
+    redirection_methods = [
+        "entry_point",
+        "libc_main_start",
+    ],
 )
 
 infector_docker_image(
@@ -39,6 +43,10 @@ infector_docker_image(
         "reverse_text",
     ],
     parasite = "//virus:test_virus",
+    redirection_methods = [
+        "entry_point",
+        "libc_main_start",
+    ],
 )
 
 infector_docker_image(
@@ -57,6 +65,10 @@ infector_docker_image(
         "reverse_text",
     ],
     parasite = "//virus:test_virus",
+    redirection_methods = [
+        "entry_point",
+        "libc_main_start",
+    ],
 )
 
 filegroup(
@@ -156,8 +168,11 @@ pytest_test(
     name = "infector_integration_test",
     srcs = ["infector_integration_test.py"],
     data = [
-        "//infector:infect_ubuntu_jammy_pt_note",
-        "//infector:infect_ubuntu_jammy_reverse_text",
-        "//infector:infect_ubuntu_jammy_text_padding",
+        "//infector:infect_ubuntu_jammy_pt_note_entry_point",
+        "//infector:infect_ubuntu_jammy_pt_note_libc_main_start",
+        "//infector:infect_ubuntu_jammy_reverse_text_entry_point",
+        "//infector:infect_ubuntu_jammy_reverse_text_libc_main_start",
+        "//infector:infect_ubuntu_jammy_text_padding_entry_point",
+        "//infector:infect_ubuntu_jammy_text_padding_libc_main_start",
     ],
 )

