@@ -4,7 +4,7 @@ authors:
 - family-names: "Chen"
   given-names: "T"
   orcid: "https://orcid.org/0000-0000-0000-0000"
-title: "My Research Software"
+title: "VF: A Linux Virus Framework"
 version: 1.0.0
 doi: 10.5281/zenodo.10254215
 date-released: 2023-12-03
