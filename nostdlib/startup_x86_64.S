@@ -59,10 +59,10 @@ nop
 nop
 nop
 
-/* offset from _start is 64 */
+/* offset from _start is 44 */
 .global _patch_return
 _patch_return:
-nop                      /* zero the stack frame */
+nop
 nop
 nop
 nop

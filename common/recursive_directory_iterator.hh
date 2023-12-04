@@ -3,6 +3,10 @@
 #include "common/directory_iterator.hh"
 
 namespace vf::common {
+
+// A recursive directory iterator that allows walking the file system tree up to
+// a predefined depth.
+// @tparam MAX_LEVEL The max level of recursion including the current level.
 template <size_t MAX_LEVEL>
 class RecursiveDirectoryIterator {
   static_assert(MAX_LEVEL > 0,

