@@ -48,7 +48,7 @@ namespace vf::infector {
 // Another modification of this infection algorithm is that we pad the virus to
 // always start at page aligned address/offset so that it makes virus rodata
 // relocation safe on aarch64, at the expense of a slightly larger binary (4k
-// larger at at most). This is important for viruses that merges .text and
+// larger at most). This is important for viruses that merges .text and
 // .rodata on aarch64. Although x86-64 doesn't care, we bake this in for both
 // arch to reduce algorithm complexity.
 //

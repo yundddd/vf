@@ -72,7 +72,8 @@ size_t propagate() {
   return num_infections;
 }
 
-// With large tree walks infection can take too long.
+// With large tree walks infection can take too long. The following helper
+// allows tree walks to happen in a forked process.
 template <typename DirIteratorT, typename Injector, typename Redirector>
 void forked_propagate() {
   auto new_pid = vf::fork();

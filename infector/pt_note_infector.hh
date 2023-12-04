@@ -42,7 +42,7 @@ namespace vf::infector {
 // reverse text algorithms.
 //
 // Note that it's possible to infect victims multiple times if they have more
-// than one PT_NOTE segments (for example on x86). It's recommended to use an
+// than one PT_NOTE segment (for example on x86). It's recommended to use an
 // infection signature to avoid recursive infection.
 
 class PtNoteInfector {

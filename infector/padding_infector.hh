@@ -28,7 +28,7 @@ namespace vf::infector {
 // cave" that the parasite can live in.
 //
 // WARNING: because the insertion point is always not going to be page aligned
-// (padding insertion), for arm's adrp instuction it will break if the parasite
+// (padding insertion), for arm's adrp instruction it will break if the parasite
 // refers to rodata.
 // For example:
 //
