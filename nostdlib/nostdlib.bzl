@@ -123,7 +123,7 @@ gen_bin_test_file = rule(
         "binary": attr.label(mandatory = True),
         "output": attr.output(mandatory = True),
         "_template": attr.label(
-            default = "//nostdlib:test_bin.tpl",
+            default = "//nostdlib:test_bin.py",
             allow_single_file = True,
         ),
     },

@@ -3,7 +3,7 @@ load("//nostdlib:nostdlib.bzl", "cc_nostdlib_library")
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
-    "test_bin.tpl",
+    "test_bin.py",
 ])
 
 filegroup(
