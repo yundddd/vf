@@ -3,40 +3,43 @@ import platform
 import pytest
 
 AARCH64_JAMMY_TEXT_PADDING_RESULTS = {
-    "Result: [/bin/*] infected: 258, failed: 14\n",
-    "Result: [/sbin/*] infected: 80, failed: 5\n",
+    "Result: [/bin/*] infected: 339, failed: 25\n",
+    "Result: [/sbin/*] infected: 86, failed: 5\n",
 }
 
 AARCH64_JAMMY_REVERSE_TEXT_RESULTS = {
-    "Result: [/bin/*] infected: 10, failed: 262\n",
-    "Result: [/sbin/*] infected: 0, failed: 85\n",
+    "Result: [/bin/*] infected: 10, failed: 354\n",
+    "Result: [/sbin/*] infected: 0, failed: 91\n",
 }
 
-
 AARCH64_JAMMY_PT_NOTE_RESULTS = {
-    "Result: [/bin/*] infected: 272, failed: 0\n",
-    "Result: [/sbin/*] infected: 85, failed: 0\n",
+    "Result: [/bin/*] infected: 364, failed: 0\n",
+    "Result: [/sbin/*] infected: 91, failed: 0\n",
 }
 
 X86_64_JAMMY_TEXT_PADDING_RESULTS = {
-    "Result: [/bin/*] infected: 261, failed: 11\n",
-    "Result: [/sbin/*] infected: 80, failed: 5\n",
+    "Result: [/bin/*] infected: 353, failed: 11\n",
+    "Result: [/sbin/*] infected: 87, failed: 4\n",
+}
+
+X86_64_JAMMY_LIBC_MAIN_START_RESULTS = {
+    "Result: [/bin/*] infected: 353, failed: 11\n",
+    "Result: [/sbin/*] infected: 86, failed: 5\n",
 }
 
 X86_64_JAMMY_REVERSE_TEXT_RESULTS = {
-    "Result: [/bin/*] infected: 10, failed: 262\n",
-    "Result: [/sbin/*] infected: 0, failed: 85\n",
+    "Result: [/bin/*] infected: 10, failed: 354\n",
+    "Result: [/sbin/*] infected: 0, failed: 91\n",
 }
 
-
 X86_64_JAMMY_PT_NOTE_RESULTS = {
-    "Result: [/bin/*] infected: 272, failed: 0\n",
-    "Result: [/sbin/*] infected: 85, failed: 0\n",
+    "Result: [/bin/*] infected: 364, failed: 0\n",
+    "Result: [/sbin/*] infected: 91, failed: 0\n",
 }
 
 X86_64_JAMMY_PT_NOTE_LIBC_MAIN_START_RESULTS = {
-    "Result: [/bin/*] infected: 272, failed: 0\n",
-    "Result: [/sbin/*] infected: 84, failed: 1\n",
+    "Result: [/bin/*] infected: 364, failed: 0\n",
+    "Result: [/sbin/*] infected: 90, failed: 1\n",
 }
 
 
@@ -64,7 +67,7 @@ def test_padding_infector_works_on_jammy(test_fixture):
         "infector/infect_ubuntu_jammy_text_padding_libc_main_start/infection_result.txt",
         AARCH64_JAMMY_TEXT_PADDING_RESULTS
         if platform.machine() == "aarch64"
-        else X86_64_JAMMY_TEXT_PADDING_RESULTS,
+        else X86_64_JAMMY_LIBC_MAIN_START_RESULTS,
     )
 
 

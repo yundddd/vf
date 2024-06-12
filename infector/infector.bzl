@@ -1,6 +1,4 @@
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
-load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_extract")
 
 def infector_docker_image(name, arch, base, infection_methods, redirection_methods, parasite):
@@ -31,25 +29,6 @@ def infector_docker_image(name, arch, base, infection_methods, redirection_metho
         ],
     )
 
-    download_pkgs(
-        name = name + "_bin_pkgs",
-        image_tar = native.package_relative_label(":" + name + "_image.tar"),
-        packages = [
-            "binutils",
-            "coreutils",
-            "build-essential",
-            "file",
-        ],
-    )
-
-    install_pkgs(
-        name = name + "_bin_pkgs_image",
-        image_tar = native.package_relative_label(":" + name + "_image.tar"),
-        installables_tar = native.package_relative_label(":" + name + "_bin_pkgs.tar"),
-        installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
-        output_image_name = name + "_pkgs_image",
-    )
-
     for method in infection_methods:
         for redirect in redirection_methods:
             result_file = "/infection_result.txt"
@@ -63,5 +42,5 @@ def infector_docker_image(name, arch, base, infection_methods, redirection_metho
                     os_release_command + " && " + infect.format(parasite, "./infector", method, redirect, "/bin", result_file) + " && " + infect.format(parasite, "./infector", method, redirect, "/sbin", result_file),
                 ],
                 extract_file = result_file,
-                image = native.package_relative_label(name + "_bin_pkgs_image.tar"),
+                image = native.package_relative_label(name + "_image.tar"),
             )

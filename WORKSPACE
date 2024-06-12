@@ -102,57 +102,51 @@ load(
 container_pull(
     name = "ubuntu_jammy_aarch64",
     architecture = "arm64v8",
-    digest = "sha256:cf3cc0848a5d6241b6218bdb51d42be7a9f9bd8c505f3abe1222b9c2ce2451ac",
+    digest = "sha256:8740d6bcb54a076b11bb490e55a3af5c59a9c55f978a7eb2fa307640ab32e030",
     registry = "index.docker.io",
-    repository = "arm64v8/ubuntu",
-    tag = "jammy",
+    repository = "buildpack-deps",
 )
 
 container_pull(
     name = "ubuntu_jammy_x86_64",
     architecture = "amd64",
-    digest = "sha256:56887c5194fddd8db7e36ced1c16b3569d89f74c801dc8a5adbf48236fb34564",
+    digest = "sha256:045167f341265e83e50fcbc0739476bf0c2f9056e29d3edf85a810d33a6b99a1",
     registry = "index.docker.io",
-    repository = "amd64/ubuntu",
-    tag = "jammy",
+    repository = "buildpack-deps",
 )
 
 # 20.04
 container_pull(
     name = "ubuntu_focal_aarch64",
     architecture = "arm64v8",
-    digest = "sha256:af43d52ea8f98c8ab92858a37b87be1805ce16f5300cb38b9958e63ac6b25902",
+    digest = "sha256:305862bddac325eca5677b4fcac1ece055411d7befbbe2e507d43e86c3435860",
     registry = "index.docker.io",
-    repository = "arm64v8/ubuntu",
-    tag = "focal",
+    repository = "buildpack-deps",
 )
 
 container_pull(
     name = "ubuntu_focal_x86_64",
     architecture = "amd64",
-    digest = "sha256:3246518d9735254519e1b2ff35f95686e4a5011c90c85344c1f38df7bae9dd37",
+    digest = "sha256:ba010e8fb935edf3da510e4aea79b5d7bc2d5dd111469d976b0dddbe7608ea42",
     registry = "index.docker.io",
-    repository = "amd64/ubuntu",
-    tag = "focal",
+    repository = "buildpack-deps",
 )
 
 # 18.04
 container_pull(
     name = "ubuntu_bionic_aarch64",
     architecture = "arm64v8",
-    digest = "sha256:f97a5103cca28097326814718e711c9c41b54853c26959d73495e40b1dd608f2",
+    digest = "sha256:9aebd89ff347f727c073d6f90e5130153982b6ed1420b6f9807660e44b7f4e13",
     registry = "index.docker.io",
-    repository = "arm64v8/ubuntu",
-    tag = "bionic",
+    repository = "buildpack-deps",
 )
 
 container_pull(
     name = "ubuntu_bionic_x86_64",
     architecture = "amd64",
-    digest = "sha256:dca176c9663a7ba4c1f0e710986f5a25e672842963d95b960191e2d9f7185ebe",
+    digest = "sha256:816cb0d4a26fd8584b27d190bdd57ba7048be4fc20c259e60a985bec812887dc",
     registry = "index.docker.io",
-    repository = "amd64/ubuntu",
-    tag = "bionic",
+    repository = "buildpack-deps",
 )
 
 # other third-party libs
