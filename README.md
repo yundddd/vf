@@ -2,6 +2,9 @@
 ![](https://img.shields.io/badge/infects-x86_64-blue)
 ![](https://img.shields.io/badge/infects-aarch64-yellow)
 
+<img width="300" src="https://github.com/yundddd/vf/assets/4584143/9aae2e9a-6d33-4455-9640-1688e475b3ac">
+
+
 # VF: A Linux Virus Framework For ELF
 
 The VF was originally an experiment to implement algorithms used in writing self-propagating code for linux. It gradually evolved into a generic framework providing building blocks for virus writing. To quote [Learning Linux Binary Analysis](https://www.packtpub.com/product/learning-linux-binary-analysis/9781782167105) Chapter 4:
