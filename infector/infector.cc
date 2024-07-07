@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
   vf::common::String redirect(argv[4]);
   bool ret = false;
 
+  // By default, use the elf magic array padding signer.
   using SignerT = vf::signature::ElfHeaderPaddingSigner;
   if (infect == TEXT_PADDING) {
     if (redirect == ENTRY_POINT) {

