@@ -27,7 +27,7 @@ function infect_one_victim() {
 	if [[ $? -eq 0 ]]; then
 		# run the infected binary. Since most binaries terminate with --help, this is sufficient to
 		# test that infection is working.
-		/tmp/victim --help
+		timeout 1 /tmp/victim --help
 	else
 		echo "failed to infect"
 	fi
