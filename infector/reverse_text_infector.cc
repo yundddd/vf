@@ -307,7 +307,7 @@ bool ReverseTextInfector::analyze(std::span<const std::byte> host_mapping,
   return false;
 }
 
-size_t ReverseTextInfector::injected_host_size() {
+size_t ReverseTextInfector::injected_host_size() const {
   // See comments in header.
   return host_size_ + padded_virus_size_;
 }

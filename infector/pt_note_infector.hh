@@ -49,7 +49,7 @@ class PtNoteInfector {
  public:
   // Return the size of the binary after a successful infection. This algorithm
   // will increase the file size.
-  size_t injected_host_size();
+  size_t injected_host_size() const;
 
   // Scan the elf to see if it can be injected with a parasite into a its PT
   // NOTE section.

