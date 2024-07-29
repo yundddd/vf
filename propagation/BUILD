@@ -9,6 +9,7 @@ cc_nostdlib_library(
         "//common:directory_iterator",
         "//common:get_symbol_addr",
         "//infector:common_infection",
+        "//nostdlib/sys:wait",
         "//signature:elf_padding",
     ],
 )

