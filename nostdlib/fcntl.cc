@@ -13,6 +13,10 @@ int sys_open(const char* path, int flags, mode_t mode) {
 #error Neither __NR_openat nor __NR_open defined, cannot implement sys_open()
 #endif
 }
+
+int sys_flock(int fd, int command) {
+  return my_syscall2(__NR_flock, fd, command);
+}
 }  // namespace
 
 int open(const char* path, int flags) { return open(path, flags, 0); }
@@ -20,4 +24,5 @@ int open(const char* path, int flags, mode_t mode) {
   return sys_open(path, flags, mode);
 }
 
+int flock(int fd, int command) { return sys_flock(fd, command); }
 }  // namespace vf

@@ -37,6 +37,28 @@ cc_nostdlib_library(
 )
 
 cc_nostdlib_library(
+    name = "file_lock",
+    hdrs = ["file_lock.hh"],
+    deps = [
+        ":check",
+        ":file_descriptor",
+        ":macros",
+        "//nostdlib:fcntl",
+    ],
+)
+
+cc_test(
+    name = "file_lock_test",
+    srcs = ["file_lock_test.cc"],
+    deps = [
+        ":file_lock",
+        "//testing:test_support",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_nostdlib_library(
     name = "directory_iterator",
     srcs = ["directory_iterator.cc"],
     hdrs = ["directory_iterator.hh"],
