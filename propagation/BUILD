@@ -7,6 +7,7 @@ cc_nostdlib_library(
     hdrs = ["propagate.hh"],
     deps = [
         "//common:directory_iterator",
+        "//common:double_fork",
         "//common:get_symbol_addr",
         "//infector:common_infection",
         "//nostdlib/sys:wait",

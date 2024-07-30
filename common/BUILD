@@ -178,3 +178,12 @@ cc_nostdlib_library(
     name = "math",
     hdrs = ["math.hh"],
 )
+
+cc_nostdlib_library(
+    name = "double_fork",
+    hdrs = ["double_fork.hh"],
+    deps = [
+        "//nostdlib:unistd",
+        "//nostdlib/sys:wait",
+    ],
+)

