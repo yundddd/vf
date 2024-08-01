@@ -27,6 +27,11 @@ void* sys_mmap(void* addr, size_t length, int prot, int flags, int fd,
 int sys_munmap(void* addr, size_t length) {
   return my_syscall2(__NR_munmap, addr, length);
 }
+
+int sys_memfd_create(const char* name, unsigned int flags) {
+  return my_syscall2(__NR_memfd_create, name, flags);
+}
+
 }  // namespace
 
 void* mmap(void* addr, size_t length, int prot, int flags, int fd,
@@ -40,5 +45,9 @@ void* mmap(void* addr, size_t length, int prot, int flags, int fd,
 }
 
 int munmap(void* addr, size_t length) { return sys_munmap(addr, length); }
+
+int memfd_create(const char* name, unsigned int flags) {
+  return sys_memfd_create(name, flags);
+}
 
 }  // namespace vf

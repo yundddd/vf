@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//nostdlib:nostdlib.bzl", "cc_nostdlib_library")
 
 package(default_visibility = ["//visibility:public"])
