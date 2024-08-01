@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//nostdlib:nostdlib.bzl", "cc_nostdlib_binary")
 
 package(default_visibility = ["//visibility:public"])
@@ -74,4 +75,22 @@ cc_nostdlib_binary(
         "//common:macros",
         "//nostdlib/sys:socket",
     ],
+)
+
+cc_nostdlib_binary(
+    name = "fileless_virus",
+    srcs = ["fileless_virus.cc"],
+    allow_rodata_merging = False,
+    deps = [
+        "//common:anonymous_file_descriptor",
+        "//common:double_fork",
+        "//common:macros",
+        "//nostdlib/sys:select",
+        "//nostdlib/sys:socket",
+    ],
+)
+
+cc_binary(
+    name = "fileless_virus_server",
+    srcs = ["fileless_virus_server.cc"],
 )
