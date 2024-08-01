@@ -14,7 +14,7 @@ concept WRITABLE = (PROT & PROT_WRITE) != 0;
 template <int PROT>
 class Mmap {
  public:
-  MAKE_NON_COPYABLE(Mmap);
+  Mmap() = default;
   Mmap(size_t size, int flags, int fd, size_t offset)
       : size_(size), flags_(flags), offset_(offset) {
     auto ret = vf::mmap(nullptr, size, PROT, flags, fd, offset);
@@ -54,6 +54,7 @@ class Mmap {
   size_t size() const { return size_; }
 
  private:
+  MAKE_NON_COPYABLE(Mmap);
   size_t size_ = 0;
   int flags_ = 0;
   size_t offset_ = 0;

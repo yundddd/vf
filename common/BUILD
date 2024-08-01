@@ -37,6 +37,21 @@ cc_nostdlib_library(
 )
 
 cc_nostdlib_library(
+    name = "anonymous_file_descriptor",
+    srcs = ["anonymous_file_descriptor.cc"],
+    hdrs = ["anonymous_file_descriptor.hh"],
+    deps = [
+        ":check",
+        ":file_descriptor",
+        ":macros",
+        ":mmap",
+        "//nostdlib:stdlib",
+        "//nostdlib:string",
+        "//nostdlib/sys:mman",
+    ],
+)
+
+cc_nostdlib_library(
     name = "file_lock",
     hdrs = ["file_lock.hh"],
     deps = [
@@ -128,6 +143,7 @@ cc_test(
     name = "file_descriptor_test",
     srcs = ["file_descriptor_test.cc"],
     deps = [
+        ":anonymous_file_descriptor",
         ":file_descriptor",
         "//testing:test_support",
         "@gtest",

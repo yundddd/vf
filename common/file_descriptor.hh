@@ -10,6 +10,7 @@ namespace vf::common {
 class FileDescriptor {
  public:
   FileDescriptor() = default;
+  FileDescriptor(int fd) : fd_(fd) {}
   FileDescriptor(const char* path, int flags, int mode)
       : flags_(flags), mode_(mode) {
     fd_ = vf::open(path, flags_, mode_);
@@ -19,11 +20,7 @@ class FileDescriptor {
     fd_ = vf::open(path, flags_, 0);
   }
 
-  ~FileDescriptor() {
-    if (fd_ != -1) {
-      vf::close(fd_);
-    }
-  }
+  ~FileDescriptor() { close(); }
 
   FileDescriptor(FileDescriptor&& other) { *this = std::move(other); }
 
@@ -34,7 +31,15 @@ class FileDescriptor {
   }
 
   int handle() const { return fd_; }
+
   bool valid() const { return fd_ >= 0; }
+
+  void close() {
+    if (fd_ != -1) {
+      vf::close(fd_);
+      fd_ = -1;
+    }
+  }
 
   size_t file_size() const {
     CHECK_NE(fd_, -1);
@@ -43,6 +48,8 @@ class FileDescriptor {
     CHECK_NE(ret, -1);
     return s.st_size;
   }
+
+  bool truncate(size_t size) { return vf::ftruncate(fd_, size) == 0; }
 
  private:
   MAKE_NON_COPYABLE(FileDescriptor);

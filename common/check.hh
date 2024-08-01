@@ -10,6 +10,9 @@
 
 #define CHECK_FALSE(cond) CHECK_TRUE(!!cond)
 
+#define CHECK_NOT_NULL(a) CHECK_NE(a, nullptr)
+#define CHECK_NULL(a) CHECK_EQ(a, nullptr)
+
 #define CHECK_NE(a, b)         \
   if (a == b) {                \
     [[unlikely]] CHECK_FAIL(); \
