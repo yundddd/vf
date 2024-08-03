@@ -5,7 +5,7 @@
 
 // This is a sample virus that could phone home by writing to a udp socket.
 // use the following command to test:
-//   nc -k -l 5000
+//   nc -kl 5000
 int main() {
   const char* str = STR_LITERAL("phone home\n");
 

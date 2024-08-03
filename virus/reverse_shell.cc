@@ -31,8 +31,8 @@ int main() {
     // running process in background that can be suspicious.
     int s = vf::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     // Ignore the return value here since nonblocking mode can return -1 if the
-    // connection is in progress. If the connection indeed failed, dup2 would
-    // fail.
+    // connection is in progress. If the connection indeed failed, the rest of
+    // the code will not have any side effect.
     vf::connect(s, (sockaddr*)&sa, sizeof(sa));
 
     if (vf::dup2(s, STDIN_FILENO) < 0 || vf::dup2(s, STDOUT_FILENO) < 0 ||

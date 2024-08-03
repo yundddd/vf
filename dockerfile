@@ -4,7 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # install all dependencies
 RUN apt-get update \
     && apt-get install -y language-pack-en zsh sudo git wget curl binutils \
-    nasm build-essential file vim gdb
+    nasm build-essential file vim gdb netcat
 
 RUN install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
