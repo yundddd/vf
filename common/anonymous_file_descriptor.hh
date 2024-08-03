@@ -5,6 +5,8 @@
 #include "common/mmap.hh"
 
 namespace vf::common {
+// The anonymous file descriptor is backed by a memfd, which is suitable for
+// executing fileless virus. It supports all the usual file descriptor APIs.
 class AnonymousFileDescriptor : public FileDescriptor {
  public:
   AnonymousFileDescriptor() = default;
