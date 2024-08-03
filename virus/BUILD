@@ -6,7 +6,7 @@ package(default_visibility = ["//visibility:public"])
 cc_nostdlib_binary(
     name = "test_virus",
     srcs = ["test_virus.cc"],
-    allow_rodata_merging = True,
+    allow_rodata_merging = False,
     deps = [
         "//common:macros",
         "//nostdlib:string",
@@ -17,7 +17,7 @@ cc_nostdlib_binary(
 cc_nostdlib_binary(
     name = "self_propagating_virus",
     srcs = ["self_propagating_virus.cc"],
-    allow_rodata_merging = True,
+    allow_rodata_merging = False,
     deps = [
         "//common:directory_iterator",
         "//common:macros",
@@ -32,7 +32,7 @@ cc_nostdlib_binary(
 cc_nostdlib_binary(
     name = "self_propagate_libc_start_main",
     srcs = ["self_propagate_libc_start_main.cc"],
-    allow_rodata_merging = True,
+    allow_rodata_merging = False,
     deps = [
         "//common:directory_iterator",
         "//common:macros",
@@ -45,7 +45,7 @@ cc_nostdlib_binary(
 cc_nostdlib_binary(
     name = "phone_home_udp",
     srcs = ["phone_home_udp.cc"],
-    allow_rodata_merging = True,
+    allow_rodata_merging = False,
     deps = [
         "//common:macros",
         "//nostdlib:string",
@@ -57,7 +57,7 @@ cc_nostdlib_binary(
 cc_nostdlib_binary(
     name = "phone_home_tcp",
     srcs = ["phone_home_tcp.cc"],
-    allow_rodata_merging = True,
+    allow_rodata_merging = False,
     deps = [
         "//common:macros",
         "//nostdlib:string",

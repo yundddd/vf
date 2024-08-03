@@ -32,7 +32,8 @@ common::FileDescriptor infect(std::span<const std::byte> host_mapping,
     return common::FileDescriptor{};
   }
 
-  common::FileDescriptor output(tmp_file_name, O_RDWR | O_CREAT, S_IRWXU);
+  common::FileDescriptor output(
+      tmp_file_name, DO_NOT_OPTIMIZE_CONSTANT(O_RDWR | O_CREAT), S_IRWXU);
 
   if (!output.valid()) {
     return output;

