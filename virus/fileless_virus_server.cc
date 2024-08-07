@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
@@ -27,10 +28,15 @@ int main(int argc, char** argv) {
   std::cout << "file size " << size << std::endl;
   auto mapping = ::mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
 
-  int s = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  int s = ::socket(AF_INET, SOCK_STREAM, 0);
   if (s == -1) {
     std::cout << "failed to open socket" << std::endl;
-    return 0;
+    return -1;
+  }
+  const int enable = 1;
+  if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+    std::cout << "failed to set socket option" << std::endl;
+    return -1;
   }
 
   ::sockaddr_in servaddr{};
@@ -39,35 +45,34 @@ int main(int argc, char** argv) {
   servaddr.sin_port = htons(5001);
   if (bind(s, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) {
     std::cout << "failed to bind" << std::endl;
-    return 0;
+    return -1;
+  }
+
+  if ((listen(s, 1)) == -1) {
+    return -1;
   }
 
   while (1) {
-    char input[4];
-    ::sockaddr_in cliaddr{};
+    struct sockaddr_in client;
     socklen_t len;
-    int n = ::recvfrom(s, input, 4, 0, (struct sockaddr*)&cliaddr, &len);
-    if (n > 0) {
-      size_t cur_offset = 0;
+    int connection_fd = accept(s, (sockaddr*)&client, &len);
+    int n = 0;
+    size_t cur_offset = 0;
 
-      while (cur_offset < size) {
-        auto chunk_size = std::min((size_t)size - cur_offset, (size_t)4096);
-        std::cout << "sending offset " << cur_offset << " chunk " << chunk_size
-                  << std::endl;
-        std::this_thread::sleep_for(2ms);
-        n = ::sendto(s, (char*)mapping + cur_offset, chunk_size, 0,
-                     (struct sockaddr*)&cliaddr, sizeof(cliaddr));
-        if (n > 0) {
-          std::cout << "sent chunk of size " << n << std::endl;
-          cur_offset += n;
-        } else {
-          break;
-        }
+    while (cur_offset < size) {
+      auto chunk_size = std::min((size_t)size - cur_offset, (size_t)4096);
+      std::cout << "sending offset " << cur_offset << " chunk " << chunk_size
+                << std::endl;
+      n = write(connection_fd, (const char*)mapping + cur_offset, chunk_size);
+      if (n > 0) {
+        std::cout << "sent chunk of size " << n << std::endl;
+        cur_offset += n;
+      } else {
+        break;
       }
-      std::cout << "in total sent " << cur_offset << " bytes. File size "
-                << size << " bytes." << std::endl;
     }
-    std::this_thread::sleep_for(100ms);
+    std::cout << "in total sent " << cur_offset << " bytes. File size " << size
+              << " bytes." << std::endl;
   }
 
   return 0;
