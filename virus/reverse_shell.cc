@@ -14,8 +14,7 @@
 // 3: update the local terminal line settings with stty2 and bring the remote
 //    shell back
 //      stty raw -echo && fg
-// 4: reset terminal to type linux
-//      reset
+// 4: get color back
 //      export TERM=xterm-256color
 // You should then have a fully interactive shell with command history/auto
 // complete + functional vim.
